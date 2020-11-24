@@ -1,0 +1,119 @@
+---
+title: Azure AD Quickstart
+html_title: Azure AD Quickstart | SSH
+description: SSH Azure Quickstart | Smallstep Documentation
+---
+
+### Prerequisites
+
+You will need:
+
+* An account on the smallstep platform. Need one? [Register here](/signup)
+* An Azure Premium edition account (P1 or P2)
+* Global administrator access to the account
+
+### Features
+
+The following provisioning features are supported:
+
+* Push Groups and New Users
+* Push Profile or Group Updates
+* Push User Deactivation
+* Reactivate Users
+
+## Step By Step Instructions
+
+### Step 1. Create Groups
+
+You'll grant access to your hosts via Active Directory Groups. If you don't already have groups set up, you'll want to create a group for each kind of user access to your servers. For example, you might have a group for `ssh` users, and one for `sudo` users.
+
+In the Azure portal, start at the [Groups](https://portal.azure.com/#blade/Microsoft_AAD_IAM/GroupsManagementMenuBlade/AllGroups) blade.
+
+![](/static/graphics/quickstart/aad-create-user-group.png)
+
+When creating your groups, give them names and accept the defaults on all other settings.
+
+### Step 2. Tell us your Tenant ID
+
+1. In the Smallstep SSH dashboard, under the Users tab, choose Azure.
+2. Paste your Tenant ID from the [Active Directory Overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) blade into the "Add Your Team" dialog:
+
+   ![](/static/graphics/quickstart/azure-onboarding.png)
+
+3. Choose **Save**.
+
+### Step 3. Create a SCIM application
+
+##### Create an Enterprise Application
+
+1.  Back in the Azure portal, go to the [Enterprise Applications](https://portal.azure.com/#blade/Microsoft_AAD_IAM/StartboardApplicationsMenuBlade/AllApps/menuId/) blade.
+2.  Choose **+ New application**.
+3.  Add a **Non-Gallery Application**.
+
+	![](/static/graphics/quickstart/aad-add-nongallery-app.png)
+
+4. Call it `smallstep-usersync` or some other name you'll remember.
+5. Choose **Next** on the bottom left.
+
+##### Assign groups to your application
+
+In your new application, under **Users and Groups** on the left:
+
+1.  Go to **+ Add User** to create a new assignment.
+2.  Select your `sudo` and `ssh` groups.
+3.  Choose **Select** on the bottom right.
+4.  Choose **Assign** on the bottom left.
+
+Your Users and Groups list should now look something like this:
+
+![](/static/graphics/quickstart/aad-group-example.png)
+
+##### Supply your SCIM credentials
+
+1.  Back on your applications overview page, choose **Provisioning** on the left and choose **Get Started**.
+2.  Set the provisioning mode to **Automatic**.
+3.  Under "Manage provisioning," go to **Update credentials**.
+4.  Expand **Admin Credentials:**
+    * Supply the SCIM **Tenant URL** and **Secret Token** from your activation email.
+    * Choose **Test Connection** and make sure that it works.
+	* Save.
+
+##### Set up attribute mappings
+
+Smallstep needs to see the right attributes when you sync your directory with us.
+
+1.  Expand **Mappings**.
+2.  Choose **Provision Azure Active Directory Users**
+3.  Under the **Attributes Mappings** section, perform the following steps:
+    1. Delete all attribute mappings except for `userPrincipalName`, `displayName`, `mail`, `givenName`, and `surname`
+	2. Edit the `userPrincipalName` attribute.
+       * Mapping Type: Expression
+       * Expression: `Item(Split([userPrincipalName], "@"), 1)`
+       * Target Attributes: `userName`
+       * Match objects using this attribute: Yes
+       * Matching precedence: 1
+	   * Apply this mapping: Always
+	   * OK
+
+Your mappings should look like this when you're finished:
+
+![](/static/graphics/quickstart/aad-attribute-mapping.png)
+
+##### Turn on Provisioning
+
+1.  Save your settings and return to the **Provisioning** panel.
+2.  Change **Provisioning Status** to On.
+3.  Choose **Save**
+
+> 🤦‍♂️ There's a quirk in Microsoft's UI here, and you may see an error when saving after turning provisioning on. If so, wait 60 seconds and try Save again.
+
+### Step 5. Confirm the directory connection
+
+Sign in at `https://smallstep.com/app/[Team ID]`. You should see your directory with users and groups synced.
+
+> **Don't see your users and groups?** Microsoft's SCIM service may add a 40-minute delay after you set it up. You can force an update by checking ✅**Clear current state and restart synchronization** in the Provisioning panel, and choosing Save. Even then, it may take a minute to sync with Smallstep.
+
+## Troubleshooting Tips
+
+* Initial activation of Azure AD OIDC provisioning in Smallstep SSH requires entering your **Application (client) ID**, **Client secret**, and **Configuration Endpoint** into the Smallstep UI. Contact smallstep support with any questions | [support@smallstep.com](mailto:support@smallstep.com)
+* Note: When users are deactivated in Azure AD, they will be deactivated in Smallstep. Users will not be able to SSH to servers, but their user accounts will remain on smallstep managed hosts. To permanently delete user data on smallstep managed hosts, contact Smallstep Support | [support@smallstep.com](mailto:support@smallstep.com)

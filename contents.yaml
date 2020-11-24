@@ -1,0 +1,85 @@
+smallstep_ssh:
+  - title: Client Quickstart Guide
+    path: ssh/client
+  - title: Host Quickstart Guide
+    path: ssh/hosts
+  - title: Azure AD Quickstart Guide
+    path: ssh/azure-ad
+  - title: G Suite Quickstart Guide
+    path: ssh/g-suite
+  - title: Okta Quickstart Guide
+    path: ssh/okta
+  - title: Access Control Guide
+    path: ssh/acls
+  - title: Okta UID GID Sync Guide
+    path: ssh/okta-gid-uid
+
+certificate_manager: []
+
+registration_authorities:
+  - title: ACME for Google Certificate Authority Service
+    path: registration-authorities/acme-for-cas
+
+step_cli:
+  - title: Installation
+    path: step-cli/installation
+  - title: The `step` Command
+    path: step-cli/the-step-command
+  - title: Basic Crypto Operations
+    path: step-cli/basic-crypto-operations
+  - title: Command Reference
+    path: step-cli/reference
+  - title: Discussions
+    path: https://github.com/smallstep/certificates/discussions
+  - title: GitHub
+    path: https://github.com/smallstep
+  - title: Twitter
+    path: https://twitter.com/smallsteplabs
+  - title: Email
+    path: mailto:info@smallstep.com?Subject=step%20CLI%20troubleshooting
+
+step_ca:
+  - title: Installation
+    path: step-ca/installation
+  - title: Core Concepts
+    path: step-ca/certificate-authority-core-concepts
+  - title: Getting Started
+    path: step-ca/getting-started
+  - title: Basic CA Operations
+    path: step-ca/basic-certificate-authority-operations
+  - title: Configuration
+    path: step-ca/configuration
+  - title: Production Considerations
+    path: step-ca/certificate-authority-server-production
+  - title: Integrations
+    path: step-ca/integrations
+  - title: Discussions
+    path: https://github.com/smallstep/certificates/discussions
+  - title: GitHub
+    path: https://github.com/smallstep
+  - title: Twitter
+    path: https://twitter.com/smallsteplabs
+  - title: Email
+    path: mailto:info@smallstep.com?Subject=step-ca%20troubleshooting
+
+mutual_tls: []
+
+tutorials:
+  - title: Create a new CA or an intermediate CA using `step-ca`
+    path: tutorials/intermediate-ca-new-ca
+  - title: Run an ACME server and issue internal X.509 certificates
+    path: tutorials/acme-challenge
+  - title: Configure popular ACME clients to use a private CA
+    path: tutorials/acme-protocol-acme-clients
+  - title: Use the AWS, GCP, or Azure metadata API to issue X.509 certificates
+    path: tutorials/cloud-vm-certificate
+  - title: Connect your identity provider and issue X.509 user certificates
+    path: tutorials/user-authentication
+  - title: Run an SSH CA and connect to VMs using SSH certificates
+    path: tutorials/ssh-certificate-login
+  - title: Use AWS to deploy a certificate authority and secure microservices
+    path: tutorials/mutual-tls-aws
+  - title: Run a private online certificate authority in a docker container
+    path: tutorials/docker-tls-certificate-authority
+  - title: Federate multiple autonomous certificate authorities
+    path: tutorials/pki-trust-model-federation

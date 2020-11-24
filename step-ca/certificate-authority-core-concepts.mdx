@@ -1,0 +1,126 @@
+---
+title: Certificate Authority Core Concepts
+html_title: Certificate authority core concepts for open source step-ca
+description: Learn about certificate authority core concepts for open source step-ca
+unfurl: /static/graphics/smallstep-docs-unfurl.png
+---
+
+import CodeBlock from 'docs/CodeBlock';
+
+This document defines and describes certificate authority core concepts that are integral to the design
+and practical usage of `step-ca`.
+
+Readers who are not yet familiar with public key infrastructure (PKI) and 
+certificate management may want to check out...
+
+- [Everything you should know about certificates and PKI but are too afraid to ask](https://smallstep.com/blog/everything-pki/)
+- [The case for using TLS everywhere](https://smallstep.com/blog/use-tls/)
+
+## Overview
+
+- [Online and Offline X.509 Certificate Authority](#online-and-offline-x509-certificate-authority)
+- [Provisioners](#provisioners)
+- [Active vs. Passive Revocation](#active-vs-passive-revocation)
+
+## Online and Offline X.509 Certificate Authority
+
+When referring to Certificate Authorities (CAs), _offline_ generally means
+air-gapped or network isolated. However, the term _offline_ has a different
+meaning in the context of `step-ca`. When `step-ca` is online (using the
+`step-ca` server) it is responding to network requests. But `step-ca` can
+also operate "offline", without the `step-ca` server, by accessing the signing
+keys locally. We call this static, non-daemonized operation _offline mode_. Any
+further use of the term _offline_ in these docs will refer to _offline mode_ in
+the context of `step-ca` (local access only).
+
+Our tools support three modes of generating and operating a Certificate Authority (CA):
+* An online database-backed CA, using the `step-ca` daemon and `step ca` subcommand ([docs here][stateful-ca]).
+* A local (or airgapped) database-backed CA, using the `step ca` subcommand with `--offline`.
+* A minimalist, offline, stateless CA, using the `step certificate` subcommand
+  ([docs here][stateless-ca]).
+
+![](../../../static/images/cas-three-ways.png)
+
+[stateless-ca]: /docs/step-cli/basic-crypto-operations#run-an-offline-x509-certificate-authority
+[stateful-ca]: /docs/step-ca/getting-started
+
+### CA Offline Mode
+
+It's not always practical or desirable to run an online CA.
+Smallstep provides the means to create certificates without `step-ca` running.
+`step-cli` offline mode leverages the CA's configuration, which must be available locally, to issue certificates.
+
+```shell-session nocopy
+$ step ca init --name "Local CA" --provisioner admin --dns localhost --address ":443"
+$ step ca certificate --offline foo.smallstep.com foo.crt foo.key
+```
+
+`step-cli` can also generate bootstrap tokens in offline mode and exchange them with a running CA for a certificate.
+This workflow is useful when generating tokens on a host without direct access to the running CA.
+
+```shell-session nocopy
+$ TOKEN=$(step ca token --offline foo.smallstep.com) 
+$ step ca certificate --token=$TOKEN foo.smallstep.com foo.crt foo.key
+```
+
+<Alert severity="info">
+You cannot exchange a token for a certificate that will be generated offline.
+The token must be exchanged with an online CA.
+</Alert>
+
+## Provisioners
+
+The certificate signing API exposed by `step-ca` requires mutual
+authentication. The CA authenticates to the client using a certificate (which
+the client verifies using the root certificate created during CA initialization). 
+But the client must also authenticate to the CA. Again, this
+presents a challenge: the client obviously can't use a certificate for
+authentication because it doesn't have one yet.
+
+To verify the legitimacy of certificate signing requests, we need some entity
+that the CA trusts to measure and attest to the identity of our workloads. In
+the _step certificates_ architecture this entity is called a _provisioner_,
+because it helps to provision certificates.
+
+In general, once a _provisioner_ authenticates a workload's identity it issues
+the workload a _bearer token_ to submit to the CA, along with a [certificate
+signing
+request](https://smallstep.com/blog/everything-pki.html#certificate-signing-requests
+'CSR') (CSR), to obtain a certificate. The _bearer token_ authenticates the
+workload and authorizes the certificate request.
+
+![Generic Architecture](https://i.imgur.com/zH4RYEj.png 'Generic Architecture')
+
+The details of how a provisioner interacts with a workload (or device or
+person) and the CA vary by provisioner type. Smallstep supports a number of
+provisioner types including:
+
+- [ACME protocol](/docs/step-ca/configuration#acme)
+- [OAuth/OIDC Single Sign-on](/docs/step-ca/configuration#oauthoidc-single-sign-on)
+- [AWS Instance Identity Documents](/docs/step-ca/configuration#aws)
+- [Google Cloud Instance Identity Tokens](/docs/step-ca/configuration#gcp)
+- [Azure Instance Metadata Service](/docs/step-ca/configuration#azure) 
+- [Kubernetes Service Account Tokens](/docs/step-ca/configuration#k8ssa-kubernetes-service-account) 
+- [JWT for building custom integrations](/docs/step-ca/configuration#jwt)
+
+## Active vs. passive revocation
+
+On the public internet, sometimes HTTPS certificates need to be revoked before
+they expire. Over the years, there have been several methods for _actively
+revoking_ HTTPS certificates. Any approach to solving this problem adds
+complexity to the PKI—usually in the form of additional network requests. For
+example, a web browser might need to fetch a Certificate Revocation List (CRL)
+from a URL embedded in an HTTPS certificate so it can make sure the
+certificate, which would otherwise be valid, has not been actively revoked by
+a trusted authority.
+
+When designing a private PKI, you can make things a lot simpler and more
+decentralized. If you make certificate lifetimes short enough, you can
+_passively revoke_ a certificate by letting it expire and making sure the
+Certificate Authority knows to reject any attempts to renew it.
+
+![passive revocation diagram](../../../static/images/passive-revocation.png)
+
+## Next Steps
+
+- Read the [Getting Started guide](/docs/step-ca/getting-started) to set up a CA and get your first certificate.

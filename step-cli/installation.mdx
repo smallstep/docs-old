@@ -1,0 +1,75 @@
+---
+title: Installation
+html_title: Installing open source step
+description: Learn how to install step
+unfurl: /static/graphics/smallstep-docs-unfurl.png
+---
+
+import CodeBlock from 'docs/CodeBlock';
+import Aside from 'docs/Aside';
+import Alert from 'docs/Alert';
+import AlertTitle from 'docs/AlertTitle';
+import Code from 'docs/Code';
+import Link from 'docs/Link';
+
+It's trivial to install the `step` binary on your local machine.
+
+<Alert severity="info">
+    <AlertTitle>
+        Building from source?
+    </AlertTitle>
+    <div>
+        Check out our guide to <Link
+        href="https://github.com/smallstep/cli/blob/master/docs/local-development.md">getting
+        started with development</Link>.
+  </div>
+</Alert>
+
+### macOS
+
+Install `step` via [Homebrew](https://brew.sh/):
+
+```shell
+brew install step
+```
+
+### Debian Linux
+
+Download and install the Debian package from our [latest release](https://github.com/smallstep/cli/releases/latest):
+
+```shell
+wget https://github.com/smallstep/cli/releases/download/v0.15.3/step-cli_0.15.3_amd64.deb
+sudo dpkg -i step-cli_0.15.3_amd64.deb
+```
+
+### Arch Linux
+
+We are using the [Arch User Repository](https://aur.archlinux.org/) to
+distribute `step` binaries for Arch Linux.
+
+- The `step` binary tarball can be found [here](https://aur.archlinux.org/packages/step-cli-bin/).
+- The `step-ca` binary tarball (for [step certificates](https://github.com/smallstep/certificates) - a sibling repository) can be found [here](https://aur.archlinux.org/packages/step-ca-bin/).
+
+You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
+
+### Linux (other)
+
+We have amd64, arm64, and armv7 releases available to download from our [latest
+release](https://github.com/smallstep/cli/releases/latest).
+
+### Testing your installation
+
+```shell-session nocopy
+$ step certificate inspect https://smallstep.com
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 326381749415081530968054238478851085504954 (0x3bf265673332db2d0c70e48a163fb7d11ba)
+    Signature Algorithm: SHA256-RSA
+        Issuer: C=US,O=Let's Encrypt,CN=Let's Encrypt Authority X3
+        Validity
+            Not Before: Feb 8 13:07:44 2019 UTC
+            Not After : May 9 13:07:44 2019 UTC
+        Subject: CN=smallstep.com
+[...]
+```

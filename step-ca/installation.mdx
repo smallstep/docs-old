@@ -1,0 +1,151 @@
+---
+title: Installation
+html_title: Installing open source step-ca
+description: Learn how to install step-ca
+unfurl: /static/graphics/smallstep-docs-unfurl.png
+---
+
+import Alert from 'docs/Alert';
+import AlertTitle from 'docs/AlertTitle';
+import Code from 'docs/Code';
+import CodeBlock from 'docs/CodeBlock';
+import Link from 'docs/Link';
+
+It's trivial to install the `step-ca` binary on your local machine.
+
+<Alert severity="info">
+  <AlertTitle>Building from source?</AlertTitle>
+  <div>
+    Check out our guide to{' '}
+    <Link href="https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md">getting
+    started with development</Link>.
+  </div>
+</Alert>
+
+#### Select your operating system or infrastructure:
+
+- [macOS](#macos)
+- [Linux](#linux)
+  - [Debian](#debian)   
+  - [Arch Linux](#arch-linux)
+  - [RHEL/CentOS](#rhelcentos)
+- [Kubernetes](#kubernetes)
+- [Docker](#docker)
+
+### macOS
+
+Install `step` and `step-ca` together, via [Homebrew](https://brew.sh/):
+
+```shell
+brew install step
+```
+
+### Linux
+
+<Alert severity="info">
+  <AlertTitle>Install both <Code>step-ca</Code> and the <Code>step</Code> CLI tool.</AlertTitle>
+  <div>
+    The <Link href="/docs/step-cli"><Code>step</Code> CLI tool</Link> is the easiest way to
+    initialize, configure, and control <Code>step-ca</Code>. While <Code>step</Code> is not
+    technically required to run <Code>step-ca</Code>, it is very much recommended.
+  </div>
+</Alert>
+
+#### Debian
+
+1. Install `step`
+
+    Download and install the Debian package from our [latest release](https://github.com/smallstep/cli/releases/latest):
+    
+    ```shell
+    wget https://github.com/smallstep/cli/releases/download/v0.15.3/step-cli_0.15.3_amd64.deb
+    sudo dpkg -i step-cli_0.15.3_amd64.deb
+    ```
+
+2. Install `step-ca`
+
+    Download and install the Debian package from our [latest release](https://github.com/smallstep/certificates/releases/latest):
+
+    ```shell
+    wget https://github.com/smallstep/certificates/releases/download/v0.15.4/step-certificates_0.15.4_amd64.deb
+    sudo dpkg -i step-certificates_0.15.4_amd64.deb
+    ```
+
+#### Arch Linux
+
+We are using the [Arch User Repository](https://aur.archlinux.org/) to
+distribute `step` and `step-ca` binaries for Arch Linux.
+
+- The `step` binary tarball can be found [here](https://aur.archlinux.org/packages/step-cli-bin/).
+- The `step-ca` binary tarball can be found [here](https://aur.archlinux.org/packages/step-ca-bin/).
+
+You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
+
+#### RHEL/CentOS
+
+1. Install `step`
+
+    Download and install the Linux tarball from our [latest release](https://github.com/smallstep/cli/releases/latest):
+
+    ```shell
+    wget -o step-cli.tar.gz https://github.com/smallstep/cli/releases/download/v0.15.3/step_linux_0.15.3_amd64.tar.gz
+    tar -xf step-cli.tar.gz
+    sudo cp step_0.15.3/bin/step /usr/bin
+    ```
+
+2. Install `step-ca`
+
+    Download and install the Linux tarball from our [latest release](https://github.com/smallstep/certificates/releases/latest):
+
+    ```shell
+    wget -o step-ca.tar.gz https://github.com/smallstep/certificates/releases/download/v0.15.4/step-certificates_linux_0.15.4_amd64.tar.gz
+    tar -xf step-ca.tar.gz
+    sudo cp step-certificates_0.15.4/bin/step /usr/bin
+    ```
+
+See the [`systemctl`][systemctl-setup] setup section for a guide on configuring `step-ca` as a daemon.
+
+[systemctl-setup]: certificate-authority-server-production#running-step-ca-as-a-daemon
+
+### Kubernetes
+
+We publish [helm charts](https://hub.helm.sh/charts/smallstep/step-certificates) for easy installation on kubernetes:
+
+```shell
+helm install step-certificates
+```
+
+You can see all the configuration options at https://hub.helm.sh/charts/smallstep/step-certificates.
+
+<Alert severity="info">
+  <AlertTitle>Autocert</AlertTitle>
+  <div>
+    If you're using Kubernetes, make sure you <Link
+    href="https://github.com/smallstep/autocert">check out autocert</Link>: a
+    kubernetes add-on that builds on <Code>step-ca</Code> to automatically inject
+    TLS/HTTPS certificates into your containers.
+  </div>
+</Alert>
+
+[autocert]: https://github.com/smallstep/autocert
+
+### Docker 
+
+We publish [docker images](https://hub.docker.com/repository/docker/smallstep/step-ca) for easy container installation.
+
+### Test your installation
+
+```shell-session nocopy
+$ step version
+Smallstep CLI/0.10.0 (darwin/amd64)
+Release Date: 2019-04-30 19:01 UTC
+
+$ step-ca version
+Smallstep CA/0.10.0 (darwin/amd64)
+Release Date: 2019-04-30 19:02 UTC
+```
+
+### Next Steps
+
+- Learn about the [core concepts and design principles](/docs/step-ca/certificate-authority-core-concepts) behind `step-ca`.
+- Read the [Getting Started guide](/docs/step-ca/getting-started) to set up a CA and get your first certificate.

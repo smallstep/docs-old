@@ -1,0 +1,205 @@
+---
+title: Run a private online TLS certificate authority in a docker container
+html_title: Docker TLS private certificate authority in a container
+description: Learn how to easily bootstrap a private certificate authority in a docker container and use mTLS for all your services
+unfurl: /static/graphics/smallstep-docs-unfurl.png
+---
+
+import Alert from 'docs/Alert';
+import CodeBlock from 'docs/CodeBlock';
+import Link from 'docs/Link';
+
+This guide will illustrate how to run `step-ca` inside a Docker container,
+issue TLS certificates to Docker containers, and manage the lifecycle of
+TLS certificates using `step`, certificates. As an example, you will send
+secure communications between a standalone webserver and curl.
+
+## About this tutorial
+
+- Learn how to Bootstrap and run a private X.509 online certificate authority in a docker container.
+- Examples include copy/paste code blocks and the smallstep docker image.
+- When complete, you will have a fully functioning certificate authority. 
+- Estimated effort: Reading time ~4 mins, Lab time ~20 to 60 mins. 
+
+<Alert severity="info">
+  <div>
+    If you run into any issues please let us know <Link href="https://github.com/smallstep/certificates/discussions">in GitHub Discussions</Link>.
+  </div>
+</Alert>
+
+## Requirements
+
+- This tutorial assumes you have initialized and started up a `step-ca` instance using the steps in [Getting Started](/docs/step-ca/getting-started). As an alternative, you can use our hosted CA, [Smallstep Certificate Manager](/certificate-manager)
+- Python 2.7.x interpreter to bring up standalone webserver (optional)
+
+## Overview
+
+- [Step-by-Step Instructions](#step-by-step-instructions)
+- [Running `step-ca` Inside a Container](#running-step-ca-inside-a-container)
+- [Setting Up a Development Environment](#setting-up-a-development-environment)
+
+
+## Step-by-Step Instructions
+
+### 1. Pull down the Docker image
+
+Get the latest version of `step-ca` from the [`step-ca` Docker hub](https://hub.docker.com/r/smallstep/step-ca):
+
+```shell
+docker pull smallstep/step-ca
+```
+
+### 2. Create the required volumes
+
+We need to create a volume in Docker where we will store our PKI as well as the `step-ca` configuration file.
+
+```shell
+docker volume create step
+```
+
+### 3. Bring up PKI bootstrapping container
+
+The simple way to do this is to run an interactive terminal:
+
+```shell
+docker run -it -v step:/home/step smallstep/step-ca sh
+```
+
+### 4. Run `step` initialization command
+
+Inside the container command prompt, run this:
+  
+<CodeBlock language="shell-session" copyText="step ca init">
+{`$ step ca init
+✔ What would you like to name your new PKI?: Smallstep
+✔ What DNS names or IP addresses would you like to add to your new CA? localhost
+✔ What address will your new CA listen at?: :9000
+✔ What would you like to name the first provisioner for your new CA?: admin
+✔ What do you want your password to be?: <your password here>
+ 
+Generating root certificate...
+all done!
+ 
+Generating intermediate certificate...
+all done!
+ 
+✔ Root certificate: /home/step/certs/root_ca.crt
+✔ Root private key: /home/step/secrets/root_ca_key
+✔ Root fingerprint: f9e45ae9ec5d42d702ce39fd9f3125372ce54d0b29a5ff3016b31d9b887a61a4
+✔ Intermediate certificate: /home/step/certs/intermediate_ca.crt
+✔ Intermediate private key: /home/step/secrets/intermediate_ca_key
+✔ Default configuration: /home/step/config/defaults.json
+✔ Certificate Authority configuration: /home/step/config/ca.json
+ 
+Your PKI is ready to go. To generate certificates for individual services see 'step help ca`}
+</CodeBlock>
+
+### 5. Place the PKI root password in a known safe location.
+
+Our image is expecting the password to be placed in `/home/step/secrets/password`. You can simply bring up the shell prompt in the container again and write that file:
+
+```shell
+docker run -it -v step:/home/step smallstep/step-ca sh
+```
+
+Write the file into the expected location:
+
+```shell
+echo <your password here> > /home/step/secrets/password
+```
+
+Everything is ready to run `step-ca` inside your container!
+
+## Running `step-ca` Inside a Container
+
+Now that we have configured our environment we are ready to run `step-ca`.
+Expose the server address locally and run the `step-ca` with:
+
+```shell
+docker run -d -p 127.0.0.1:9000:9000 -v step:/home/step smallstep/step-ca
+```
+
+Let's verify that the service is running with curl:
+
+<CodeBlock
+  language="shell-session"
+  copyText="curl https://localhost:9000/health"
+>
+{`$ curl https://localhost:9000/health
+curl: (60) SSL certificate problem: unable to get local issuer certificate
+More details here: https://curl.haxx.se/docs/sslcerts.html
+ 
+curl performs SSL certificate verification by default, using a "bundle"
+ of Certificate Authority (CA) public keys (CA certs). If the default
+ bundle file isn\'t adequate, you can specify an alternate file
+ using the --cacert option.
+If this HTTPS server uses a certificate signed by a CA represented in
+ the bundle, the certificate verification probably failed due to a
+ problem with the certificate (it might be expired, or the name might
+ not match the domain name in the URL).
+If you\'d like to turn off curl\'s verification of the certificate, use
+ the -k (or --insecure) option.
+HTTPS-proxy has similar options --proxy-cacert and --proxy-insecure.`}
+</CodeBlock>
+
+It's working but curl complains because the certificate is not signed by an well known public certificate authority.
+
+## Setting Up a Development Environment
+
+To initialize the development environment we need to grab the root fingerprint from step 4 in this tutorial. In the case of this example: `f9e45ae9ec5d42d702ce39fd9f3125372ce54d0b29a5ff3016b31d9b887a61a4`. With the root certificate's fingerprint we can bootstrap our dev environment.
+
+<CodeBlock
+  language="shell-session"
+  copyText="step ca bootstrap --ca-url https://localhost:9000 --install --fingerprint <your fingerprint>"
+>
+{`$ step ca bootstrap --ca-url https://localhost:9000 --install --fingerprint f9e45ae9ec5d42d702ce39fd9f3125372ce54d0b29a5ff3016b31d9b887a61a4
+The root certificate has been saved in ~/.step/certs/root_ca.crt.
+Your configuration has been saved in ~/.step/config/defaults.json.
+Installing the root certificate in the system truststore... done.`}
+</CodeBlock>
+
+Now your local `step` CLI is configured to use the container instance of `step-ca` and our new root certificate is trusted by our local environment (inserted into local trust store).
+
+<CodeBlock language="shell-session" copyText="curl https://localhost:9000/health">
+{`$ curl https://localhost:9000/health
+{"status":"ok"}`}
+</CodeBlock>
+
+Now we are able to run web services configured with TLS (and mTLS):
+
+```shell-session nocopy
+$ step ca certificate localhost localhost.crt localhost.key
+✔ Key ID: aTPGWP0qbuQdflR5VxtNouDIOXyNMH1H9KAZKP-UcHo (admin)
+✔ Please enter the password to decrypt the provisioner key:
+✔ CA: https://localhost:9000/1.0/sign
+✔ Certificate: localhost.crt
+✔ Private Key: localhost.key
+
+$ step ca root root_ca.crt
+The root certificate has been saved in root_ca.crt.
+```
+
+Here's a standalone Python example to launch a web server secured by HTTPS using above's certificate:
+
+```python
+import BaseHTTPServer, ssl
+
+class H(BaseHTTPServer.BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200); self.send_header('content-type', 'text/html; charset=utf-8'); self.end_headers()
+        self.wfile.write(b'\n\xf0\x9f\x91\x8b Hello! Welcome to TLS \xf0\x9f\x94\x92\xe2\x9c\x85\n\n')
+
+httpd = BaseHTTPServer.HTTPServer(('', 8443), H)
+httpd.socket = ssl.wrap_socket (httpd.socket, server_side=True, keyfile="localhost.key", certfile="localhost.crt", ca_certs="root_ca.crt")
+httpd.serve_forever()
+```
+
+Then you can test your certificate from another terminal:
+
+<CodeBlock
+    language="shell-session"
+    copyText="https://localhost:8443"
+  >{`$ curl https://localhost:8443
+👋 Hello! Welcome to TLS 🔒✅`}</CodeBlock>
+
+Or visit https://localhost:8443 from your browser.

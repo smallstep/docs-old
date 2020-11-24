@@ -1,0 +1,145 @@
+---
+title: "Sample Page for `step`"
+---
+
+import { ToolsIcon, SecureFileIcon, TerminalIcon, ServerIcon } from '@smallstep/step-ui';
+
+import H3 from 'docs/H3';
+import HN from 'docs/HN';
+import Strong from 'docs/Strong';
+import Grid from 'docs/Grid';
+import Alert from 'docs/Alert';
+import AlertTitle from 'docs/AlertTitle';
+import Aside from 'docs/Aside';
+import ContentLink from 'docs/ContentLink';
+import CodeBlock from 'docs/CodeBlock';
+import Code from 'docs/Code';
+import Link from 'docs/Link';
+import Reference from 'docs/Reference';
+import Footnote from 'docs/Footnote';
+
+## Headline about `step`
+
+Sometimes you need an [external link](https://smallstep.com). Sometimes you need an [internal link](/docs). Always just use standard markdown link syntax. You can also use a reference<Reference id="f1" marker="1" /> where you need a footnote.
+
+> No matter what kind of link you need, there's only one that can save Zelda. —Mr. Quotable
+
+### Breaking it down with one thing
+
+Sometimes you want to get a little more granular. Line heights should give a bit more breathing room for paragraphs and help the eye track a bit better. Words and stuff and things will automatically inherit styles from the rest of the smallstep component library.
+
+### And another thing
+
+The second sub-section is parallel with the first. It also has words and stuff and things.
+
+- Sometimes the words are **important** and sometimes they are _kinda important_.
+- Sometimes they are ~~not important~~.
+
+#### Smaller headlines
+##### We stop getting smaller
+###### Really, we stopped
+
+## Custom stuff
+
+Generally speaking, always use markdown syntax. If you need a custom React component, make sure it's one of the components in the `docs/components` directory and no others (except icons). These components can be imported from the `docs/` namespace, eg. `docs/Grid`. Here are some of the custom things.
+
+<Alert severity="info">
+  Sometimes you just want to make mention of something peripheral.
+</Alert>
+
+<Alert severity="warning">
+  <AlertTitle>Things could go horribly wrong</AlertTitle>
+  <div>
+    You might want a warning with a title. It might use a code-highlighted reference to <Code>step</Code>.
+  </div>
+</Alert>
+
+<ContentLink icon={<SecureFileIcon />} href="/docs">
+  Documentation &gt;
+</ContentLink>
+
+<ContentLink icon={<TerminalIcon />} href="/docs/step-cli">
+  CLI documentation &gt;
+</ContentLink>
+
+<H3 mb={4}>Tile Links</H3>
+
+<Grid container spacing={4}>
+  <Grid item xs={12} sm={6}>
+    <ContentLink tile icon={<ToolsIcon />} href="/docs">
+      Documentation
+    </ContentLink>
+  </Grid>
+
+  <Grid item xs={12} sm={6}>
+    <ContentLink tile icon={<TerminalIcon />} href="/docs/step-cli">
+      CLI documentation
+    </ContentLink>
+  </Grid>
+
+  <Grid item xs={12} sm={6}>
+    <ContentLink tile icon={<SecureFileIcon />} href="/docs/step-ca">
+      Certificates Documentation
+    </ContentLink>
+  </Grid>
+</Grid>
+
+<Aside>
+  <HN mt={0}>An aside lets you break out of the flow of the main content.</HN>
+  
+  Use any custom components to highlight <Code>code</Code> or whatever.
+  
+  <CodeBlock language="javascript" mb={0}>
+  {`const Aside = ({ children }) => {
+  const theme = useTheme();
+ 
+  return (
+    <Box component="aside" m={8} p={4}>
+      {children}
+    </Box>
+  );
+};`}
+  </CodeBlock>
+</Aside>
+
+## Documentation has code
+
+Documentation writers sometimes like to include blocks of nonsense ("code"). Here's some of that, just using standard markdown code fences. Be sure to include any language grammars for syntax highlight that aren't already available in the `GrammarProvider` in `layouts/index.jsx`.
+
+```go
+// ...
+
+caCert, _ := ioutil.ReadFile("ca.crt")
+caCertPool := x509.NewCertPool()
+caCertPool.AppendCertsFromPEM(caCert)
+
+tlsConfig := &tls.Config{
+    ClientCAs: caCertPool,
+    ClientAuth: tls.RequireAndVerifyClientCert,
+}
+tlsConfig.BuildNameToCertificate()
+
+server := &http.Server{
+    Addr:      ":9443",
+    TLSConfig: tlsConfig,
+}
+
+server.ListenAndServeTLS("server.crt", "server.key")
+
+// ...
+```
+
+If you want to disable the automatic copy behavior, add the `nocopy` attribute to your code fence.
+
+```python nocopy
+def dont_copy_me():
+    return "thanks"
+```
+
+If you need custom copy text (eg. to exclude command prompts or join commands), import and use the `docs/CodeBlock` component directly.
+
+<CodeBlock language="shell-session" copyText="step certificate inspect server.crt">
+{`$ step certificate inspect server.crt`}
+</CodeBlock>
+
+<Footnote id="f1" marker="1">Learn more about <Code>step-ca</Code> configuration in the <Link href="/docs/step-ca/configuration">detailed references</Link>.</Footnote>

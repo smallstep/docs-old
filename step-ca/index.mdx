@@ -1,0 +1,58 @@
+---
+title: "`step-ca` server"
+html_title: step-ca open source server
+description: Learn about step-ca
+unfurl: /static/graphics/smallstep-docs-unfurl.png
+cta:
+  text: Install `step-ca`
+  icon: ToolsIcon
+  path: /docs/step-ca/installation
+---
+
+## Introduction to `step-ca`
+
+`step-ca` is an online Certificate Authority (CA) for secure, automated X.509 and SSH certificate management. It's the server counterpart to [`step` CLI](/docs/step-cli). It is secured with mutual TLS, and it offers several configurable certificate provisioners, flexible certificate templating, and pluggable database backends to suit a wide variety of contexts and workflows. It employs sane default algorithms and attributes, so you don't have to be a security engineer to use it safely.
+
+Teams use `step-ca` to:
+- Automate TLS certificate renewal and revocation
+- Generate TLS certificates for private infrastructure using the ACME protocol
+- Issue customized X.509 and SSH certificates
+- Add ACME support to an existing subordinate CA
+- Issue short-lived SSH certificates via OAuth OIDC single sign on
+- and much more ...
+
+## Features
+
+### X.509 Certificate Authority
+
+Issue TLS and other X.509 certificates for any entity in your internal infrastructure. Secure your infrastructure with mutual TLS (mTLS) authentication for client-server connections. Automate certificate issuance and renewal for clients and servers.
+
+### SSH Certificate Authority
+
+Issue SSH certificates to users and hosts. Delegate SSH authentication to `step-ca` and configure its provisioners to set up a clear chain of trust for authorizing access. Automate host SSH key rotation while avoiding the risk of trust-on-first-use (TOFU). A popular configuration is illustrated in [Single Sign-on SSH](https://smallstep.com/blog/diy-single-sign-on-for-ssh/).
+
+### Provisioners
+
+Provisioners are methods of using the CA to get certificates for humans or machines. They offer different modes of authorization for the CA.
+
+For example, you can have your CA issue certificates in exchange for:
+- [ACME challenge responses](#your-own-private-acme-server) from any ACMEv2 client
+- [OAuth OIDC single sign-on tokens](https://smallstep.com/blog/easily-curl-services-secured-by-https-tls.html), eg:
+  - ID tokens from Okta, G Suite, Azure AD, Auth0.
+  - ID tokens from an OAuth OIDC service that you host, like [Keycloak](https://www.keycloak.org/) or [Dex](https://github.com/dexidp/dex)
+- [Cloud instance identity documents](https://smallstep.com/blog/embarrassingly-easy-certificates-on-aws-azure-gcp/), for VMs on AWS, GCP, and Azure
+- [Single-use, short-lived JWK tokens](/docs/step-ca/configuration#jwk) issued by your CD tool — Puppet, Chef, Ansible, Terraform, etc.
+
+### Templates
+
+[X.509 Templates](/docs/step-ca/configuration#x509-templates) let you customize your certificates, eg:
+- Add custom SANs or non-standard X.509 Object Identifiers (OIDs) to certificates
+- Restrict certificates by domain name or key size
+- Issue CA certificates with longer path lengths for multiple intermediaries
+
+`step-ca` ships with several built-in templates for everyday operations, and you can use Golang's `text/template` syntax to create new templates.
+
+### Integrations
+
+We've built `step-ca` integrations for Kubernetes, Cloud KMS, Envoy Secret Discovery Service, and Yubikey PIV, among others. See [Integrations](/docs/step-ca/integrations) to learn more.
+

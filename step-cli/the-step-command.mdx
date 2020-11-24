@@ -1,0 +1,45 @@
+---
+title: The `step` Command
+html_title: The `step` Command
+description: The `step` Command
+unfurl: /static/graphics/smallstep-docs-unfurl.png
+
+---
+
+import CodeBlock from 'docs/CodeBlock';
+import Aside from 'docs/Aside';
+import Code from 'docs/Code';
+
+## Getting Help
+
+`step` ships with extensive built-in help. To list available options and command groups, run `step` by itself. For help, use `step help <command>` or `step help <command> <subcommand>`.
+
+## Environment variables
+
+* `STEPPATH` The path where `step` stores its [configuration file](#configuration-file). This directory also holds `step-ca` state created with `step ca init`, including CA configuration, keys, certificates, and templates. Defaults to `$HOME/.step`.
+* `STEPDEBUG` When set to `1`, `step` will provide extra diagnostic information for debugging. This variable can also be used with `step-ca`.
+
+### Passing flags as environment variables
+
+You can pass flags to `step` using environment variables, using `STEP_<flag>`. For example, `STEP_RAW=true step ssh list` is equivalent to `step ssh list --raw`. Command flags have precedence over environment variable flags, which in turn have precedence over the values in the [configuration file](#configuration-file).
+
+## Configuration file
+
+The file `$STEPPATH/config/defaults.json` can contain a JSON object listing default values for any flags accepted by `step` commands. It is typically used to store CA connection information, eg:
+
+```json
+{
+  "ca-url": "https://ca.internal:8443",
+  "fingerprint": "93cff06dc36251fb0c4985d0b5ed7265a368cd70697fba90355c93cc4aabff0d",
+  "root": "/Users/carl/.step/certs/root_ca.crt",
+  "redirect-url": ""
+}
+```
+
+<Alert severity="info">
+    It is not currently possible to segment default keys in <Code>defaults.json</Code> by subcommand. All keys are applied to all <Code>step</Code> commands.
+</Alert>
+
+## Next Steps
+
+* [Basic Crypto Operations](/docs/step-cli/basic-crypto-operations)

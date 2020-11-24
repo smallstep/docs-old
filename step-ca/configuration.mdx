@@ -1,0 +1,1954 @@
+---
+title: Configuring `step-ca`
+html_title: Configuring open source step-ca
+description: Learn how to configure step-ca
+unfurl: /static/graphics/smallstep-docs-unfurl.png
+---
+
+import Alert from 'docs/Alert';
+import Code from 'docs/Code';
+import CodeBlock from 'docs/CodeBlock';
+import Footnote from 'docs/Footnote';
+import Link from 'docs/Link';
+import Reference from 'docs/Reference';
+
+When the `step ca init` command sets up your PKI, it creates an initial
+configuration file for your CA and stores it in `$STEPPATH/config/ca.json`.
+
+In this document we'll describe how to configure every aspect of `step-ca`. You'll
+learn how to configure your CA to:
+
+- bind to a non default address
+- generate ACME certificates
+- adjust the default lifetime of certificates
+- store certificates in memory, on the file system, or in a database
+- set the root and intermediate PKI chain that will be used to sign new certificates
+- and much more
+
+## Overview
+
+- [Specifying a Configuration File](#specifying-a-configuration-file)
+- [Environment Variables](#environment-variables)
+- [Basic Configuration Options](#basic-configuration-options)
+- [Provisioners](#provisioners)
+  - [Managing Provisioners](#managing-provisioners)
+  - [Modifiers](#modifiers)
+  - [Authorization Scope by Provisioner](#authorization-scope-by-provisioner)
+  - [JWK](#jwk)
+  - [OAuth/OIDC Single Sign-on](#oauthoidc-single-sign-on)
+  - [X5C - X.509 Certificate](#x5c-x509-certificate)
+  - [SSHPOP - SSH Certificate](#sshpop-ssh-certificate)
+  - [ACME](#acme)
+  - [K8sSA - Kubernetes Service Account](#k8ssa-kubernetes-service-account)
+  - [Cloud Provisioners](#cloud-provisioners)
+- [X.509 Templates](#x509-templates)
+  - [Basic Templates](#basic-templates)
+  - [Advanced Templates](#advanced-templates)
+- [Databases](#databases)
+  - [Badger](#badger)
+  - [BoltDB](#boltdb)
+  - [MySQL](#mysql)
+  - [Schema](#schema)
+- [Cloud Key Management Service](#cloud-key-management-service)
+  - [Google's Cloud KMS](#googles-cloud-kms)
+  - [AWS KMS](#aws-kms)
+  - [YubiKey](#yubikey)
+
+## Specifying a Configuration File
+
+When you run `step-ca`, you must provide a path to a configuration file
+(`ca.json`). It is the only required argument. Typically you'd use `step path`
+to discover the path to `ca.json`:
+
+```shell-session
+$ step-ca $(step path)/config/ca.json
+```
+
+For non-interactive use (eg. as a `systemd` service), you can also add a
+`--password-file` flag with the name of a file containing the password for the
+CA's keys.
+
+## Environment Variables
+
+* `STEPDEBUG` When set to `1`, `step-ca` will provide extra diagnostic information for debugging. This variable can also be used with `step`.
+
+## Basic Configuration Options
+
+### Example Configuration
+
+```json
+{
+	"root": "examples/pki/secrets/root_ca.crt",
+	"federatedRoots": "examples/pki/secrets/federated_root_ca.crt",
+	"crt": "examples/pki/secrets/intermediate_ca.crt",
+	"key": "examples/pki/secrets/intermediate_ca_key",
+	"address": ":9000",
+	"dnsNames": [
+		"localhost"
+	],
+	"logger": {
+		"format": "text"
+	},
+    "db": {
+      "type": "badger",
+      "dataSource": "./.step/db",
+    },
+	"authority": {
+        "claims": {
+            "minTLSCertDuration": "5m",
+            "maxTLSCertDuration": "24h",
+            "defaultTLSCertDuration": "24h",
+            "disableRenewal": false,
+            "minHostSSHCertDuration": "5m",
+            "maxHostSSHCertDuration": "1680h",
+            "defaultHostSSHCertDuration": "720h",
+            "minUserSSHCertDuration": "5m",
+            "maxUserSSHCertDuration": "24h",
+            "defaultUserSSHCertDuration": "16h",
+        },
+		"provisioners": [
+			{
+				"type": "jwk",
+				"name": "mike@smallstep.com",
+				"key": {
+					"use": "sig",
+					"kty": "EC",
+					"kid": "YYNxZ0rq0WsT2MlqLCWvgme3jszkmt99KjoGEJJwAKs",
+					"crv": "P-256",
+					"alg": "ES256",
+					"x": "LsI8nHBflc-mrCbRqhl8d3hSl5sYuSM1AbXBmRfznyg",
+					"y": "F99LoOvi7z-ZkumsgoHIhodP8q9brXe4bhF3szK-c_w"
+				},
+				"encryptedKey": "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjdHkiOiJqd2sranNvbiIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjEwMDAwMCwicDJzIjoiVERQS2dzcEItTUR4ZDJxTGo0VlpwdyJ9.2_j0cZgTm2eFkZ-hrtr1hBIvLxN0w3TZhbX0Jrrq7vBMaywhgFcGTA.mCasZCbZJ-JT7vjA.bW052WDKSf_ueEXq1dyxLq0n3qXWRO-LXr7OzBLdUKWKSBGQrzqS5KJWqdUCPoMIHTqpwYvm-iD6uFlcxKBYxnsAG_hoq_V3icvvwNQQSd_q7Thxr2_KtPIDJWNuX1t5qXp11hkgb-8d5HO93CmN7xNDG89pzSUepT6RYXOZ483mP5fre9qzkfnrjx3oPROCnf3SnIVUvqk7fwfXuniNsg3NrNqncHYUQNReiq3e9I1R60w0ZQTvIReY7-zfiq7iPgVqmu5I7XGgFK4iBv0L7UOEora65b4hRWeLxg5t7OCfUqrS9yxAk8FdjFb9sEfjopWViPRepB0dYPH8dVI.fb6-7XWqp0j6CR9Li0NI-Q",
+				"claims": {
+					"minTLSCertDuration": "1m0s",
+					"defaultTLSCertDuration": "2m0s"
+				},
+                "options": {
+                    "x509": {
+                        "templateFile": "templates/certs/x509/default.tpl"
+                    },
+                    "ssh": {
+                        "templateFile": "templates/certs/ssh/default.tpl"
+                    }
+                }
+			},
+            {
+              "type": "OIDC",
+              "name": "Google",
+              "clientID": "1087160488420-8qt7bavg3qesdhs6it824mhnfgcfe8il.apps.googleusercontent.com",
+              "clientSecret": "udTrOT3gzrO7W9fDPgZQLfYJ",
+              "configurationEndpoint": "https://accounts.google.com/.well-known/openid-configuration",
+              "admins": ["you@smallstep.com"],
+              "domains": ["smallstep.com"],
+              "listenAddress": ":10000",
+              "claims": {
+                "maxTLSCertDuration": "8h",
+                "defaultTLSCertDuration": "2h",
+                "enableSSHCA": true,
+                "disableRenewal": true
+              },
+              "options": {
+                  "x509": {
+                      "templateFile": "templates/certs/x509/default.tpl"
+                  },
+                  "ssh": {
+                      "templateFile": "templates/certs/ssh/default.tpl"
+                  }
+              }
+            },
+            {
+				"type": "SSHPOP",
+				"name": "sshpop-smallstep",
+				"claims": {
+					"enableSSHCA": true
+				}
+			},
+            {
+				"type": "ACME",
+				"name": "my-acme-provisioner"
+			}
+		]
+	},
+	"tls": {
+		"cipherSuites": [
+			"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
+			"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+		],
+		"minVersion": 1.2,
+		"maxVersion": 1.2,
+		"renegotiation": false
+	},
+	"password": "p@55w0rd"
+}
+```
+
+### Configuration Options
+
+- **root**: location of the root certificate on the filesystem. The root certificate is used to mutually authenticate all API clients of the CA.
+
+- **federatedRoots**: location of the federated root certificates on the filesystem. The federated roots are used to authenticate client and servers using TLS certificates from multiple CAs.
+
+- **crt**: location of the intermediate certificate on the filesystem. The intermediate certificate is returned alongside each new certificate, allowing the client to complete the certificate chain.
+
+- **key**: location of the intermediate private key on the filesystem. The intermediate key signs all new certificates generated by the CA.
+
+- **password**: optionally store the password for decrypting the intermediate private key (this should be the same password you chose during PKI initialization). If the value is not stored in configuration then you will be prompted for it when starting the CA.
+
+- **address**: ex. 127.0.0.1:8080 - address and port on which the CA will bind and respond to requests.
+
+- **dnsNames**: comma separated list of DNS name(s) for the CA.
+
+- **logger**: the default logging format for the CA is _text_. The other option is _json_.
+
+- **db**: data persistence layer. See [database documentation](#databases) for more info.
+
+  - **type**: badger, bbolt, mysql, etc.
+
+  - **dataSource**: string that can be interpreted differently depending on the type of the database. Usually a path to where the data is stored. See the database configuration docs for more info.
+
+  - **database**: name of the database. Used for back-ends that may have multiple databases. ex. MySQL
+
+  - **valueDir**: directory to store the value log in (Badger specific).
+
+- **tls**: settings for negotiating communication with the CA; includes acceptable ciphersuites, min/max TLS version, etc.
+
+- **authority**: controls the request authorization and signature processes.
+
+  - **template**: default ASN1DN values for new certificates.
+
+  - **claims**: default validation for requested attributes in the certificate request. Can be overridden by similar claims objects defined by individual provisioners.
+
+    - **minTLSCertDuration**: do not allow certificates with a duration less than this value.
+
+    - **maxTLSCertDuration**: do not allow certificates with a duration greater than this value.
+
+    - **defaultTLSCertDuration**: if no certificate validity period is specified, use this value.
+
+    - **disableIssuedAtCheck**: disable a check verifying that provisioning tokens must be issued after the CA has booted. This claim is one prevention
+ against token reuse. The default value is false. Do not change this unless you know what you are doing.
+
+    - **minUserSSHDuration**: do not allow certificates with a duration less than this value.
+
+    - **maxUserSSHDuration**: do not allow certificates with a duration greater than this value.
+
+    - **defaultUserSSHDuration**: if no certificate validity period is specified, use this value.
+
+    - **minHostSSHDuration**: do not allow certificates with a duration less than this value.
+
+    - **maxHostSSHDuration**: do not allow certificates with a duration greater than this value.
+
+    - **defaultHostSSHDuration**: if no certificate validity period is specified, use this value.
+
+    - **enableSSHCA**: enable this provisioner to generate SSH Certificates. The default value is false.
+
+  - **provisioners**: list of provisioners. Each provisioner has a name, associated authentication attributes, and an optional claims attribute that will override any values set in the global claims directly underneath authority. See [provisioner documentation](#provisioners) for more info.
+
+  - **password**: plain text password for starting the CA. Used to decrypt the intermediate private key. 
+
+    <Alert severity="warning">
+      <div> 
+        We do not recommend storing the password plain text in your <Code>ca.json</Code>. 
+        The recommended option is to use the <Code>--password-file</Code> flag when
+        running <Code>step-ca</Code>. This attribute is a convenience that should be 
+        avoided in production.
+      </div>
+    </Alert>
+
+## Provisioners
+
+Provisioners are people or entities that are registered with the certificate
+authority and authorized to issue certificates. In this section we'll discuss
+the different provisioners, their target use cases, and how to add, remove, and
+configure them.
+
+### Authorization Scope by Provisioner
+
+Every provisioner has a slightly different scope of authorization. Below is a
+table detailing the authorization capabilities of each provisioner.
+
+Provisioner Capabilities| x509-sign | x509-renew | x509-revoke | ssh-user-cert-sign | ssh-host-cert-sign | ssh-user-cert-renew | ssh-host-cert-renew | ssh-revoke | ssh-rekey
+----------- | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-:
+JWK    | ✔️  | ✔️  | ✔️  | ✔️  | ✔️  | 𝗫 | 𝗫 | ✔️  | 𝗫
+OIDC   | ✔️  | ✔️  | ✔️  | ✔️  | ✔️ <Reference id="f1" marker="1"/> | 𝗫 | 𝗫 | ✔️  | 𝗫
+X5C    | ✔️  | ✔️  | ✔️  | ✔️  | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫
+K8sSA  | ✔️  | ✔️  | ✔️  | ✔️  | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫
+ACME   | ✔️  | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫
+SSHPOP | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | ✔️  | ✔️  | ✔️
+AWS    | ✔️  | ✔️  | 𝗫 | 𝗫 | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫
+Azure  | ✔️  | ✔️  | 𝗫 | 𝗫 | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫
+GCP    | ✔️  | ✔️  | 𝗫 | 𝗫 | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫
+
+<br></br>
+<Footnote id="f1" marker="1"> Admin OIDC users can generate Host SSH Certificates.  Admins can be configured in the <Link href="#oauthoidc-single-sign-on">OIDC provisioner</Link>.</Footnote>
+
+For an example of how to interpret this table, let's take the `JWK` provisioner.
+The `JWK` provisioner is capable of signing, renewing, and revoking X.509
+certificates, as well signing user and host SSH certificates. A `JWK` provisioner
+_cannot_ renew or rekey SSH certificates.
+
+An `SSHPOP` provisioner _can_ revoke and rekey SSH certificates and renew SSH host
+certificates. An `SSHPOP` provisioner _cannot_ sign, renew, or revoke X.509 
+certificates, and it _cannot_ sign SSH user and host certificates or renew SSH
+user certificates. 
+
+It's important to understand the capabilities and limitations when selecting a 
+provisioner for a given workload.
+
+### Managing Provisioners
+
+Common provisioner operations include:
+
+- [Adding a provisioner](#add-a-provisioner)
+- [Removing a provisioner](#remove-a-provisioner)
+- [Listing all provisioner](#list-all-provisioners)
+- [Modifying the configuration of an existing provisioner](#modify-a-provisioner)
+
+<Alert severity="info">
+  <div>
+    Remember to <Code>SIGHUP</Code> or restart your <Code>step-ca</Code> process after any provisioner changes.
+  </div>
+</Alert>
+
+#### Add a provisioner
+
+See `step ca provisioner add --help` for documentation and examples on adding
+provisioners.
+
+We strongly recommend using the `step ca provisioner add [...]`
+utility to generate provisioners in your `ca.json` configuration. We often
+encode fields differently in the JSON than you might expect. And you can
+always modify the JSON configuration manually after using the utility.
+
+#### Remove a provisioner
+
+See `step ca provisioner remove --help` for documentation and examples on removing
+provisioners.
+
+You can also edit the `ca.json` configuration directly and remove the entire block
+containing the provisioner you'd like to remove.
+
+#### List all provisioners
+
+To get a list of all of your current provisioners, run the following command in your terminal:
+
+```shell
+step ca provisioner list
+```
+
+#### Modify a provisioner
+
+Modify a provisioner by directly modifying the `ca.json` configuration.
+
+The following diff is an example of modifications in `ca.json` that add few
+configuration options to a provisioner:
+
+```diff
+--- a/ca.json
++++ b/ca.json
+@@ -86,7 +86,10 @@
+                 "type": "JWK",
+                 "name": "max@smallstep.com",
+                 "claims": {
+-                    "enableSSHCA": true
++                    "enableSSHCA": true,
++                    "minTLSCertDuration": "20m",
++                    "maxTLSCertDuration": "3h",
++                    "defaultTLSCertDuration": "2"
+                 }
+                },
+                {
+```
+
+In this example we've modified the `min, max, and default` duration for TLS
+certificates generated by this provisioner.
+
+Provisioner configuration can be used to affect X.509 and SSH certificate
+lifetimes, extensions, and any other attribute belonging to the certificate.
+See the [Modifiers](#modifiers) section for more details.
+
+### Modifiers
+
+- [`claims`](#claims)
+- [`options`](#options)
+
+#### Claims
+
+Each provisioner can define an optional `claims` attribute. The settings in this
+attribute override any settings in the global `claims` attribute in the authority
+configuration.
+
+Example claims:
+
+```json nocopy
+...
+"claims": {
+    "minTLSCertDuration": "5m",
+    "maxTLSCertDuration": "24h",
+    "defaultTLSCertDuration": "24h",
+    "disableRenewal": false
+    "minHostSSHCertDuration": "5m",
+    "maxHostSSHCertDuration": "1680h",
+    "minUserSSHCertDuration": "5m",
+    "maxUserSSHCertDuration": "24h",
+    "enableSSHCA": true,
+},
+...
+```
+
+**X.509 CA properties**
+
+- **minTLSCertDuration**: do not allow certificates with a duration less than this value.
+
+- **maxTLSCertDuration**: do not allow certificates with a duration greater than this value.
+
+- **defaultTLSCertDuration**: if no certificate validity period is specified, use this value.
+
+- **disableIssuedAtCheck**: disable a check verifying that provisioning tokens must be issued after the CA has booted. This claim is one prevention against token reuse. The default value is false. Do not change this unless you know what you are doing.
+
+**SSH CA properties**
+
+- **minUserSSHDuration**: do not allow certificates with a duration less than this value.
+
+- **maxUserSSHDuration**: do not allow certificates with a duration greater than this value.
+
+- **defaultUserSSHDuration**: if no certificate validity period is specified, use this value.
+
+- **minHostSSHDuration**: do not allow certificates with a duration less than this value.
+
+- **maxHostSSHDuration**: do not allow certificates with a duration greater than this value.
+
+- **defaultHostSSHDuration**: if no certificate validity period is specified, use this value.
+
+- **enableSSHCA**: enable this provisioner to generate SSH Certificates. The default value is false.
+
+#### Options
+
+Each provisioner can define an optional `options` attribute. This attribute
+allows an operator to set templates that will be applied to all X.509 or SSH 
+certificates generated using the provisioner.
+
+Learn more about configuring X.509 and SSH templates [here](#basic-templates).
+
+### JWK
+
+JWK is the default provisioner type. It uses public-key cryptography to sign and
+validate a JSON Web Token (JWT).
+
+The [`step`](https://github.com/smallstep/cli) CLI tool will create a JWK
+provisioner when `step ca init` is used, and it also contains commands to add
+(`step ca provisioner add`) and remove (`step ca provisioner remove`) JWK
+provisioners.
+
+#### Example
+
+Add a JWK provisioner:
+
+```shell
+step ca provisioner add you@smallstep.com --create
+```
+
+In the ca.json configuration file, a complete JWK provisioner example looks like:
+
+```json
+{
+    "type": "JWK",
+    "name": "you@smallstep.com",
+    "key": {
+        "use": "sig",
+        "kty": "EC",
+        "kid": "NPM_9Gz_omTqchS6Xx9Yfvs-EuxkYo6VAk4sL7gyyM4",
+        "crv": "P-256",
+        "alg": "ES256",
+        "x": "bBI5AkO9lwvDuWGfOr0F6ttXC-ZRzJo8kKn5wTzRJXI",
+        "y": "rcfaqE-EEZgs34Q9SSH3f9Ua5a8dKopXNfEzDD8KRlU"
+    },
+    "encryptedKey": "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjdHkiOiJqd2sranNvbiIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjEwMDAwMCwicDJzIjoiTlV6MjlEb3hKMVdOaFI3dUNjaGdYZyJ9.YN7xhz6RAbz_9bcuXoymBOj8bOg23ETAdmSCRyHpxGekkV0q3STYYg.vo1oBnZsZjgRu5Ln.Xop8AvZ74h_im2jxeaq-hYYWnaK_eF7MGr4xcZGodMUxp-hGPqS85oWkyprkQLYt1-jXTURfpejtmPeB4-sxgj7OFxMYYus84BdkG9BZgSBmMN9SqZItOv4pqg_NwQA0bv9g9A_e-N6QUFanxuYQsEPX_-IwWBDbNKyN9bXbpEQa0FKNVsTvFahGzOxQngXipi265VADkh8MJLjYerplKIbNeOJJbLd9CbS9fceLvQUNr3ACGgAejSaWmeNUVqbho1lY4882iS8QVx1VzjluTXlAMdSUUDHArHEihz008kCyF0YfvNdGebyEDLvTmF6KkhqMpsWn3zASYBidc9k._ch9BtvRRhcLD838itIQlw",
+    "claims": {
+        "minTLSCertDuration": "5m",
+        "maxTLSCertDuration": "24h",
+        "defaultTLSCertDuration": "24h",
+        "disableRenewal": false,
+        "minHostSSHCertDuration": "5m",
+        "maxHostSSHCertDuration": "1680h",
+        "minUserSSHCertDuration": "5m",
+        "maxUserSSHCertDuration": "24h",
+        "enableSSHCA": true
+    },
+    "options": {
+        "x509": {
+            "templateFile": "templates/certs/x509/default.tpl"
+        },
+        "ssh": {
+            "templateFile": "templates/certs/ssh/default.tpl"
+        }
+    }
+}
+```
+
+- **type**: for a JWK provisioner it must be `JWK`, this field is case
+  insensitive.
+
+- **name**: identifies the provisioner, a good practice is to
+  use an email address or a descriptive string that allows the identification of
+  the owner, but it can be any non-empty string.
+
+- **key**: is the JWK (JSON Web Key) representation of a public key
+  used to validate a signed token.
+
+- **encryptedKey**<Reference id="star1" marker="*" />: is the encrypted private key used to sign a
+  token. It's a JWE compact string containing the JWK representation of the
+  private key.
+
+- **claims**<Reference id="star2" marker="**" />: overwrites the default claims set in the authority,
+see the [claims](#claims) section for all the options.
+
+- **options**<Reference id="star2" marker="**" />: see the [options](#options) section for more details.
+
+<Footnote id="star1" marker="*">Recommended</Footnote>
+<Footnote id="star2" marker="**">Optional</Footnote>
+
+<br /><br />
+
+We can use [`step`](https://github.com/smallstep/cli) to see the private key
+encrypted with the password `asdf`:
+
+<CodeBlock
+  language="shell-session"
+  copyText="echo ey...lw | step crypto jwe decrypt  | jq"
+>
+{`$ echo ey...lw | step crypto jwe decrypt  | jq
+Please enter the password to decrypt the content encryption key:
+{
+  "use": "sig",
+  "kty": "EC",
+  "kid": "NPM_9Gz_omTqchS6Xx9Yfvs-EuxkYo6VAk4sL7gyyM4",
+  "crv": "P-256",
+  "alg": "ES256",
+  "x": "bBI5AkO9lwvDuWGfOr0F6ttXC-ZRzJo8kKn5wTzRJXI",
+  "y": "rcfaqE-EEZgs34Q9SSH3f9Ua5a8dKopXNfEzDD8KRlU",
+  "d": "rsjCCM_2FQ-uk7nywBEQHl84oaPo4mTpYDgXAu63igE"
+}`}
+</CodeBlock>
+
+If the `ca.json` does not contain the `encryptedKey` attribute, the private key
+must be provided using the `--key` flag when using the `step ca [token |
+certificate | sign]` utilities.
+
+### OAuth/OIDC Single Sign-on
+
+Occasionally it’s useful to issue certificates to people (ex., for testing and
+debugging). To facilitate this, `step-ca` can be configured to use
+OAuth/OpenID Connect (OIDC) identity tokens for authentication. In other words,
+you can use single sign-on with G Suite, Okta, Active Directory, or any
+other OAuth OIDC provider to get a certificate.
+
+![example of provisioner working with step ca](../../../../../static/images/oauth-provisioner.png)
+
+_Fig. 3: Diagram of how step works with individuals using a single sign-on provisioner_
+
+`step` detects the provisioner type selected and initiates the OAuth flow automatically:
+
+<CodeBlock
+  language="shell-session"
+  copyText="step ca certificate mike@smallstep.com mike.crt mike.key"
+>
+{`$ step ca certificate mike@smallstep.com mike.crt mike.key
+ 
+✔ Key ID: 650445034027-jsjdrkiskeq9ke99ud2rqkst82ft8uch.apps.googleusercontent.com (Google)
+✔ CA: https://ca.internal
+✔ Certificate: mike.crt
+✔ Private Key: mike.key`}
+</CodeBlock>
+
+By default the issued certificate will use the _subject_ (sub) claim from the
+identity token as the certificate subject. The value of the email claim is also
+included as an email _SAN_ in the certificate.
+
+<CodeBlock
+  language="shell-session"
+  copyText="step certificate inspect --short mike.crt"
+>
+{`$ step certificate inspect --short mike.crt
+X.509v3 TLS Certificate (ECDSA P-256) [Serial: 2581...6739]
+Subject:     115449349109627210866
+            mike@smallstep.com
+Issuer:      Smallstep Intermediate CA
+Provisioner: Google [ID: 6504....com]
+Valid from:  2019-06-20T18:21:52Z
+        to:  2019-06-21T18:21:52Z`}
+</CodeBlock>
+
+When you configure an OIDC provisioner at the CA you can also specify a list of
+admins . These users will be allowed to request certificates with any name.
+Non-admins can only get certificates binding their own ID and email address.
+
+#### Example
+
+One of the most common providers, and the one used in the following example, is G-Suite
+
+Add a G-Suite provisioner:
+
+```shell-session
+$ step ca provisioner add Google --type oidc --ca-config $(step path)/config/ca.json \
+  --client-id 650445034027-jsjdrkiskeq9ke99ud2rqkst82ft8uch.apps.googleusercontent.com \
+  --client-secret 6Q7lGMua_Oox4nA92QBXYypT \
+  --configuration-endpoint https://accounts.google.com/.well-known/openid-configuration \
+  --domain smallstep.com --domain gmail.com
+```
+
+Example `ca.json` provisioner configuration for a G-suite provisioner:
+
+```json nocopy
+{
+  "type": "OIDC",
+  "name": "Google",
+  "clientID": "1087160488420-8qt7bavg3qesdhs6it824mhnfgcfe8il.apps.googleusercontent.com",
+  "clientSecret": "udTrOT3gzrO7W9fDPgZQLfYJ",
+  "configurationEndpoint": "https://accounts.google.com/.well-known/openid-configuration",
+  "admins": ["you@smallstep.com"],
+  "domains": ["smallstep.com"],
+  "listenAddress": ":10000",
+  "claims": {
+    "maxTLSCertDuration": "8h",
+    "defaultTLSCertDuration": "2h",
+    "disableRenewal": true
+  },
+  "options": {
+      "x509": {
+          "templateFile": "templates/certs/x509/default.tpl"
+      },
+      "ssh": {
+          "templateFile": "templates/certs/ssh/default.tpl"
+      }
+  }
+}
+```
+
+- **type**: indicates the provisioner type and must be OIDC.
+
+- **name**: a string used to identify the provider when the CLI is used.
+
+- **clientID**: the client id provided by the identity provider used to initialize the authentication flow.
+
+- **clientSecret**: the client secret provided by the identity provider used to get the id token. Some identity providers might use an empty string as a secret.
+
+- **configurationEndpoint**: is the HTTP address used by the CA to get the OpenID Connect configuration and public keys used to validate the tokens.
+
+- **admins**<Reference id="star3" marker="*" />: is the list of emails that will be able to get certificates with custom SANs. If a user is not an admin, it will only be able to get a certificate with its email in it.
+
+- **domains**<Reference id="star3" marker="*" />: is the list of domains valid. If provided only the emails with the provided domains will be able to authenticate.
+
+- **listenAddress**<Reference id="star3" marker="*" />: is the loopback address (:port or host:port) where the authorization server will redirect to complete the authorization flow. If it's not defined step will use 127.0.0.1 with a random port. This configuration is only required if the authorization server doesn't allow any port to be specified at the time of the request for loopback IP redirect URIs.
+
+- **claims**<Reference id="star3" marker="*" />: overwrites the default claims set in the authority,
+see the [claims](#claims) section for all the options.
+
+- **options**<Reference id="star3" marker="*" />: see the [options](#options) section for more details.
+
+<Footnote id="star3" marker="*">Optional</Footnote>
+
+### X5C - X.509 Certificate
+
+An X5C provisioner allows a client to get an x509 or SSH certificate using
+an existing x509 certificate that is trusted by `step-ca`.
+
+An X5C provisioner is configured with a root certificate, supplied by the user,
+at the time the provisioner is created. The X5C provisioner can authenticate
+X5C tokens.
+
+An X5C token is a JWT, signed by the certificate private key, with an `x5c`
+header that contains the chain.
+
+#### Example
+
+If you would like any certificate signed by `step-ca` to become a _provisioner_
+(have the ability to request new certificates with any name),
+you can configure the X5C provisioner using the root certificate used by
+`step-ca`, like so:
+
+```shell
+step ca provisioner add x5c-smallstep --type X5C --x5c-root $(step path)/certs/root_ca.crt
+```
+
+Or you can configure the X5C provisioner with an outside root, giving provisioner
+capabilities to a completely separate PKI.
+
+Below is an example of an X5C provisioner in the `ca.json`:
+
+```json
+...
+{
+    "type": "X5C",
+    "name": "x5c",
+    "roots": "LS0tLS1 ... Q0FURS0tLS0tCg==",
+    "claims": {
+        "maxTLSCertDuration": "8h",
+        "defaultTLSCertDuration": "2h",
+        "disableRenewal": true
+    },
+    "options": {
+        "x509": {
+            "templateFile": "templates/certs/x509/default.tpl"
+        },
+        "ssh": {
+            "templateFile": "templates/certs/ssh/default.tpl"
+        }
+    }
+}
+```
+
+* **type**: indicates the provisioner type and must be `X5C`.
+
+* **name**: a string used to identify the provider when the CLI is used.
+
+* **roots**: a base64 encoded list of root certificates used for validating X5C
+tokens.
+
+- **claims**<Reference id="star4" marker="*" />: overwrites the default claims set in the authority,
+see the [claims](#claims) section for all the options.
+
+- **options**<Reference id="star4" marker="*" />: see the [options](#options) section for more details.
+
+<Footnote id="star4" marker="*">Optional</Footnote>
+
+### SSHPOP - SSH Certificate
+
+An SSHPOP provisioner allows a client to renew, revoke, or rekey an SSH
+certificate using that certificate for authentication with the CA.
+The renew and rekey methods can only be used on SSH host certificates.
+
+An SSHPOP provisioner is configured with the user and host root ssh certificates
+from the `ca.json`. The SSHPOP provisioner can only authenticate SSHPOP tokens
+generated using SSH certificates created by `step-ca`.
+
+An SSHPOP token is a JWT, signed by the certificate private key, with an `sshpop`
+header that contains the SSH certificate.
+
+When configured with the `--ssh` option (`step ca init --ssh`), the `ca.json`
+will contain a default SSHPOP provisioner named `sshpop`.
+
+#### Example
+
+Add an SSHPOP provisioner:
+
+```shell
+step ca provisioner add sshpop --type SSHPOP
+```
+
+An example SSHPOP provisioner in the `ca.json`:
+
+```json
+...
+{
+    "type": "SSHPOP",
+    "name": "sshpop",
+    "claims": {
+		"enableSSHCA": true
+	},
+    "options": {
+        "ssh": {
+            "templateFile": "templates/certs/ssh/default.tpl"
+        }
+    }
+}
+```
+
+* **type**: indicates the provisioner type and must be `SSHPOP`.
+
+* **name**: a string used to identify the provider when the CLI is
+  used.
+
+- **claims**<Reference id="star5" marker="*" />: overwrites the default `claims` set in the authority,
+see the [claims](#claims) section for all the options.
+
+- **options**<Reference id="star5" marker="*" />: see the [options](#options) section for more details.
+
+<Footnote id="star5" marker="*">Optional</Footnote>
+
+### ACME
+
+An ACME provisioner allows a client to request a certificate from the server
+using the [ACME Protocol](https://tools.ietf.org/html/rfc8555). The ACME
+provisioner can only request X509 certificates. All authentication of the CSR
+is managed by the ACME protocol.
+
+#### Example
+
+Add an ACME provisioner:
+
+```shell
+step ca provisioner add acme --type ACME
+```
+
+An example of an ACME provisioner in the `ca.json`:
+
+```json
+...
+{
+    "type": "ACME",
+    "name": "acme",
+    "forceCN": true,
+    "claims": {
+        "maxTLSCertDuration": "8h",
+        "defaultTLSCertDuration": "2h",
+	},
+    "options": {
+        "x509": {
+            "templateFile": "templates/certs/x509/default.tpl"
+        }
+    }
+}
+```
+
+* **type**: indicates the provisioner type and must be `ACME`.
+
+* **name**: a string used to identify the provider when the CLI is
+  used.
+
+* **forceCN**<Reference id="star6" marker="*" />: force one of the SANs to become the Common Name, if a
+  common name is not provided.
+
+- **claims**<Reference id="star6" marker="*" />: overwrites the default claims set in the authority,
+see the [claims](#claims) section for all the options.
+
+- **options**<Reference id="star6" marker="*" />: see the [options](#options) section for more details.
+
+<Footnote id="star6" marker="*">Optional</Footnote>
+
+<br /><br />
+
+See our [`step-ca` ACME tutorial](/docs/tutorials/acme-challenge)
+for more guidance on configuring and using the ACME protocol with `step-ca`.
+
+### K8sSA - Kubernetes Service Account
+
+A K8sSA provisioner allows a client to request a certificate from the server
+using a Kubernetes Service Account Token.
+
+As of the time when this provisioner was coded, the Kubernetes Service Account
+API for retrieving the token from a running instance was still in beta. Therefore,
+our K8sSA provisioner must be configured with the public key that will be used
+to validate K8sSA tokens.
+
+K8sSA tokens are very minimal. There is no place for SANs, or other details that
+a user may want validated in a CSR. It is essentially a bearer token. Therefore,
+at this time a K8sSA token can be used to sign a CSR with any SANs. Said
+differently, the **K8sSA provisioner does little to no validation on the CSR
+before signing it**. You should only configure and use this provisioner if you
+know what you are doing. If a malicious user obtains the private key they will
+be able to create certificates with any SANs and Subject.
+
+#### Example
+
+Add a K8sSA provsioner:
+
+```shell
+step ca provisioner add my-kube-provisioner --type K8sSA --pem-keys key.pub
+```
+
+An example of a K8sSA provisioner in the `ca.json`:
+
+```json
+...
+{
+    "type": "K8sSA",
+    "name": "my-kube-provisioner",
+    "publicKeys": "LS0tLS1...LS0tCg==",
+    "claims": {
+        "maxTLSCertDuration": "8h",
+        "defaultTLSCertDuration": "2h",
+	},
+    "options": {
+        "x509": {
+            "templateFile": "templates/certs/x509/default.tpl"
+        },
+        "ssh": {
+            "templateFile": "templates/certs/ssh/default.tpl"
+        }
+    }
+}
+```
+
+* **type**: indicates the provisioner type and must be `K8sSA`.
+
+* **name**: a string used to identify the provider when the CLI is
+used.
+
+* **publicKeys**: a base64 encoded list of public keys used to validate
+K8sSA tokens.
+
+- **claims**<Reference id="star7" marker="*" />: overwrites the default claims set in the authority,
+see the [claims](#claims) section for all the options.
+
+- **options**<Reference id="star7" marker="*" />: see the [options](#options) section for more details.
+
+<Footnote id="star7" marker="*">Optional</Footnote>
+
+## Cloud Provisioners
+
+For cloud VMs running on AWS, GCP, or Azure `step-ca` can be configured to use
+instance identity documents (IIDs) to authorize certificate signing requests.
+IIDs make integrating `step-ca` even easier.
+
+Instead of building and integrating a JWK provisioner that issues tokens to
+workloads, `step` can request tokens directly from your cloud provider’s
+metadata API with no additional infrastructure requirements.
+
+![example of provisioner working with step ca](../../../../../static/images/iid-provisioner.png)
+
+_Fig. 2: Diagram of how step works with a cloud service as the provisioner_
+
+Once you’ve configured `step-ca` to use IIDs for authentication, `step` will detect the provisioner type, obtain an IID token from your cloud provider, and use it to obtain a certificate from `step-ca` automatically.
+
+### Trust On First Use
+
+Instance Identity is implemented as a signed document (see an
+example GCP instance identity token [here][2]) encoding host information like
+_name_ and _owner_. The information contained in an IID may not be enough
+to generate a certificate. Due to this limitation, the cloud provisioners default
+to using a trust model called _Trust On First Use (TOFU)_.
+
+The _Trust On First Use_ model allows the use of more permissive certificate
+signing requests (CSRs) that can have custom SANs that cannot be validated. It
+comes with the limitation that you can only grant a certificate once per host.
+After this first grant, the same machine will need to renew the certificate
+using mTLS and the CA will block any other attempt to grant a certificate to
+that instance.
+
+### AWS
+
+The AWS provisioner allows granting a certificate to an Amazon EC2 instance
+using the [Instance Identity Documents](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-identity-documents.html)
+
+The [`step`](https://github.com/smallstep/cli) CLI will generate a custom JWT
+token containing the instance identity document and its signature and the CA
+will grant a certificate after validating it.
+
+#### Example
+
+Find your AWS [account ID](https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html) to restrict access to our VMs:
+
+![AWS Account ID](../../../../../static/images/aws-account-id.png)
+
+On the host running `step-ca` add an AWS provisioner to your configuration by running:
+
+```shell
+step ca provisioner add "AWS IID Provisioner" --type AWS --aws-account 123456789042
+```
+
+In the `ca.json`, an AWS provisioner looks like:
+
+```json
+{
+    "type": "AWS",
+    "name": "Amazon Web Services",
+    "accounts": ["123456789042"],
+    "disableCustomSANs": false,
+    "disableTrustOnFirstUse": false,
+    "instanceAge": "1h",
+    "claims": {
+        "maxTLSCertDuration": "2160h",
+        "defaultTLSCertDuration": "2160h"
+    },
+    "options": {
+        "x509": {
+            "templateFile": "templates/certs/x509/default.tpl"
+        },
+        "ssh": {
+            "templateFile": "templates/certs/ssh/default.tpl"
+        }
+    }
+}
+```
+
+- **type**: indicates the provisioner type and must be `AWS`.
+
+- **name**: a string used to identify the provider when the CLI is
+  used.
+
+- **accounts**<Reference id="star8" marker="*" />: the list of AWS account numbers that are allowed to use
+  this provisioner. If none is specified, all AWS accounts will be valid.
+
+- **disableCustomSANs**<Reference id="star8" marker="*" />: by default custom SANs are valid, but if this
+  option is set to true only the SANs available in the instance identity
+  document will be valid, these are the private IP and the DNS
+  `ip-<private-ip>.<region>.compute.internal`.
+
+- **disableTrustOnFirstUse**<Reference id="star8" marker="*" />: by default only one certificate will be
+  granted per instance, but if the option is set to true this limit is not set
+  and different tokens can be used to get different certificates.
+
+- **instanceAge**<Reference id="star8" marker="*" />: the maximum age of an instance to grant a
+  certificate. The instance age is a string using the duration format.
+
+- **claims**<Reference id="star8" marker="*" />: overwrites the default claims set in the authority,
+see the [claims](#claims) section for all the options.
+
+<Footnote id="star8" marker="*">Optional</Footnote>
+
+### GCP
+
+The GCP provisioner grants certificates to Google Compute Engine instance using
+its [identity](https://cloud.google.com/compute/docs/instances/verifying-instance-identity)
+token. The CA will validate the JWT and grant a certificate.
+
+#### Example
+
+On the host running `step-ca`, add an GCP provisioner to your configuration by running:
+
+```shell
+step ca provisioner add Google --type GCP \
+    --gcp-service-account 1234567890-compute@developer.gserviceaccount.com \
+    --gcp-service-account 9876543210-compute@developer.gserviceaccount.com \
+    --gcp-project identity --gcp-project accounting
+```
+
+In the `ca.json`, a GCP provisioner looks like:
+
+```json
+{
+    "type": "GCP",
+    "name": "Google Cloud",
+    "serviceAccounts": ["1234567890"],
+    "projectIDs": ["project-id"],
+    "disableCustomSANs": false,
+    "disableTrustOnFirstUse": false,
+    "instanceAge": "1h",
+    "claims": {
+        "maxTLSCertDuration": "2160h",
+        "defaultTLSCertDuration": "2160h"
+    },
+    "options": {
+        "x509": {
+            "templateFile": "templates/certs/x509/default.tpl"
+        },
+        "ssh": {
+            "templateFile": "templates/certs/ssh/default.tpl"
+        }
+    }
+}
+```
+
+- **type**: indicates the provisioner type and must be `GCP`.
+
+- **name**: a string used to identify the provider when the CLI is used.
+
+- `serviceAccounts`<Reference id="star9" marker="*" />: the list of service account numbers that are
+  allowed to use this provisioner. If none is specified, all service accounts
+  will be valid.
+
+- **projectIDs**<Reference id="star9" marker="*" />: the list of project identifiers that are allowed to
+  use this provisioner. If non is specified all project will be valid.
+
+- **disableCustomSANs**<Reference id="star9" marker="*" />: by default custom SANs are valid, but if this
+  option is set to true only the SANs available in the instance identity
+  document will be valid, these are the DNS
+  `<instance-name>.c.<project-id>.internal` and
+  `<instance-name>.<zone>.c.<project-id>.internal`
+
+- **disableTrustOnFirstUse**<Reference id="star9" marker="*" />: by default only one certificate will be
+  granted per instance, but if the option is set to true this limit is not set
+  and different tokens can be used to get different certificates.
+
+- **instanceAge**<Reference id="star9" marker="*" />: the maximum age of an instance to grant a
+  certificate. The instance age is a string using the duration format.
+
+- **claims**<Reference id="star9" marker="*" />: overwrites the default claims set in the authority,
+see the [claims](#claims) section for all the options.
+
+- **options**<Reference id="star9" marker="*" />: see the [options](#options) section for more details.
+
+<Footnote id="star9" marker="*">Optional</Footnote>
+
+### Azure
+
+The Azure provisioner grants certificates to Microsoft Azure instances using
+the [managed identities tokens](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token).
+The CA will validate the JWT and grant a certificate.
+
+#### Example
+
+On the host running `step-ca`, add an GCP provisioner to your configuration by running:
+
+```shell
+step ca provisioner add Azure --type Azure \
+    --azure-tenant bc9043e2-b645-4c1c-a87a-78f8644bfe57 \
+    --azure-resource-group identity --azure-resource-group accounting
+```
+
+In the `ca.json`, an Azure provisioner looks like:
+
+```json
+{
+    "type": "Azure",
+    "name": "Microsoft Azure",
+    "tenantId": "b17c217c-84db-43f0-babd-e06a71083cda",
+    "resourceGroups": ["backend", "accounting"],
+    "audience": "https://management.azure.com/",
+    "disableCustomSANs": false,
+    "disableTrustOnFirstUse": false,
+    "claims": {
+        "maxTLSCertDuration": "2160h",
+        "defaultTLSCertDuration": "2160h"
+    },
+    "options": {
+        "x509": {
+            "templateFile": "templates/certs/x509/default.tpl"
+        },
+        "ssh": {
+            "templateFile": "templates/certs/ssh/default.tpl"
+        }
+    }
+}
+```
+
+- **type**: indicates the provisioner type and must be `Azure`.
+
+- **name**: a string used to identify the provider when the CLI is used.
+
+- **tenantId**: the Azure account tenant id for this provisioner. This
+  id is the Directory ID available in the Azure Active Directory properties.
+
+- **audience**<Reference id="star10" marker="*" />: defaults to `https://management.azure.com/` but it can
+  be changed if necessary.
+
+- **resourceGroups**<Reference id="star10" marker="*" />: the list of resource group names that are allowed
+  to use this provisioner. If none is specified, all resource groups will be
+  valid.
+
+- **disableCustomSANs**<Reference id="star10" marker="*" />: by default custom SANs are valid, but if this
+  option is set to true only the SANs available in the token will be valid, in
+  Azure only the virtual machine name is available.
+
+- **disableTrustOnFirstUse**<Reference id="star10" marker="*" />: by default only one certificate will be
+  granted per instance, but if the option is set to true this limit is not set
+  and different tokens can be used to get different certificates.
+
+- **claims**<Reference id="star10" marker="*" />: overwrites the default claims set in the authority,
+see the [claims](#claims) section for all the options.
+
+- **options**<Reference id="star10" marker="*" />: see the [options](#options) section for more details.
+
+<Footnote id="star10" marker="*">Optional</Footnote>
+
+## X.509 Templates
+
+People use private CAs for all sorts of things, in many different contexts: web
+apps, mobile apps, code signing, cloud VM instances, SSH, IoT devices, etc. So
+`step-ca` must be flexible enough to handle a wide variety of flows.
+
+That's why, beginning with `step` and `step-ca` version `v0.15.0` we are
+introducing the concept of certificate templates.
+
+With X.509 templates, you can do things like:
+
+- Add custom SANs to certificates.
+- Add custom X.509 extensions to certificates.
+- Make longer certificate chains, with multiple intermediate CAs.
+- Add conditionals around any of a certificate's parameters, and fail if they are not met.
+
+### Basic Templates
+
+X.509 templates are JSON documents that describe the most important fields in
+the final certificate or certificate request. Templates use Go's
+[text/template](https://golang.org/pkg/text/template/) at the core and are
+extended with [Sprig functions](http://masterminds.github.io/sprig/).
+
+X.509 templates can be used with `step` and `step-ca`. With `step`, 
+templates are generally used by passing `--template <path>` to the `step
+certificate create` or `step certificate sign` subcommands. With `step-ca`,
+templates are configured per provisioner.
+
+Within provisioner configuration, a certificate template can be set under the new
+property `"options"`. The following snippet shows a provisioner with a custom
+template:
+
+```json
+{
+    "type": "JWK",
+    "name": "jane@doe.com",
+    "key": {
+       "use": "sig",
+       "kty": "EC",
+       "kid": "lq69QCCEwEhZys_wavar9RoqRLdJ58u_OGzJK0zswSU",
+       "crv": "P-256",
+       "alg": "ES256",
+       "x": "pt7T0n98qREZUkyUX6b4kXJ5FkJlIdiMfJaLFclZIng",
+       "y": "Pw1y1xqe4g4YARwyBSkEkcjNrtPYxdKlYDLI512t2_M"
+    },
+    "encryptedKey": "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjdHkiOiJqd2sranNvbiIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjEwMDAwMCwicDJzIjoiQ1dWZG5zWTR2bGZJbG9BQ1dOaUdNUSJ9.12dowlkvESpxJgrNJgP2ELDQz750HSh2w6Ux6BmatBE5-ybAJFFO7g.1cjU2-CTrV3gbUE7.m8a95nv4qLnN_K_PG7lzgzYXBGnw_aHCf-znJ34AZxzPy2QDGGEjN_V0jX3kvHH9AIg3cs8I8NRm__RDm2iezU5AhPoAHaqnPnZdKh0ReBZ4hNpYXUHlTPf4fRaCXXDQiKatxNzCMBpyqKpudf3xYUzZPRNMN78WM0ZeIzmv_jFzbryOpxD8bJ3Bnxa4e8Am_pPdAANHphodlKN2nDr4701OLKgitImm8RoA20sWdAI_LkTS_Abk_TqBo_3qOGdjmnRBtATFSu3BdQw5wZMjywfwCWKXUK_OUt-cjVIe11xUT43SoE8fR2GJJEKomAHP0vn0MUUMqY9P9icUejw.eEYI_H7WfrYDL4yhsnsJxg",
+	"options": {
+		"x509": {
+			"templateFile": "templates/certs/x509/leaf.tpl",
+			"templateData": {
+				"OrganizationalUnit": "Engineering Team"
+			}
+		}
+	}
+}
+```
+
+- **options**: object that allows configuration of provisioner options e.g. templates.
+
+  - **x509**: object for configuring X.509 certificate options.
+
+    - **templateFile**: path to a template stored on disk. You have a few options for how to define your path:
+
+        - **_absolute path_**:  e.g. `/home/mariano/path/to/file.ptl`
+        - **_relative to `$STEPPATH`_**: e.g. `templates/certs/x509/leaf.tpl` the actual
+          location of which would be `$STEPPATH/templates/certs/x509/leaf.tpl`.
+        - **_relative to execution directory of `step-ca`_**: e.g. `./path/to/file.tpl` or `../path/to/file.tpl`
+
+    - **templateData**: defines variables that can be used in the
+      template. In the example above you will be able to use the defined
+      organizational unit as the variable `{{ .OrganizationalUnit }}`, for example in
+      a template like:
+
+        ```json
+        {
+            "subject": {
+                "organizationalUnit": "{{ .OrganizationalUnit }}",
+                "commonName": "{{ .Subject.CommonName }}"
+            },
+            "sans": {{ toJson .SANs }},
+            "keyUsage": ["digitalSignature"],
+            "extKeyUsage": ["serverAuth", "clientAuth"]
+        }
+        ```
+
+    - **template**: set the full template in a string. The value can be the
+      string representation of a JSON object, or you encoded in base64. For
+      example: 
+
+        ```json
+        {
+            "x509": {
+                "template": "{{ toJson .Insecure.CR }}",
+            }
+        }
+        ```
+
+        Or using base64:
+
+        ```json
+        {
+            "x509": {
+                "template": "e3sgdG9Kc29uIC5JbnNlY3VyZS5DUiB9fQ==",
+            }
+        }
+        ```
+
+You will learn the most common templates in the following subsections and
+advance to more complex templates later.
+
+#### Leaf certificates
+
+The most common type of certificate you'll want to create is a leaf (or end-entity)
+certificate; this is the type of certificate that your servers or clients will
+use.
+
+The default leaf certificate template is:
+
+```json
+{
+	"subject": {{ toJson .Subject }},
+	"sans": {{ toJson .SANs }},
+{{- if typeIs "*rsa.PublicKey" .Insecure.CR.PublicKey }}
+	"keyUsage": ["keyEncipherment", "digitalSignature"],
+{{- else }}
+	"keyUsage": ["digitalSignature"],
+{{- end }}
+	"extKeyUsage": ["serverAuth", "clientAuth"]
+}
+```
+
+We will explain what each block does, but first, let's look at what a rendered
+template might look like. Imagine that you run the following command to create
+a certificate that has `jane@doe.com` as an email SAN.
+
+```shell
+step ca certificate jane@doe.com jane.crt
+```
+
+The rendered template (from which the X.509 certificate will be generated and
+signed) is:
+
+```json
+{
+    "subject": {
+        "commonName": "jane@smallstep.com"
+    },
+    "sans": [{"type": "email", "value": "jane@smallstep.com"}],
+    "keyUsage": ["digitalSignature"],
+    "extKeyUsage": ["serverAuth", "clientAuth"]
+}
+```
+
+Going back to the template above, we can see that the template has blocks
+delimited by `{{` and `}}`. These are called **_actions_** - **_actions_** are
+data evaluations or control structures. The ones in the default template are:
+
+- `{{ toJson .Subject }}`: renders `.Subject` as JSON. `toJson` is a function in
+Sprig that encodes the passed item into JSON. `.Subject` is a variable available
+in all templates that contains the `<subject>` parameter passed in the CLI, in
+this case, `jane@smallstep.com`, and to be more precise, this value is available
+in `.Subject.CommonName`.
+
+- `{{ toJson .SANs }}`: renders `.SANs` (Subject Alternative Names) as JSON.
+The variable `.SANs` is also available in all templates and contains the list
+of `SANs` passed from the CLI.  If no `SANs` are specified, the
+`.Subject.CommonName` will be used as a default `SAN` (e.g.
+jane@smallstep.com` in our example). If you add more `SANs` using the
+flag `--san`, `step-ca` will auto-assign the correct SAN `type` (`dns`, `ip`,
+uri`, or `email`).
+
+- `{{- if typeIs "*rsa.PublicKey" .Insecure.CR.PublicKey }}`: defines a
+condition based on the key type in the certificate request. `typeIs`
+is a Sprig function that returns true if the type of the data in
+`.Insecure.CR.PublicKey` matches `*rsa.PublicKey`, this is the Go specific type
+for RSA public keys. If the condition is true, the `keyUsage` is set to
+`keyEncipherment` and `digitalSignature`, otherwise just `digitalSignature`. 
+`keyEncipherment` is used in the RSA key exchange protocol,
+and it must only be set if an RSA key is used. `.Insecure.CR` is a structure that
+represents the certificate (signing) request or CSR, from it we can extract
+SANs, the subject, extensions, etc. 
+
+Finally we also set the extended key usage `serverAuth` and `clientAuth` so the
+certificate can be used in a server application or in a client for mTLS.
+
+#### Intermediate certificates
+
+An intermediate certificate is a certificate that can be used to sign another
+certificate, and it has itself been signed by another intermediate certificate or by
+a root certificate.
+
+The default template for an intermediate certificate is:
+
+```
+{
+	"subject": {{ toJson .Subject }},
+	"keyUsage": ["certSign", "crlSign"],
+	"basicConstraints": {
+		"isCA": true,
+		"maxPathLen": 0
+	}
+}
+```
+
+This template is most commonly used in the `step certificate create` command
+when the flag `--profile intermediate-ca` is set. But it can also be set in the
+`ca.json` and used in a specific provisioner in `step-ca`. 
+
+<Alert severity="warning">
+  <div>
+    Exercise caution when configuring intermediate templates for
+    <Code>step-ca</Code> provisioners. Make sure only administrators with the 
+    right permissions have access to those provisioners.
+  </div>
+</Alert>
+
+The `keyUsage` **_certSign_** allows a certificate to sign other certificates.
+**_crlSign_** allows a certificate to sign Certificate Revocation Lists or CRLs.
+
+In `basicConstraints` we say that this certificate is a CA, and the path length
+constraint, `maxPathLen`, is maximum number of non-self-issued intermediate
+certificates that may follow this certificate in a valid certification path. An
+intermediate with a `maxPathLen` set to `0` won't be able to sign another
+intermediate certificate. To be precise, it can sign it, but the new
+intermediate won't be trusted by clients, so it won't be useful.
+
+Knowing this we can also guess that the intermediate certificate's issuer had at
+least a `maxPathLen` of `1`. So if you want to use an intermediate certificate
+that can sign other intermediates, make sure to set more permissive `maxPathLen`
+in the root and intermediate certificate used.
+
+The command `step certificate create` with the `--profile intermediate-ca` flag
+uses the template above, but if you want to create an intermediate with a custom
+template you can run:
+
+```shell
+step certificate create --template intermediate.tpl \
+--ca ~/.step/certs/root_ca.crt --ca-key ~/.step/secrets/root_ca_key \
+"ACME Intermediate CA" intermediate_ca.crt intermediate_ca_key
+```
+
+#### Root certificates
+
+A root certificate is a self-signed certificate used to sign other certificates.
+The default root certificate template is:
+
+```json
+{
+	"subject": {{ toJson .Subject }},
+	"issuer": {{ toJson .Subject }},
+	"keyUsage": ["certSign", "crlSign"],
+	"basicConstraints": {
+		"isCA": true,
+		"maxPathLen": 1
+	}
+}
+```
+
+Here we are specifying that the **_issuer_** is equivalent to the **_subject_**, and the `maxPathLen` is set to
+`1`, so it can sign intermediate certificates with `maxPathLen` set to `0`. If
+you want to allow intermediates to sign other intermediates, you need to set the
+`maxPathLen` to at least `2`. It's also possible to not limit the number of
+intermediates that can follow this certificate if we set `maxPathLen` to `-1`,
+and then create intermediates that set a specific limit, i.e. `0` for those that
+can sign only leaf certificates and `1` for those that can sign at most one downstream
+intermediate certificate.
+
+The command `step certificate create` with the `--profile root-ca` flag uses the
+above template. To create a custom root certificate, you can run:
+
+```shell
+step certificate create --template root.tpl "ACME Root CA" root_ca.crt root_ca_key
+```
+
+<Alert severity="info">
+  <div>
+    It is not possible to use <Code>step-ca</Code> to sign a root certificate.
+  </div>
+</Alert>
+
+
+### Advanced templates
+
+In the previous section, we learned how to create and use the basic templates, but
+we've just scratched the surface of what's possible. With templates, you can 
+customize and parameterize every aspect of an X.509 certificate.
+
+For example, you can:
+
+- extend path lengths
+- add custom extensions
+- define name constraints for your intermediates
+- add custom information provided by the user
+- define what your certificate can be used for (e.g. **_codeSigning_**)
+- etc.
+
+Below we'll walk through a few more advanced templating examples.
+
+#### Certificate Request
+
+Let's start with one of the shortest templates:
+
+```json
+{{ toJson .Insecure.CR }}
+```
+
+This template produces a signed certificate that contains all the information
+present in the certificate request (with a few caveats). All SANs and
+extensions present in the certificate request will be in the final certificate.
+
+The only modifications that a signed certificate might have (over a CSR), would be in the
+certificate subject on `step-ca` if a template is provided in the `ca.json`, and
+it will set the Subject Alternative Name extension to critical if the subject is
+empty.
+
+#### User Provided Variables
+
+In `step-ca`, templates can also be parameterized with variables that will be
+provided by `step` at certificate creation time. A common use case for
+variables is when you receive a CSR from another team, or a CSR embedded in
+hardware, and you need to define a SAN for it.
+
+For example, below is a template that accepts the user variable `dnsName`
+but falls back to the default leaf template if it's not present:
+
+```json
+{
+	"subject": {{ toJson .Subject }},
+{{- if .Insecure.User.dnsName }}
+	"dnsNames": "{{ .Insecure.User.dnsName}}",
+{{- else }}
+	"sans": {{ toJson .SANs }},
+{{- end }}
+{{- if typeIs "*rsa.PublicKey" .Insecure.CR.PublicKey }}
+	"keyUsage": ["keyEncipherment", "digitalSignature"],
+{{- else }}
+	"keyUsage": ["digitalSignature"],
+{{- end }}
+	"extKeyUsage": ["serverAuth", "clientAuth"]
+}
+```
+
+You can then use `step` to sign a CSR like so:
+
+```shell-session nocopy
+$ step ca sign --set "dnsName=backend.example.com" input.csr output.crt
+# Or
+$ echo '{"dnsName": "backend.example.com"}' > vars.json
+$ step ca sign --set-file vars.json input.csr output.crt
+```
+
+Both flags, `--set <name=value>` and `--set-file <path>` are available in
+`step ca certificate` and `step ca sign`. If you need to pass more than one
+variable, you can use `--set` multiple times or use a JSON file with multiple
+properties.
+
+It's worth mentioning the while we used `"dnsNames"` instead of `"sans"` in the example above, both can
+be used. `"dnsNames"` is an array of strings (or just one string if only one is
+required), while `"sans"` is an array of objects like:
+
+```json
+[
+	{"type": "dns", "value": "backend.example.com"},
+	{"type": "email", "value": "jane@example.com"},
+	{"type": "ip", "value": "10.0.1.10"},
+	{"type": "uri", "value": "https://backend.example.com/root.crt"},
+]
+```
+
+The variable `.SANs` is generated by the provisioners with the values of the
+trusted names.
+
+Besides `"dnsNames"`, you can also use `"emailAddresses"`, `"ipAddresses"`, and
+`"uris"`.
+
+#### Name Constraints
+
+Name constraints are useful in intermediate certificates when you want to limit
+the validity of certificates that an intermediate can sign. If we want to only
+allow DNS name like \*.example.com we can generate an intermediate with the
+template:
+
+```
+{
+    "subject": {{ toJson .Subject }},
+    "keyUsage": ["certSign", "crlSign"],
+    "basicConstraints": {
+        "isCA": true,
+        "maxPathLen": 0
+    },
+    "nameConstraints": {
+        "critical": true,
+        "permittedDNSDomains": ["example.com"]
+    }
+}
+```
+
+Given a root certificate and a key, you can generate the intermediate with:
+
+```shell
+step certificate create —template intermediate.tpl --ca root_ca.crt --ca-key root_ca_key \
+     “Intermediate CA” intermediate.crt intermediate.key
+```
+
+Besides `"permittedDNSDomains"`, the `"nameConstraints"` property accepts all
+the following properties:
+
+```json
+{
+	"nameConstraints": {
+		"critical": false,
+		"permittedDNSDomains": ["doe.com"],
+		"excludedDNSDomains": ["doe.org"],
+		"permittedIPRanges": ["1.2.3.0/24"],
+		"excludedIPRanges": ["3.2.1.0/24"],
+		"permittedEmailAddresses": ["jane@doe.com"],
+		"excludedEmailAddresses": ["jane@doe.org"],
+		"permittedURIDomains": ["https://doe.com"],
+		"excludedURIDomains": ["https://doe.org"],
+	}
+}
+```
+
+Remember that in certificate templates, if an array only has one member, you can
+write it as a string:
+
+```json
+{
+	"nameConstraints": {
+        "critical": true,
+        "permittedDNSDomains": "example.com"
+    }
+}
+```
+
+#### Extensions
+
+SANs, key usages, extended key usages, basic constraints, and name constraints,
+are all extensions in an X.509 certificate. Templates provide an
+easy way for assigning extensions without the need of using the actual extension
+bytes.
+
+The same thing is also possible with top-level certificate template properties like:
+
+- **unknownExtKeyUsage**: defines custom extended key usages using ASN.1
+object identifiers; this is useful if the templates do not support a string
+version of the extended key usage [(RFC 5280, 4.2.1.12)](https://tools.ietf.org/html/rfc5280#section-4.2.1.12).
+
+- **ocspServer**: sets a list of OCSP servers in the Authority Information
+Access extension [(RFC 5280, 4.2.2.1)](https://tools.ietf.org/html/rfc5280#section-4.2.2.1).
+
+- **issuingCertificateURL**: defines the issuing certificate URL in the Authority
+Information Access extension [(RFC 5280, 4.2.2.1)](https://tools.ietf.org/html/rfc5280#section-4.2.2.1).
+
+- **crlDistributionPoints**: defines URLs with the certificate revocation
+list [(RFC 5280, 4.2.1.13)](https://tools.ietf.org/html/rfc5280#section-4.2.1.13)).
+
+- **policyIdentifiers**: defines a list of ASN.1 object identifiers with
+certificate policies [(RFC 5280, 4.2.1.4)](https://tools.ietf.org/html/rfc5280#section-4.2.1.4).
+
+But if you need to create your own extension, or use an unsupported one, you can
+also write a custom extension like:
+
+```json
+{
+	"extensions": [
+		{"id": "1.2.3.4", "critical": false, "value": "Y3VzdG9tIGV4dGVuc2lvbiB2YWx1ZQ=="}
+	]
+}
+```
+
+The crux here is that the value of the extension is the base64 encoding of the
+actual bytes that go into that extension, so if you are encoding a structure
+in your extension using the ASN.1 encoding, you will have to put the base64
+version of the encoded bytes.
+
+#### OpenVPN certificates
+
+One interesting use case for certificate templates is the signing of
+[OpenVPN](https://openvpn.net) certificates. These certificates require specific
+key usages not available in the default templates.
+
+This is a template you can use in a provisioner signing OpenVPN client certificates:
+
+```
+{
+  "subject": {"commonName":"{{ .Insecure.CR.Subject.CommonName }}"},
+  "sans": {{ toJson .SANs }},
+  "keyUsage": ["digitalSignature", "keyAgreement"],
+  "extKeyUsage": ["clientAuth"]
+}
+```
+
+And the following template can be used for a provisioner signing OpenVPN server
+certificates:
+
+```
+{
+  "subject": {{ toJson .Subject }},
+  "sans": {{ toJson .SANs }},
+  "keyUsage": ["digitalSignature", "keyEncipherment", "keyAgreement"],
+  "extKeyUsage": ["serverAuth"]
+}
+```
+
+A full configuration of `step-ca` and OpenVPN is available in our blog post
+["Announcing X.509 Certificate
+Flexibility"](https://smallstep.com/blog/x509-certificate-flexibility/)
+
+### Even More Templates
+
+To delve deeper into certificate templates and all the options, the best source
+of information is the code docs for the [go.step.sm/crypto/x509util
+package](https://pkg.go.dev/go.step.sm/crypto/x509util):
+
+* The [Certificate](https://pkg.go.dev/go.step.sm/crypto/x509util#Certificate)
+object represents a certificate template with all its properties.
+
+* The
+[CertificateRequest](https://pkg.go.dev/go.step.sm/crypto/x509util#CertificateRequest)
+object represents all properties for a CSR template that can be used in
+`step certificate create --csr`.
+
+* All key usages and supported extended key usages without using
+`"unknownExtKeyUsage"` are available
+[here](https://pkg.go.dev/go.step.sm/crypto/x509util#pkg-variables).
+
+More information and more examples are available in the blog post ["Announcing
+X.509 Certificate
+Flexibility"](https://smallstep.com/blog/x509-certificate-flexibility/).
+
+## Databases
+
+`step-ca` uses a simple key-value interface over popular database
+implementations to store persistent certificate management meta-data. Our
+recommended default database implementation is nosql-Badger, a NoSQL interface
+over the popular [Badger](https://github.com/dgraph-io/badger) database. As a
+first pass, the database layer will store every certificate (along with
+        metadata surrounding the provisioning of the certificate) and
+revocation data that will be used to enforce passive revocation.
+
+Configuring `step-ca` to use a database is as simple as adding a top-level `db`
+stanza to your `ca.json` file. Below users can find documentation and examples
+for supported databases:
+
+- [Badger](#badger)
+- [BoltDB](#boltdb)
+- [MySQL](#mysql)
+
+### Badger
+
+```json
+{
+  ...
+  "db": {
+    "type": "badger",
+    "dataSource": "./.step/db",
+    "valueDir": "./.step/valuedb"
+    "badgerFileLoadingMode": "MemoryMap"
+  },
+  ...
+},
+```
+
+**Options**
+
+- `type`
+
+  - **badger**: currently refers to Badger V1. However, as Badger V1 is deprecated, this will refer to Badger V2 starting with a the next major version release.
+  - **badgerV1**: explicitly select Badger V1.
+  - **badgerV2**: explicitly select Badger V2. Anyone looking to use Badger V2 will need to set it explicitly until it becomes the default.
+
+- `dataSource`: path, database directory.
+- `valueDir` [optional]: path, value directory, only if different from dataSource.
+- `badgerFileLoadingMode` [optional]: can be set to FileIO (instead of the default MemoryMap) to avoid memory-mapping log files. This can be useful in environments with low RAM. Make sure to use badgerV2 as the database type if using this option.
+  - **MemoryMap**: default.
+  - **FileIO**: This can be useful in environments with low RAM.
+
+### BoltDB
+
+```json
+{
+  ...
+  "db": {
+    "type": "bbolt",
+    "dataSource": "./stepdb"
+  },
+  ...
+}
+```
+
+**Options**
+
+- `type`: **bbolt**
+- `dataSource`: path, database directory.
+
+### MySQL
+
+```json
+{
+  ...
+  "db": {
+    "type": "mysql",
+    "dataSource": "user:password@tcp(127.0.0.1:3306)/",
+    "database": "myDBName"
+  },
+  ...
+},
+```
+
+**Options**
+
+- `type`: **mysql**
+- `dataSource`: path, database directory.
+
+<Alert severity="info">
+  <div>
+    Extra parameters can be passed in the mysql dataSource name as follows: <Code>"dataSource": "user:password@tcp(127.0.0.1:3306)/myDBName?tls=true&"</Code>. The <Code>&</Code> in the end is important.
+  </div>
+</Alert>
+
+### Schema
+
+As the interface is a key-value store, the schema is very simple. We support tables, keys, and values. An entry in the database is a `[]byte value` that is indexed by `[]byte table` and `[]byte key`.
+
+### Exporting Data
+
+At this time `step-ca` does not have any API or interface for easily exporting data. Because the data is stored in a `noSQL` like manner, it is difficult to explore the data even when using a SQL backend like MySQL. We do have [a scripted example for accessing the DB](#scripted-export-db) to give users a jumping off point for writing their own reporting and logging tools.
+
+<Alert severity="info">
+  <div>
+    Note that some DBs, like Badger and BoltDB, cannot have multiple processes accessing them simultaneously. You'll need to 
+    stop the <Code>step-ca</Code> process in order to run a export script against those DBs.
+  </div>
+</Alert>
+
+[scripted-export-db]: https://gist.github.com/dopey/89ec20f22c66c1333bf38c9b19b89758
+
+## Cloud Key Management Service
+
+Support for multiple KMS are planned, but only Google's Cloud KMS and Amazon's
+AWS KMS are currently supported. An [experimental version for YubiKeys](#yubikey) is also
+available.
+
+### Google's Cloud KMS
+
+[Cloud KMS](https://cloud.google.com/kms/docs) is Google's cloud-hosted KMS that allows you to store the cryptographic keys and sign certificates using their infrastructure. Cloud KMS supports two different protection levels: `SOFTWARE` and `HSM`.
+
+To configure Cloud KMS in your certificate authority, add the `kms` property to your `ca.json` file and replace the property `key` with the Cloud KMS key name of your intermediate key:
+
+```json nocopy
+{
+    "root": "/home/step/certs/root_ca.crt",
+    "crt": "/home/step/certs/intermediate_ca.crt",
+    "key": "projects/<project-id>/locations/global/keyRings/<ring-id>/cryptoKeys/<key-id>/cryptoKeyVersions/<version-number>",
+    "kms": {
+        "type": "cloudkms",
+        "credentialsFile": "path/to/credentials.json"
+    }
+}
+```
+
+In a similar way for SSH certificates, the SSH keys must be Cloud KMS names:
+
+```json nocopy
+{
+    "ssh": {
+        "hostKey": "projects/<project-id>/locations/global/keyRings/<ring-id>/cryptoKeys/<key-id>/cryptoKeyVersions/<version-number>",
+        "userKey": "projects/<project-id>/locations/global/keyRings/<ring-id>/cryptoKeys/<key-id>/cryptoKeyVersions/<version-number>"
+    }
+}
+```
+
+Currently, `step` does not provide an automatic way to initialize the public key infrastructure (PKI) using Cloud KMS. Still, an experimental tool named `step-cloudkms-init` addresses this use case. This tool generates the public certificates `root_ca.crt` and `intermediate_ca.crt` for inclusion in `ca.json` and prints the intermediate key name for use in the `key` property. In a future release, this tool will be integrated into `step`.
+
+To use `step-cloudkms-init`, install it from the [latest `step-ca` release tarball](https://github.com/smallstep/certificates/releases), enable Cloud KMS in your project, and run:
+
+```shell nocopy
+$ export GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
+$ step-cloudkms-init --project your-project-id --ssh
+Creating PKI ...
+✔ Root Key: projects/your-project-id/locations/global/keyRings/pki/cryptoKeys/root/cryptoKeyVersions/1
+✔ Root Certificate: root_ca.crt
+✔ Intermediate Key: projects/your-project-id/locations/global/keyRings/pki/cryptoKeys/intermediate/cryptoKeyVersions/1
+✔ Intermediate Certificate: intermediate_ca.crt
+
+Creating SSH Keys ...
+✔ SSH User Public Key: ssh_user_ca_key.pub
+✔ SSH User Private Key: projects/your-project-id/locations/global/keyRings/pki/cryptoKeys/ssh-user-key/cryptoKeyVersions/1
+✔ SSH Host Public Key: ssh_host_ca_key.pub
+✔ SSH Host Private Key: projects/your-project-id/locations/global/keyRings/pki/cryptoKeys/ssh-host-key/cryptoKeyVersions/1
+```
+
+By default, the keys are generated using the `SOFTWARE` protection level. Add the flag `---protection-level HSM` to use a Hardware Security Module (HSM).
+
+Run the `step-cloudkms-init --help` command for more options.
+
+### AWS KMS
+
+[AWS KMS](https://aws.amazon.com/kms/) is Amazon's managed encryption and key management service. It creates and stores the cryptographic keys and uses AWS infrastructure for signing operations. Amazon KMS operations are always backed by HSMs.
+
+To configure AWS KMS in your certificate authority, add the `kms` property to `ca.json` and replace the `key` property with the AWS KMS key name of your intermediate key:
+
+```json nocopy
+{
+    "root": "/home/step/certs/root_ca.crt",
+    "crt": "/home/step/certs/intermediate_ca.crt",
+    "key": "awskms:key-id=f879f239-feb6-4596-9ed2-b1606277c7fe",
+    "kms": {
+        "type": "awskms",
+        "region": "us-east-1"
+    }
+}
+```
+
+By default, `step-ca` uses the credentials stored in `~/.aws/credentials`. Use the `credentialsFile` option to override. The `region` and `profile` options specify the AWS region and configuration profiles respectively . These options can also be configured using environment variables as described in the [AWS SDK for Go session documentation](https://docs.aws.amazon.com/sdk-for-go/api/aws/session/).
+
+In similar manner, to configure SSH certificate signing, replace the SSH keys with the keys from AWS KMS:
+
+```json nocopy
+{
+    "ssh": {
+        "hostKey": "awskms:key-id=d48e502a-09bc-4bf7-9af8-ae1bccedc931",
+        "userKey": "awskms:key-id=cf28e942-1e10-4a08-b84c-5359af1b5f12"
+    }
+}
+```
+
+`step-ca` can also accept just the Amazon Key ID or the ARN as key options, but using the format based on the [RFC7512](https://tools.ietf.org/html/rfc7512) will allow more flexibility for future `step` releases.
+
+Currently, `step` does not provide an automatic way to initialize the public key infrastructure (PKI) using AWS KMS, but an experimental tool named `step-awskms-init` addresses this use case. This tool generates the public certificates `root_ca.crt` and `intermediate_ca.crt` for inclusion in `ca.json` and prints the intermediate key name for use in the `key` property. In a future release, this tool will be integrated into `step`.
+
+To use `step-awskms-init`, make sure to [configure your environment using `aws configure`](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html), install `step-awskms-init` from the [latest `step-ca` release tarball](https://github.com/smallstep/certificates/releases), and run:
+
+<CodeBlock language="shell-session" copyText="step-awskms-init --ssh --region us-east-1">{`$ step-awskms-init --ssh --region us-east-1
+ 
+Creating PKI ...
+✔ Root Key: awskms:key-id=f53fb767-4029-40ff-b650-0dd35fb661df
+✔ Root Certificate: root_ca.crt
+✔ Intermediate Key: awskms:key-id=f879f239-feb6-4596-9ed2-b1606277c7fe
+✔ Intermediate Certificate: intermediate_ca.crt
+ 
+Creating SSH Keys ...
+✔ SSH User Public Key: ssh_user_ca_key.pub
+✔ SSH User Private Key: awskms:key-id=cf28e942-1e10-4a08-b84c-5359af1b5f12
+✔ SSH Host Public Key: ssh_host_ca_key.pub
+✔ SSH Host Private Key: awskms:key-id=cf28e942-1e10-4a08-b84c-5359af1b5f12`}</CodeBlock>
+
+The `--region` parameter is only required if your AWS configuration does not define a region.
+
+Run the `step-awskms-init --help` command for more options.
+
+### YubiKey
+
+**This feature is experimental and is not enabled by default.**
+
+You can use a hardware [YubiKey](https://www.yubico.com/)—and the YubiKey PIV application—to store your CA keys and sign TLS certificates.
+
+This module is not enabled by default, and only TLS signing can be configured.
+
+The YubiKey implementation requires `cgo`, and our build system does not produce binaries with it. To enable YubiKey, download the source code and run:
+
+```shell
+make build GOFLAGS=""
+```
+
+`step-ca` uses [piv-go](https://github.com/go-piv/piv-go) and requires PCSC support. This is available by default on macOS and Windows operating systems, but on Linux piv-go requires PCSC lite.
+
+To install on Debian-based distributions, run:
+
+```shell
+sudo apt-get install libpcsclite-dev
+```
+
+On Fedora:
+
+```shell
+sudo yum install pcsc-lite-devel
+```
+
+On CentOS:
+
+<CodeBlock
+    language="shell"
+    copyText="sudo yum install 'dnf-command(config-manager)' && sudo yum config-manager --set-enabled PowerTools && sudo yum install pcsc-lite-devel"
+  >{`sudo yum install 'dnf-command(config-manager)'
+sudo yum config-manager --set-enabled PowerTools
+sudo yum install pcsc-lite-devel`}</CodeBlock>
+
+The initialization of the public key infrastructure (PKI) for YubiKeys is not currently integrated into `step`, but an experimental tool named `step-yubikey-init` addresses this use case. In a future release, this tool will be integrated into `step`.
+
+To configure your YubiKey, install `step-yubikey-init` from the [latest `step-ca` release tarball](https://github.com/smallstep/certificates/releases) and run:
+
+<CodeBlock
+    language="shell-session"
+    copyText="step-yubikey-init"
+  >{`$ step-yubikey-init
+ 
+What is the YubiKey PIN?:
+Creating PKI ...
+✔ Root Key: yubikey:slot-id=9a
+✔ Root Certificate: root_ca.crt
+✔ Intermediate Key: yubikey:slot-id=9c
+✔ Intermediate Certificate: intermediate_ca.crt`}</CodeBlock>
+
+Run the `step-yubikey-init --help` command for more options.
+
+Finally, to enable it in `ca.json`, point the `root` and `crt` options to the generated certificates, replace the `key` option with the YubiKey URI generated in the previous part, and configure the `kms` option with the appropriate `type` and `pin`.
+
+```json nocopy
+{
+    "root": "/path/to/root_ca.crt",
+    "crt": "/path/to/intermediate_ca.crt",
+    "key": "yubikey:slot-id=9c",
+    "kms": {
+        "type": "yubikey",
+        "pin": "123456"
+    }
+}
+```
