@@ -41,7 +41,7 @@ learn how to configure your CA to:
   - [ACME](#acme)
   - [K8sSA - Kubernetes Service Account](#k8ssa-kubernetes-service-account)
   - [Cloud Provisioners](#cloud-provisioners)
-- [X.509 Templates](#x509-templates)
+- [Certificate Templates](#certificate-templates)
   - [Basic Templates](#basic-templates)
   - [Advanced Templates](#advanced-templates)
 - [Databases](#databases)
@@ -862,9 +862,6 @@ An example of a K8sSA provisioner in the `ca.json`:
     "options": {
         "x509": {
             "templateFile": "templates/certs/x509/default.tpl"
-        },
-        "ssh": {
-            "templateFile": "templates/certs/ssh/default.tpl"
         }
     }
 }
@@ -954,9 +951,6 @@ In the `ca.json`, an AWS provisioner looks like:
     "options": {
         "x509": {
             "templateFile": "templates/certs/x509/default.tpl"
-        },
-        "ssh": {
-            "templateFile": "templates/certs/ssh/default.tpl"
         }
     }
 }
@@ -1022,9 +1016,6 @@ In the `ca.json`, a GCP provisioner looks like:
     "options": {
         "x509": {
             "templateFile": "templates/certs/x509/default.tpl"
-        },
-        "ssh": {
-            "templateFile": "templates/certs/ssh/default.tpl"
         }
     }
 }
@@ -1095,9 +1086,6 @@ In the `ca.json`, an Azure provisioner looks like:
     "options": {
         "x509": {
             "templateFile": "templates/certs/x509/default.tpl"
-        },
-        "ssh": {
-            "templateFile": "templates/certs/ssh/default.tpl"
         }
     }
 }
@@ -1132,66 +1120,173 @@ see the [claims](#claims) section for all the options.
 
 <Footnote id="star10" marker="*">Optional</Footnote>
 
-## X.509 Templates
+## Certificate Templates
 
-People use private CAs for all sorts of things, in many different contexts: web
-apps, mobile apps, code signing, cloud VM instances, SSH, IoT devices, etc. So
-`step-ca` must be flexible enough to handle a wide variety of flows.
+People use private CAs for all sorts of things, in many different contexts:
+web apps, mobile apps, code signing, cloud VM instances, SSH, IoT devices, etc.
+So `step-ca` must be flexible enough to handle a wide variety of flows.
 
-That's why, beginning with `step` and `step-ca` version `v0.15.0` we are
-introducing the concept of certificate templates.
+Certificate templates open up these possibilities.
+With certificate templates, you can do things like:
 
-With X.509 templates, you can do things like:
+- Add custom SANs to X.509 certificates
+- Use custom X.509 and SSH certificate extensions
+- Make longer certificate chains, with multiple intermediate CAs
+- Add conditionals around a certificate's parameters, and fail if they are not met
 
-- Add custom SANs to certificates.
-- Add custom X.509 extensions to certificates.
-- Make longer certificate chains, with multiple intermediate CAs.
-- Add conditionals around any of a certificate's parameters, and fail if they are not met.
+Certificate templates are JSON documents
+that describe the most important fields in the final certificate or certificate request.
+They use [Go templates](https://golang.org/pkg/text/template/) at the core
+and are extended with [Sprig functions](http://masterminds.github.io/sprig/).
 
-### Basic Templates
+A few default [X.509](https://github.com/smallstep/crypto/blob/master/x509util/templates.go)
+and [SSH](https://github.com/smallstep/crypto/blob/master/sshutil/templates.go)
+templates are hardcoded into `step-ca`.
 
-X.509 templates are JSON documents that describe the most important fields in
-the final certificate or certificate request. Templates use Go's
-[text/template](https://golang.org/pkg/text/template/) at the core and are
-extended with [Sprig functions](http://masterminds.github.io/sprig/).
+In the next sections, we'll cover
+X.509 template parameters,
+SSH template parameters,
+and how to configure the CA to use templates.
 
-X.509 templates can be used with `step` and `step-ca`. With `step`, 
-templates are generally used by passing `--template <path>` to the `step
-certificate create` or `step certificate sign` subcommands. With `step-ca`,
-templates are configured per provisioner.
+### X.509 Templates
 
-Within provisioner configuration, a certificate template can be set under the new
-property `"options"`. The following snippet shows a provisioner with a custom
-template:
+X.509 templates can be used with `step certificate` or `step-ca`.
+Here's what the default X.509 [leaf certificate template](https://github.com/smallstep/crypto/blob/162770cad29063385cb768b0191814e4c6a94e45/x509util/templates.go#L98) looks like:
 
 ```json
 {
-    "type": "JWK",
-    "name": "jane@doe.com",
-    "key": {
-       "use": "sig",
-       "kty": "EC",
-       "kid": "lq69QCCEwEhZys_wavar9RoqRLdJ58u_OGzJK0zswSU",
-       "crv": "P-256",
-       "alg": "ES256",
-       "x": "pt7T0n98qREZUkyUX6b4kXJ5FkJlIdiMfJaLFclZIng",
-       "y": "Pw1y1xqe4g4YARwyBSkEkcjNrtPYxdKlYDLI512t2_M"
+	"subject": {{ toJson .Subject }},
+	"sans": {{ toJson .SANs }},
+{{- if typeIs "*rsa.PublicKey" .Insecure.CR.PublicKey }}
+	"keyUsage": ["keyEncipherment", "digitalSignature"],
+{{- else }}
+	"keyUsage": ["digitalSignature"],
+{{- end }}
+	"extKeyUsage": ["serverAuth", "clientAuth"]
+}
+```
+
+#### X.509 Template Variables
+
+Here are some common variables available in X.509 certificate template:
+* **.Subject**
+  This is the subject that was passed in to `step certificate` or `step ca certificate`. Specifically,
+  `.Subject.CommonName` contains the Common Name for the certificate.
+* **.SANs** Subject Alternative Names.
+  This is a list of maps containing SANs for the certificate.
+  Unless SANs are specified (using the `--san` flag, for example),
+  the `.Subject.CommonName` is the default SAN.
+* **.Token** If a signed token was used to obtain the certificate 
+  —for example, with the JWK provisioner—
+  this field contains the payload of that token.
+* **.Insecure.CR** This field holds the Certificate Request from the client.
+* **.Insecure.CR.DNSNames** The DNSNames SANs provided in the certificate request
+* **.Insecure.CR.EmailAddresses** The EailAddresses SANs provided in the certificate request
+* **.Insecure.CR.IPAddresses** The IPAddresses SANs provided in the certificate request
+* **.Insecure.CR.URIs** The URIs SANs provided in the certificate request
+* **.Insecure.CR.PublicKey** The public key provided in the certificate request.
+  You can check the request's key type with a conditional, like `{{- if typeIs "*rsa.PublicKey" .Insecure.CR.PublicKey }}`.
+  You can check the request's key size with a conditional, like `{{- if lt .Insecure.CR.PublicKey.Size 384 }}`.
+
+You can also import parameter values from your provisioner's [configuration block](#configuring-the-ca-to-use-templates).
+
+### SSH Templates
+
+SSH templates can be used with `step-ca`.
+Within the current OpenSSH feature set, SSH user certificates offer the most flexibility.
+Here's the default [SSH user certificate template](https://github.com/smallstep/crypto/blob/162770cad29063385cb768b0191814e4c6a94e45/sshutil/templates.go#L144):
+
+```json
+{
+	"type": "{{ .Type }}",
+	"keyId": "{{ .KeyID }}",
+	"principals": {{ toJson .Principals }},
+	"extensions": {{ toJson .Extensions }},
+	"criticalOptions": {{ toJson .CriticalOptions }}
+}
+```
+
+The [OpenSSH certificate protocol spec](https://github.com/openssh/openssh-portable/blob/master/PROTOCOL.certkeys) defines the available Critical Options and Extensions.
+Third parties can also add custom extensions.
+
+#### SSH Template Variables
+
+Here are the most relevant parameters available in SSH certificate template:
+* **.Token** If a token was used to obtain the certificate 
+  —for example, with the OIDC or JWK provisioners—
+  this field contains token payload used in the certificate request.
+  For example, when using an OAuth ID token,
+  `.Token.email` will contain the user's email address.
+* **.Extensions** is a map containing extensions.
+  The default value for `Extensions` is:
+
+  ```json
+  {
+    "permit-X11-forwarding":   "",
+    "permit-agent-forwarding": "",
+    "permit-port-forwarding":  "",
+    "permit-pty":              "",
+    "permit-user-rc":          ""
+  }
+  ```
+* **.CriticalOptions** is a map containing critical options.
+  It is empty by default.
+* **.Principals** For users, this value is derived from the OIDC token
+  (when using the OIDC provisioner).
+  For hosts, it is derived from the Instance Identity Document
+  (when using the IID provisioners).
+* **.Insecure.CR** This field holds the Certificate Request from the client.
+* **.Insecure.CR.Principals** If you trust a host to register its own custom SANs
+  (for example, when using the IID provisioner),
+  then the host can pass several `--principal` values to `step ssh certificate` when registering the host,
+  and use `.Insecure.CR.Principals` to access those from a template.
+* **.Insecure.CR.Type**
+  The type of SSH certificate being requested.
+  This will be `user` or `host`.
+
+You can also import parameter values
+from your provisioner's [configuration block](#configuring-the-ca-to-use-templates).
+
+### Configuring the CA to Use Templates
+
+Within provisioner configuration, certificate templates can be set
+under the property `"options"`.
+The following snippet shows a provisioner with custom X.509 and SSH templates:
+
+```json
+{
+  "type": "JWK",
+  "name": "jane@doe.com",
+  "key": {
+      "use": "sig",
+      "kty": "EC",
+      "kid": "lq69QCCEwEhZys_wavar9RoqRLdJ58u_OGzJK0zswSU",
+      "crv": "P-256",
+      "alg": "ES256",
+      "x": "pt7T0n98qREZUkyUX6b4kXJ5FkJlIdiMfJaLFclZIng",
+      "y": "Pw1y1xqe4g4YARwyBSkEkcjNrtPYxdKlYDLI512t2_M"
+  },
+  "encryptedKey": "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjdHkiOiJqd2sranNvbiIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjEwMDAwMCwicDJzIjoiQ1dWZG5zWTR2bGZJbG9BQ1dOaUdNUSJ9.12dowlkvESpxJgrNJgP2ELDQz750HSh2w6Ux6BmatBE5-ybAJFFO7g.1cjU2-CTrV3gbUE7.m8a95nv4qLnN_K_PG7lzgzYXBGnw_aHCf-znJ34AZxzPy2QDGGEjN_V0jX3kvHH9AIg3cs8I8NRm__RDm2iezU5AhPoAHaqnPnZdKh0ReBZ4hNpYXUHlTPf4fRaCXXDQiKatxNzCMBpyqKpudf3xYUzZPRNMN78WM0ZeIzmv_jFzbryOpxD8bJ3Bnxa4e8Am_pPdAANHphodlKN2nDr4701OLKgitImm8RoA20sWdAI_LkTS_Abk_TqBo_3qOGdjmnRBtATFSu3BdQw5wZMjywfwCWKXUK_OUt-cjVIe11xUT43SoE8fR2GJJEKomAHP0vn0MUUMqY9P9icUejw.eEYI_H7WfrYDL4yhsnsJxg",
+  "claims": {
+    "enableSSHCA": true
+  }
+  "options": {
+    "x509": {
+      "templateFile": "templates/certs/x509/leaf.tpl",
+      "templateData": {
+        "OrganizationalUnit": "Engineering Team"
+      }
     },
-    "encryptedKey": "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjdHkiOiJqd2sranNvbiIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjEwMDAwMCwicDJzIjoiQ1dWZG5zWTR2bGZJbG9BQ1dOaUdNUSJ9.12dowlkvESpxJgrNJgP2ELDQz750HSh2w6Ux6BmatBE5-ybAJFFO7g.1cjU2-CTrV3gbUE7.m8a95nv4qLnN_K_PG7lzgzYXBGnw_aHCf-znJ34AZxzPy2QDGGEjN_V0jX3kvHH9AIg3cs8I8NRm__RDm2iezU5AhPoAHaqnPnZdKh0ReBZ4hNpYXUHlTPf4fRaCXXDQiKatxNzCMBpyqKpudf3xYUzZPRNMN78WM0ZeIzmv_jFzbryOpxD8bJ3Bnxa4e8Am_pPdAANHphodlKN2nDr4701OLKgitImm8RoA20sWdAI_LkTS_Abk_TqBo_3qOGdjmnRBtATFSu3BdQw5wZMjywfwCWKXUK_OUt-cjVIe11xUT43SoE8fR2GJJEKomAHP0vn0MUUMqY9P9icUejw.eEYI_H7WfrYDL4yhsnsJxg",
-	"options": {
-		"x509": {
-			"templateFile": "templates/certs/x509/leaf.tpl",
-			"templateData": {
-				"OrganizationalUnit": "Engineering Team"
-			}
-		}
+    "ssh": {
+      "templateFile": "templates/certs/ssh/host.tpl"
+    }
 	}
 }
 ```
 
 - **options**: object that allows configuration of provisioner options e.g. templates.
 
-  - **x509**: object for configuring X.509 certificate options.
+  - **x509** or **ssh**: object for configuring X.509 or SSH certificate template options.
 
     - **templateFile**: path to a template stored on disk. You have a few options for how to define your path:
 
@@ -1200,10 +1295,9 @@ template:
           location of which would be `$STEPPATH/templates/certs/x509/leaf.tpl`.
         - **_relative to execution directory of `step-ca`_**: e.g. `./path/to/file.tpl` or `../path/to/file.tpl`
 
-    - **templateData**: defines variables that can be used in the
-      template. In the example above you will be able to use the defined
-      organizational unit as the variable `{{ .OrganizationalUnit }}`, for example in
-      a template like:
+    - **templateData**: defines variables that can be used in the template.
+      In the example above, you will be able to use the defined organizational unit as the variable `{{ .OrganizationalUnit }}`,
+      for example in a template like:
 
         ```json
         {
@@ -1239,10 +1333,17 @@ template:
         }
         ```
 
-You will learn the most common templates in the following subsections and
-advance to more complex templates later.
+### Basic Template Examples
 
-#### Leaf certificates
+<Alert severity="info">
+  <div>
+    <strong>Here's an easy way to test X.509 templates</strong><br />
+    You can create <a href="/docs/step-ca/certificate-authority-core-concepts#online-and-offline-x509-certificate-authority">a stateless offline CA</a> with <code>step certificate</code>,
+    and pass <code>--template &lt;path&gt;</code> to the <code>step certificate create</code> or <code>step certificate sign</code> subcommands.
+  </div>
+</Alert>
+
+#### X.509 leaf certificates
 
 The most common type of certificate you'll want to create is a leaf (or end-entity)
 certificate; this is the type of certificate that your servers or clients will
@@ -1299,7 +1400,7 @@ in `.Subject.CommonName`.
 The variable `.SANs` is also available in all templates and contains the list
 of `SANs` passed from the CLI.  If no `SANs` are specified, the
 `.Subject.CommonName` will be used as a default `SAN` (e.g.
-jane@smallstep.com` in our example). If you add more `SANs` using the
+`jane@smallstep.com` in our example). If you add more `SANs` using the
 flag `--san`, `step-ca` will auto-assign the correct SAN `type` (`dns`, `ip`,
 uri`, or `email`).
 
@@ -1336,9 +1437,8 @@ The default template for an intermediate certificate is:
 }
 ```
 
-This template is most commonly used in the `step certificate create` command
-when the flag `--profile intermediate-ca` is set. But it can also be set in the
-`ca.json` and used in a specific provisioner in `step-ca`. 
+This template is most commonly used when initializing a CA. But it can also be set in the
+`ca.json` and used in a specific provisioner in `step-ca`.
 
 <Alert severity="warning">
   <div>
