@@ -31,11 +31,9 @@ import CodeBlock from 'docs/CodeBlock';
     * `/etc/nsswitch.conf`
   * We suggest backing these up before you begin setup on a particular base machine type, so that you can quickly revert changes if needed.
 
-## Step-by-Step Instructions
+## Understanding Host Tags
 
-### Step 0. Understanding Host Tags
-
-**This step only applies to multi-user environments.**
+**This section only applies to multi-user environments.**
 
 **Host Tags** (key-value pairs) are the pillar our access control model. Rather than mapping people or groups directly to hosts, you'll map _tag combinations_ to your hosts and to your user groups. First you'll put your hosts into logical groups using tags, eg. `role`:`web` or `env`:`staging`. Then, you'll grant user groups access to all hosts with a specific tag combination. Finally, you'll choose which user group tag combinations will allow `sudo` privileges on any matching hosts.
 
@@ -47,141 +45,73 @@ Let's look at an example:
 * The `data` group will have access to  `myserver #2` and  `myserver #3`.
 * The `ops` group will have `sudo` access to `myserver #2` and `myserver #3`.
 
-Of course, hosts and groups can have as many tag combinations as you like.  Take a minute to think about how you'd like to use Host Tags in your environment.
+Of course, hosts and groups can have as many tag combinations as you like.
+Take a minute to think about how you'd like to use Host Tags in your environment.
 
-### Step 1. Run all steps as root
+## Quick Installation Instructions
 
-Now let's set up your host. You'll run the entire Host Configuration setup as the `root` user:
+Our installation script will guide you through host setup. It will:
+* Install the `step` CLI and `step-ssh` utilities
+* Comment out the broken `pam_systemd.so` in `common-session`,
+which causes a delay at login
+(this is a known Ubuntu/Debian bug)
+* Bootstrap your host to your CA
+* Enroll your host with an SSH host certificate
+* Configure SSHD to use certificate authentication
+* Activate `step-ssh` PAM/NSS modules
+* Add the host to the CA's inventory
 
-```shell
-sudo su
+### Step 1. Install Smallstep SSH
+
+#### If your host is a bastion host
+
+As `root`, run:
+
+```shell-session
+# curl -sSf http://files.smallstep.com/ssh-host.sh
+# sh ssh-host.sh --is-bastion
 ```
 
-### Step 2. Install `step` CLI tool
+#### If your host is _behind_ a bastion host
 
-<CodeBlock language="shell-session" copyText="curl -L -o step https://files.smallstep.com/step-linux-0.15.3 && install -m 0755 -t /usr/bin step">
-{`$ curl -L -o step https://files.smallstep.com/step-linux-0.15.3
-$ install -m 0755 -t /usr/bin step`}
-</CodeBlock>
+As `root`, run:
 
-### Step 3. Install the `step-ssh` utilities
-
-This step will install modules and services.
-
-* **Install on Ubuntu & Debian (DEB package)**
-
-  <CodeBlock language="shell-session" copyText="curl -LO https://files.smallstep.com/step-ssh_0.19.1-1_amd64.deb && dpkg -i step-ssh_0.19.1-1_amd64.deb">
-  {`$ curl -LO https://files.smallstep.com/step-ssh_0.19.1-1_amd64.deb\n$ dpkg -i step-ssh_0.19.1-1_amd64.deb`}
-  </CodeBlock>
-
-  Comment out the broken `pam_systemd.so` in `common-session`, which causes a delay at login (this is a known Ubuntu/Debian bug):
-
-  ```shell
-  sed -e '/pam_systemd.so/s/^/#/g' -i /etc/pam.d/common-session
-  ```
-
-* **Install on CentOS or Amazon Linux 2 (RPM package)**
-
-  <CodeBlock language="shell-session" copyText={`curl -LO "https://files.smallstep.com/step-ssh-0.19.1-1.x86_64.rpm" && yum -y install step-ssh-0.19.1-1.x86_64.rpm`}>
-  {`$ curl -LO "https://files.smallstep.com/step-ssh-0.19.1-1.x86_64.rpm"\n$ yum -y install step-ssh-0.19.1-1.x86_64.rpm`}
-  </CodeBlock>
-
-### Step 4. Configure `step` to connect to your CA
-
-```shell
-step ca bootstrap --team="[your smallstep team ID]"
+```shell-session
+# curl -sSf http://files.smallstep.com/ssh-host.sh
+# sh ssh-host.sh --bastion=<bastion hostname>
 ```
 
-### Step 5. Get an SSH host certificate
+#### For any other host
 
-Remember the enrollment token you got when you signed up? You'll need it now. If you downloaded it, the file is called `enrollment_token`.
+As `root`, run:
 
-`_`👇 This leading space will (usually) keep the token out of your shell's history.
-
-<CodeBlock language="shell-session" copyText={` export enrollment_token="[your enrollment token]" && export hostname="[your hostname]"`}>
-{`$  export enrollment_token="[your enrollment token]"
-$ export hostname="[your hostname]"`}
-</CodeBlock>
-
-The `hostname` is your host's canonical hostname or IP. This will be the name clients use to SSH to this host.
-
-#### For hosts with a single hostname
-
-Run the following to issue a certificate for your host:
-
-```shell
-step ssh certificate $hostname /etc/ssh/ssh_host_ecdsa_key.pub \
-    --host --sign --provisioner "Service Account" --token $enrollment_token
+```shell-session
+# curl -sSf http://files.smallstep.com/ssh-host.sh | sh
 ```
 
-#### If a host has multiple hostnames...
+You'll be prompted for
+your team ID,
+enrollment token,
+hostname,
+and a list of space-separated host tags
+(eg. "`db=dev region=us-west-1`").
 
-> **Note:** When a host has multiple hostnames, your users will only be able to `ssh` to the canonical `$hostname`, as shown by the `step ssh hosts` command.
+#### Passing flags to `ssh-host.sh`
 
-If you need multiple hostnames in your host certificate (e.g., public and private hostnames, or a hostname and an IP address), you can pass each of them to `step ssh certificate` via the `--principal` flag:
+The `ssh-host.sh` utility can also be run non-interactively,
+as long as you provide the following _required flags_:
+* `--team="[your team ID]"`
+* `--token="[your enrollment token]"`
+* `--hostname="[the hostname]"`
+* One or more `--tag="key=value"` to assign [host tags](#understanding-host-tags)
 
-```shell
-step ssh certificate $hostname /etc/ssh/ssh_host_ecdsa_key.pub \
-    --host --sign --provisioner "Service Account" --token $enrollment_token \
-    --principal $hostname --principal 10.0.0.42
-```
+The following additional flags are available:
+* Any number of `--principal="[additional hostname]"`,
+to add additional hostnames to the host certificate
+* `--is-bastion` to indicate a bastion host
+* `--bastion="[bastion hostname]"` to specify the bastion that sits in front of this host
 
-When multiple hostnames are needed, the canonical `$hostname` must be passed twice: Once to establish the certificate's Key ID, and again explicitly as its first Principal.
-
-### Step 6. Configure SSHD to use certificate authentication
-
-```shell
-step ssh config --host --set Certificate=ssh_host_ecdsa_key-cert.pub \
-                         --set Key=ssh_host_ecdsa_key
-```
-
-This command will add a few lines of configuration to the end of your `/etc/ssh/sshd_config` to enable certificate authentication. These lines are annotated with a comment that says `# autogenerated by step @ <timestamp>` so you can identify them later if you need to modify or revert these changes.
-
-### Step 7. Activate PAM/NSS Modules & HUP SSHD
-
-```shell
-step-ssh activate "$hostname"
-```
-
-The `step-ssh activate` command will leverage a short-lived identity certificate to authenticate itself to the host inventory.
-
-### Step 8. Register the host and add tags(s)
-
-This command will leverage the host identity certificate to authenticate itself to the host inventory.
-
-```shell
-step-ssh-ctl register --hostname "$hostname"
-```
-
-#### Registering a host with host tags
-
-For access control in multi-user environments, [host tags](#step-0-understanding-host-tags) can be assigned via the `--tag` flag.
-
-```shell
-step-ssh-ctl register --tag <key=value> --tag <role=web> --hostname "$hostname"
-```
-
-It is possible to rerun `step-ssh-ctl register` multiple times, to rename the host, replace its tags, or change the bastion settings. **Note: This command replaces all existing tags and bastion settings for a host.**
-
-#### Registering a bastion host (jump boxes)
-
-If the host you're registering is a bastion, add the `--is-bastion` flag:
-
-```shell
-step-ssh-ctl register --hostname "$hostname" --is-bastion
-```
-
-**Note:** Your bastion host will need the `nc` command installed. Our bastion host support uses `nc` (along with the `ProxyCommand` directive) because it's widely compatible with older SSHD servers.
-
-#### Registering a host behind a bastion
-
-If the host you're registering is _behind_ a bastion, add the `--bastion` flag:
-
-```shell
-step-ssh-ctl register --hostname "$hostname" --bastion "[bastion hostname]"
-```
-
-### Step 9. Test your installation
+### Step 2. Test your installation
 
 Before you sign out of your `sudo` session, test your installation by logging in and running `sudo` in a separate session.
 
@@ -191,15 +121,25 @@ Now sign in at `https://smallstep.com/app/[Team ID]`
 
 You should see your host listed under the "**Hosts**" tab.
 
+## Manual Instructions
+
+If you wish to enroll your host without using our script,
+you can follow our [step-by-step installation instructions](hosts-step-by-step) instead.
+
 ## Need to remove a host?
 
-On the host, run:
+As `root` on the host, run:
 
-```shell
-step-ssh-ctl unregister
+```shell-session
+# curl -sSf http://files.smallstep.com/ssh-host-uninstall.sh | sh
 ```
 
-This will remove the host from the host inventory on the CA, using the host identity certificate.
+This script will:
+* Unregister the host from the host inventory on the CA
+* Deactivate Smallstep SSH
+* Revert SSHD configuration changes
+* Remove your `$HOME/.step` configuration directory
+* Remove the `step-ssh` package
 
 ## Optional Hardening
 
