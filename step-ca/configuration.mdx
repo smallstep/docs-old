@@ -42,8 +42,13 @@ learn how to configure your CA to:
   - [K8sSA - Kubernetes Service Account](#k8ssa-kubernetes-service-account)
   - [Cloud Provisioners](#cloud-provisioners)
 - [Certificate Templates](#certificate-templates)
-  - [Basic Templates](#basic-templates)
-  - [Advanced Templates](#advanced-templates)
+  - [X.509 Templates](#x509-templates)
+  - [SSH Templates](#ssh-templates)
+  - [Configuring the CA to Use Templates](#configuring-the-ca-to-use-templates)
+  - [Basic X.509 Template Examples](#basic-x509-template-examples)
+  - [Advanced X.509 Template Examples](#advanced-x509-template-examples)
+  - [SSH Template Examples](#ssh-template-examples)
+  - [Even More Templates](#even-more-templates)
 - [Databases](#databases)
   - [Badger](#badger)
   - [BoltDB](#boltdb)
@@ -1126,12 +1131,12 @@ People use private CAs for all sorts of things, in many different contexts:
 web apps, mobile apps, code signing, cloud VM instances, SSH, IoT devices, etc.
 So `step-ca` must be flexible enough to handle a wide variety of flows.
 
-Certificate templates open up these possibilities.
+X.509 and SSH certificate templates open up these possibilities.
 With certificate templates, you can do things like:
 
-- Add custom SANs to X.509 certificates
-- Use custom X.509 and SSH certificate extensions
+- Add custom SANs or extensions to X.509 certificates
 - Make longer certificate chains, with multiple intermediate CAs
+- Use SSH `force-command` or `source-address` extensions
 - Add conditionals around a certificate's parameters, and fail if they are not met
 
 Certificate templates are JSON documents
@@ -1147,6 +1152,16 @@ In the next sections, we'll cover
 X.509 template parameters,
 SSH template parameters,
 and how to configure the CA to use templates.
+
+<Alert severity="info" id="star11">
+  <div>
+    <strong>A note on <code>.Insecure</code> variables</strong><br />
+    In templates, there are <code>.Insecure</code> variables. These are denoted as such because
+    they contain information that has not been cryptographically signed
+    by a source that the CA trusts.
+    For example, the `.Insecure.CR` variable holds the user-supplied Certificate Request.
+  </div>
+</Alert>
 
 ### X.509 Templates
 
@@ -1179,7 +1194,7 @@ Here are some common variables available in X.509 certificate template:
 * **.Token** If a signed token was used to obtain the certificate 
   —for example, with the JWK provisioner—
   this field contains the payload of that token.
-* **.Insecure.CR** This field holds the Certificate Request from the client.
+* **.Insecure.CR**<Reference id="star11" marker="*" /> This field holds the Certificate Request from the client.
 * **.Insecure.CR.DNSNames** The DNSNames SANs provided in the certificate request
 * **.Insecure.CR.EmailAddresses** The EailAddresses SANs provided in the certificate request
 * **.Insecure.CR.IPAddresses** The IPAddresses SANs provided in the certificate request
@@ -1188,13 +1203,14 @@ Here are some common variables available in X.509 certificate template:
   You can check the request's key type with a conditional, like `{{- if typeIs "*rsa.PublicKey" .Insecure.CR.PublicKey }}`.
   You can check the request's key size with a conditional, like `{{- if lt .Insecure.CR.PublicKey.Size 384 }}`.
 
-You can also import parameter values from your provisioner's [configuration block](#configuring-the-ca-to-use-templates).
+You can also import values
+from the `"templateData"` object
+in your provisioner's [configuration block](#configuring-the-ca-to-use-templates).
 
 ### SSH Templates
 
-SSH templates can be used with `step-ca`.
-Within the current OpenSSH feature set, SSH user certificates offer the most flexibility.
-Here's the default [SSH user certificate template](https://github.com/smallstep/crypto/blob/162770cad29063385cb768b0191814e4c6a94e45/sshutil/templates.go#L144):
+`step-ca` also supports SSH certificate templates.
+Here is `step-ca`'s default [SSH certificate template](https://github.com/smallstep/crypto/blob/162770cad29063385cb768b0191814e4c6a94e45/sshutil/templates.go#L144):
 
 ```json
 {
@@ -1212,11 +1228,13 @@ Third parties can also add custom extensions.
 #### SSH Template Variables
 
 Here are the most relevant parameters available in SSH certificate template:
-* **.Token** If a token was used to obtain the certificate 
-  —for example, with the OIDC or JWK provisioners—
+* **.Token**
+  This field offers the best opportunity for injecting signed, secure data into the certificate.
+  If a token was used to obtain the certificate,  
   this field contains token payload used in the certificate request.
   For example, when using an OAuth ID token,
   `.Token.email` will contain the user's email address.
+  To add custom data to `.Token`, you could use custom OAuth claims, or sign your own JWTs.
 * **.Extensions** is a map containing extensions.
   The default value for `Extensions` is:
 
@@ -1235,7 +1253,7 @@ Here are the most relevant parameters available in SSH certificate template:
   (when using the OIDC provisioner).
   For hosts, it is derived from the Instance Identity Document
   (when using the IID provisioners).
-* **.Insecure.CR** This field holds the Certificate Request from the client.
+* **.Insecure.CR**<Reference id="star11" marker="*" /> This field holds the Certificate Request from the client.
 * **.Insecure.CR.Principals** If you trust a host to register its own custom SANs
   (for example, when using the IID provisioner),
   then the host can pass several `--principal` values to `step ssh certificate` when registering the host,
@@ -1246,6 +1264,16 @@ Here are the most relevant parameters available in SSH certificate template:
 
 You can also import parameter values
 from your provisioner's [configuration block](#configuring-the-ca-to-use-templates).
+
+<Alert severity="warning">
+  <div>
+    <strong>An OIDC Caveat</strong><br />
+    If you've added an OIDC admin user to you CA configuration,
+    and you add an SSH certificate template,
+    you will lose the OIDC provisioner admin privilege of being able to supply arbitrary `--principal` values when requesting an SSH certificate.
+    This is because the CA usually uses a different [default template for admin users](https://github.com/smallstep/crypto/blob/162770cad29063385cb768b0191814e4c6a94e45/sshutil/templates.go#L152).
+  </div>
+</Alert>
 
 ### Configuring the CA to Use Templates
 
@@ -1333,7 +1361,7 @@ The following snippet shows a provisioner with custom X.509 and SSH templates:
         }
         ```
 
-### Basic Template Examples
+### Basic X.509 Template Examples
 
 <Alert severity="info">
   <div>
@@ -1343,7 +1371,7 @@ The following snippet shows a provisioner with custom X.509 and SSH templates:
   </div>
 </Alert>
 
-#### X.509 leaf certificates
+#### Leaf Certificates
 
 The most common type of certificate you'll want to create is a leaf (or end-entity)
 certificate; this is the type of certificate that your servers or clients will
@@ -1418,7 +1446,7 @@ SANs, the subject, extensions, etc.
 Finally we also set the extended key usage `serverAuth` and `clientAuth` so the
 certificate can be used in a server application or in a client for mTLS.
 
-#### Intermediate certificates
+#### Intermediate Certificates
 
 An intermediate certificate is a certificate that can be used to sign another
 certificate, and it has itself been signed by another intermediate certificate or by
@@ -1473,7 +1501,7 @@ step certificate create --template intermediate.tpl \
 "ACME Intermediate CA" intermediate_ca.crt intermediate_ca_key
 ```
 
-#### Root certificates
+#### Root Certificates
 
 A root certificate is a self-signed certificate used to sign other certificates.
 The default root certificate template is:
@@ -1513,22 +1541,15 @@ step certificate create --template root.tpl "ACME Root CA" root_ca.crt root_ca_k
 </Alert>
 
 
-### Advanced templates
+### Advanced X.509 Template Examples
 
-In the previous section, we learned how to create and use the basic templates, but
-we've just scratched the surface of what's possible. With templates, you can 
-customize and parameterize every aspect of an X.509 certificate.
+In the previous section,
+we learned how to create and use the basic templates,
+but we've just scratched the surface of what's possible.
+With templates, you can customize and parameterize every aspect of an X.509 
+or SSH certificate.
 
-For example, you can:
-
-- extend path lengths
-- add custom extensions
-- define name constraints for your intermediates
-- add custom information provided by the user
-- define what your certificate can be used for (e.g. **_codeSigning_**)
-- etc.
-
-Below we'll walk through a few more advanced templating examples.
+Below, we'll walk through a few advanced templating examples.
 
 #### Certificate Request
 
@@ -1547,14 +1568,14 @@ certificate subject on `step-ca` if a template is provided in the `ca.json`, and
 it will set the Subject Alternative Name extension to critical if the subject is
 empty.
 
-#### User Provided Variables
+#### User-Provided Variables in Signing Requests
 
-In `step-ca`, templates can also be parameterized with variables that will be
+In `step-ca`, X.509 templates can also be parameterized with variables that will be
 provided by `step` at certificate creation time. A common use case for
 variables is when you receive a CSR from another team, or a CSR embedded in
 hardware, and you need to define a SAN for it.
 
-For example, below is a template that accepts the user variable `dnsName`
+For example, below is an X.509 template that accepts the user variable `dnsName`
 but falls back to the default leaf template if it's not present:
 
 ```json
@@ -1607,7 +1628,7 @@ trusted names.
 Besides `"dnsNames"`, you can also use `"emailAddresses"`, `"ipAddresses"`, and
 `"uris"`.
 
-#### Name Constraints
+#### Adding Name Constraints
 
 Name constraints are useful in intermediate certificates when you want to limit
 the validity of certificates that an intermediate can sign. If we want to only
@@ -1667,7 +1688,7 @@ write it as a string:
 }
 ```
 
-#### Extensions
+#### Arbitrary X.509 Extensions
 
 SANs, key usages, extended key usages, basic constraints, and name constraints,
 are all extensions in an X.509 certificate. Templates provide an
@@ -1708,7 +1729,7 @@ actual bytes that go into that extension, so if you are encoding a structure
 in your extension using the ASN.1 encoding, you will have to put the base64
 version of the encoded bytes.
 
-#### OpenVPN certificates
+#### X.509 OpenVPN certificates
 
 One interesting use case for certificate templates is the signing of
 [OpenVPN](https://openvpn.net) certificates. These certificates require specific
@@ -1741,6 +1762,130 @@ A full configuration of `step-ca` and OpenVPN is available in our blog post
 ["Announcing X.509 Certificate
 Flexibility"](https://smallstep.com/blog/x509-certificate-flexibility/)
 
+### SSH Template Examples
+
+#### GitHub SSH Certificates
+
+With GitHub Enterprise Cloud or GitHub Enterprise Server, you can configure GitHub to use SSH certificates.
+Specifically, GitHub will [trust an SSH Certificate Authority for your team](https://docs.github.com/en/free-pro-team@latest/github/setting-up-and-managing-organizations-and-teams/about-ssh-certificate-authorities).
+But, to get it to work, you have to generate custom SSH certificates for your users
+using a `login@github.com` extension,
+where the value of the extension is their GitHub Username.
+This custom extension value authenticates your users to GitHub Enterprise.
+Which is great: The same certificates that let you SSH into your servers now also let you push code.
+
+Here's an SSH template that supports the GitHub custom SSH certificate extension:
+
+```bash
+{
+	"type": "{{ .Type }}",
+	"keyId": "{{ .KeyID }}",
+	"principals": {{ toJson .Principals }},
+	"criticalOptions": {{ toJson .CriticalOptions }},
+{{ if .Token.ghu }}
+	"extensions": {
+	  "login@github.com": "{{ .Token.ghu }}"
+	}
+{{ else }}
+	"extensions": {{ toJson .Extensions }}
+{{ end }}
+}
+```
+
+To use this template, you'd need to add a `ghu` ("GitHub Username") custom claim to the token that you send the CA to authenticate your certificate request.
+
+If you use an [OIDC provisioner](#oauthoidc-single-sign-on) with this template,
+you can configure your identity provider to serve a custom claim labeled `ghu` in your ID token.
+Our blog post ["Clever Uses of SSH Certificate Templates"](/blog/clever-uses-of-ssh-certificate-templates/) has more details on this option.
+
+
+The [JWK](#jwk) and [Cloud](#cloud-provisioners) provisioners also use tokens.
+Here's an example of a Bash test script that
+decrypts your JWK provisioner key,
+and uses it to sign a token that `step-ca` will accept for an SSH certificate:
+
+```bash
+#!/bin/bash
+#
+# This script is for testing purposes only.
+#
+
+# Your CA hostname and port
+CA=ca.local:443
+
+# Key ID: This is the "kid" value from your JWK provisioner configuration
+KID=R0a0VGbbOe3j6ol5jOdV3qfiigjcezk0LG9K9Cp7mrg
+
+# Issuer: The "name" of your JWK provisioner
+ISS="carl@smallstep.com"
+
+if [ "$#" -ne 2 ]; then
+    name=$(basename $0)
+    echo "Usage: $name <princiap> <github-username>"
+    exit 1
+fi
+
+# Grab the key to encrypt
+KEY=`curl --cacert ~/.step-ssh-templates/certs/root_ca.crt -s https://${CA}/1.0/provisioners/${KID}/encrypted-key | jq -r .key | step crypto jwe decrypt`
+
+echo '{"step": {"ssh":{"certType": "user", "keyID": "'$1'"}}, "ghu":"'$2'"}' | step crypto jwt sign --key <(echo $KEY) --iss "$ISS" --aud "https://${CA}/1.0/sign" -sub $1 -exp $(date -v+5M +"%s")
+```
+
+Here's the script used in concert with the GitHub SSH template above:
+
+```shell-session
+$ TOKEN=$(./gh_token.sh carl tashian)
+Please enter the password to decrypt the content encryption key: ...
+$ echo $TOKEN | step crypto jwt inspect --insecure
+{
+  "header": {
+    "alg": "ES256",
+    "kid": "R0a0VGbbOe3j6ol5jOdV3qfiigjcezk0LG9K9Cp7mrg",
+    "typ": "JWT"
+  },
+  "payload": {
+    "aud": "https://localhost:4430/1.0/sign",
+    "exp": 1606870196,
+    "ghu": "tashian",
+    "iat": 1606869896,
+    "iss": "carl@smallstep.com",
+    "jti": "6d62922871db260e54d97fe1f2561440177ae579e31baa954128e0fba155b4db",
+    "nbf": 1606869896,
+    "step": {
+      "ssh": {
+        "certType": "user",
+        "keyID": "carl"
+      }
+    },
+    "sub": "carl"
+  },
+  "signature": "RdYo70cCR7tMZBl8VLbxVpoCDlNED2wpRw8uPV1rNkDENBbXqml1h-TnWG23dJ4zKzPhAuO2Vk7HdOUC2q0mNg"
+}
+$ step ssh certificate carl github --token $TOKEN
+✔ CA: https://localhost:4430
+Please enter the password to encrypt the private key:
+✔ Private Key: github
+✔ Public Key: github.pub
+✔ Certificate: github-cert.pub
+✔ SSH Agent: yes
+$ step ssh inspect github-cert.pub
+github-cert.pub:
+        Type: ecdsa-sha2-nistp256-cert-v01@openssh.com user certificate
+        Public key: ECDSA-CERT SHA256:SdcgsNKaQbhYveanJYjmJk4eLN3+CBKUKkRGv4xYn5U
+        Signing CA: ECDSA SHA256:MKwRQ/SDKk/pCJbbCk5bfhZACjSjv7uZXLyc5n4Wx6k
+        Key ID: "carl"
+        Serial: 886026644913671581
+        Valid: from 2020-12-01T16:40:32 to 2020-12-02T08:41:32
+        Principals:
+                carl
+        Critical Options: (none)
+        Extensions:
+                login@github.com tashian
+```
+
+In production, you would not want to hand out your JWK provisioner password.
+But you could create a token server that interoperates with `step-ca` and injects secure values into the token. 
+
 ### Even More Templates
 
 To delve deeper into certificate templates and all the options, the best source
@@ -1759,9 +1904,10 @@ object represents all properties for a CSR template that can be used in
 `"unknownExtKeyUsage"` are available
 [here](https://pkg.go.dev/go.step.sm/crypto/x509util#pkg-variables).
 
-More information and more examples are available in the blog post ["Announcing
-X.509 Certificate
-Flexibility"](https://smallstep.com/blog/x509-certificate-flexibility/).
+More information and more examples are available in the blog posts
+["Announcing X.509 Certificate Flexibility"](/blog/x509-certificate-flexibility/)
+and ["Clever Uses of SSH Certificate Templates"](/blog/clever-uses-of-ssh-certificate-templates/).
+
 
 ## Databases
 
