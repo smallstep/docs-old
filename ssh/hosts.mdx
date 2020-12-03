@@ -69,7 +69,7 @@ As `root`, run:
 
 ```shell-session
 # curl -sSf http://files.smallstep.com/ssh-host.sh
-# sh ssh-host.sh --is-bastion
+# bash ssh-host.sh --is-bastion
 ```
 
 #### If your host is _behind_ a bastion host
@@ -78,7 +78,7 @@ As `root`, run:
 
 ```shell-session
 # curl -sSf http://files.smallstep.com/ssh-host.sh
-# sh ssh-host.sh --bastion=<bastion hostname>
+# bash ssh-host.sh --bastion=<bastion hostname>
 ```
 
 #### For any other host
@@ -86,7 +86,7 @@ As `root`, run:
 As `root`, run:
 
 ```shell-session
-# curl -sSf http://files.smallstep.com/ssh-host.sh | sh
+# curl -sSf http://files.smallstep.com/ssh-host.sh | bash
 ```
 
 You'll be prompted for
@@ -131,7 +131,7 @@ you can follow our [step-by-step installation instructions](hosts-step-by-step) 
 As `root` on the host, run:
 
 ```shell-session
-# curl -sSf http://files.smallstep.com/ssh-host-uninstall.sh | sh
+# curl -sSf http://files.smallstep.com/ssh-host-uninstall.sh | bash
 ```
 
 This script will:
