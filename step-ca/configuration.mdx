@@ -544,7 +544,7 @@ certificate | sign]` utilities.
 
 Sometimes it’s useful to issue certificates to people.
 To facilitate this, `step-ca` can be configured to use OAuth/OpenID Connect (OIDC) identity tokens for authentication.
-In other words, you can use single sign-on with G Suite, Okta, Active Directory,
+In other words, you can use single sign-on with G Suite, Okta, Azure Active Directory,
 or any other OAuth OIDC provider to get a certificate.
 
 ![example of provisioner working with step ca](../../../../../static/images/oauth-provisioner.png)
@@ -1200,7 +1200,7 @@ Here are some common variables available in X.509 certificate template:
 * **.Insecure.CR.DNSNames**
   The DNSNames SANs provided in the certificate request
 * **.Insecure.CR.EmailAddresses**
-  The EailAddresses SANs provided in the certificate request
+  The EmailAddresses SANs provided in the certificate request
 * **.Insecure.CR.IPAddresses**
   The IPAddresses SANs provided in the certificate request
 * **.Insecure.CR.URIs**
@@ -1290,7 +1290,7 @@ from your provisioner's [configuration block](#configuring-the-ca-to-use-templat
 <Alert severity="warning">
   <div>
     <strong>An OIDC Caveat</strong><br />
-    If you've added an OIDC admin user to you CA configuration,
+    If you've added an OIDC admin user to your CA configuration,
     and you add an SSH certificate template,
     you will lose the OIDC provisioner admin privilege of being able to supply arbitrary <code>--principal</code> values when requesting an SSH certificate.
     This is because the CA usually uses a different <a href="https://github.com/smallstep/crypto/blob/162770cad29063385cb768b0191814e4c6a94e45/sshutil/templates.go#L152">default template for admin users</a>.
