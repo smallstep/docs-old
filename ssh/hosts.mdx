@@ -76,7 +76,7 @@ $ bash ssh-host.sh --is-bastion
 
 As `root`, run:
 
-```shell-session
+```shell-session nocopy
 $ curl -sSf http://files.smallstep.com/ssh-host.sh
 $ bash ssh-host.sh --bastion=<bastion hostname>
 ```
@@ -161,7 +161,7 @@ Match User *,!ubuntu
   * On the destination host run `step ssh inspect /etc/ssh/ssh_host_ecdsa_key-cert.pub`. Make sure the current time is within the period of `Valid:`.
   * The destination host's `sshd_config` should show included the following lines for `sshd` (make sure the service has reloaded its config) to leverage certificate-based authentication:
 
-  ```shell-session no-copy
+  ```shell-session nocopy
   $ tail -n 7 /etc/ssh/sshd_config
   #       ForceCommand cvs server
 
