@@ -542,11 +542,10 @@ certificate | sign]` utilities.
 
 ### OAuth/OIDC Single Sign-on
 
-Occasionally it’s useful to issue certificates to people (ex., for testing and
-debugging). To facilitate this, `step-ca` can be configured to use
-OAuth/OpenID Connect (OIDC) identity tokens for authentication. In other words,
-you can use single sign-on with G Suite, Okta, Active Directory, or any
-other OAuth OIDC provider to get a certificate.
+Sometimes it’s useful to issue certificates to people.
+To facilitate this, `step-ca` can be configured to use OAuth/OpenID Connect (OIDC) identity tokens for authentication.
+In other words, you can use single sign-on with G Suite, Okta, Azure Active Directory,
+or any other OAuth OIDC provider to get a certificate.
 
 ![example of provisioner working with step ca](../../../../../static/images/oauth-provisioner.png)
 
@@ -1187,21 +1186,32 @@ Here are some common variables available in X.509 certificate template:
 * **.Subject**
   This is the subject that was passed in to `step certificate` or `step ca certificate`. Specifically,
   `.Subject.CommonName` contains the Common Name for the certificate.
-* **.SANs** Subject Alternative Names.
+* **.SANs** 
+  Subject Alternative Names.
   This is a list of maps containing SANs for the certificate.
   Unless SANs are specified (using the `--san` flag, for example),
   the `.Subject.CommonName` is the default SAN.
-* **.Token** If a signed token was used to obtain the certificate 
+* **.Token**
+  If a signed token was used to obtain the certificate 
   —for example, with the JWK provisioner—
   this field contains the payload of that token.
-* **.Insecure.CR**<Reference id="star11" marker="*" /> This field holds the Certificate Request from the client.
-* **.Insecure.CR.DNSNames** The DNSNames SANs provided in the certificate request
-* **.Insecure.CR.EmailAddresses** The EailAddresses SANs provided in the certificate request
-* **.Insecure.CR.IPAddresses** The IPAddresses SANs provided in the certificate request
-* **.Insecure.CR.URIs** The URIs SANs provided in the certificate request
-* **.Insecure.CR.PublicKey** The public key provided in the certificate request.
+* **.Insecure.CR**<Reference id="star11" marker="*" />
+  This field holds the Certificate Request from the client.
+* **.Insecure.CR.DNSNames**
+  The DNSNames SANs provided in the certificate request
+* **.Insecure.CR.EmailAddresses**
+  The EmailAddresses SANs provided in the certificate request
+* **.Insecure.CR.IPAddresses**
+  The IPAddresses SANs provided in the certificate request
+* **.Insecure.CR.URIs**
+  The URIs SANs provided in the certificate request
+* **.Insecure.CR.PublicKey**
+  The public key provided in the certificate request.
   You can check the request's key type with a conditional, like `{{- if typeIs "*rsa.PublicKey" .Insecure.CR.PublicKey }}`.
   You can check the request's key size with a conditional, like `{{- if lt .Insecure.CR.PublicKey.Size 384 }}`.
+* **.Insecure.User**
+  This field holds user-supplied data from the certificate request.
+  Users can supply arbitrary values using `--set` or `--set-file` flags in `step ca certificate`.
 
 You can also import values
 from the `"templateData"` object
@@ -1250,10 +1260,18 @@ Here are the most relevant parameters available in SSH certificate template:
 * **.CriticalOptions** is a map containing critical options.
   It is empty by default.
 * **.Principals** For users, this value is derived from the OIDC token
-  (when using the OIDC provisioner).
+  (when using the [OIDC provisioner](#OAuth-OIDC-Single-Sign-on)).
   For hosts, it is derived from the Instance Identity Document
-  (when using the IID provisioners).
-* **.Insecure.CR**<Reference id="star11" marker="*" /> This field holds the Certificate Request from the client.
+  (when using the [Cloud provisioners](#cloud-provisioners)).
+* **.KeyID**
+  The key ID being requested.
+* **.Type**
+  The type of SSH certificate being requested.
+  This will be `user` or `host`.
+* **.Insecure.CR**<Reference id="star11" marker="*" />
+  SSH certificate requests to `step-ca` are not CSRs in the X.509 sense.
+  So, `step-ca` creates a virtual certificate request,
+  and that's what this variable represents.
 * **.Insecure.CR.Principals** If you trust a host to register its own custom SANs
   (for example, when using the IID provisioner),
   then the host can pass several `--principal` values to `step ssh certificate` when registering the host,
@@ -1261,6 +1279,10 @@ Here are the most relevant parameters available in SSH certificate template:
 * **.Insecure.CR.Type**
   The type of SSH certificate being requested.
   This will be `user` or `host`.
+* **.Insecure.CR.KeyID**
+  The key ID being requested.
+* **.Insecure.User** This field holds user-supplied data from the certificate request.
+  Users can supply arbitrary values using `--set` or `--set-file` flags in `step ssh certificate`.
 
 You can also import parameter values
 from your provisioner's [configuration block](#configuring-the-ca-to-use-templates).
@@ -1268,10 +1290,10 @@ from your provisioner's [configuration block](#configuring-the-ca-to-use-templat
 <Alert severity="warning">
   <div>
     <strong>An OIDC Caveat</strong><br />
-    If you've added an OIDC admin user to you CA configuration,
+    If you've added an OIDC admin user to your CA configuration,
     and you add an SSH certificate template,
-    you will lose the OIDC provisioner admin privilege of being able to supply arbitrary `--principal` values when requesting an SSH certificate.
-    This is because the CA usually uses a different [default template for admin users](https://github.com/smallstep/crypto/blob/162770cad29063385cb768b0191814e4c6a94e45/sshutil/templates.go#L152).
+    you will lose the OIDC provisioner admin privilege of being able to supply arbitrary <code>--principal</code> values when requesting an SSH certificate.
+    This is because the CA usually uses a different <a href="https://github.com/smallstep/crypto/blob/162770cad29063385cb768b0191814e4c6a94e45/sshutil/templates.go#L152">default template for admin users</a>.
   </div>
 </Alert>
 
@@ -1308,7 +1330,7 @@ The following snippet shows a provisioner with custom X.509 and SSH templates:
     "ssh": {
       "templateFile": "templates/certs/ssh/host.tpl"
     }
-	}
+  }
 }
 ```
 
@@ -1885,6 +1907,32 @@ github-cert.pub:
 
 In production, you would not want to hand out your JWK provisioner password.
 But you could create a token server that interoperates with `step-ca` and injects secure values into the token. 
+
+#### SSH Group Accounts
+
+Let's say your organization has shared group accounts on your hosts (eg. "dba" or "devops").
+You'd want to be able to issue people in those groups a certificate that contains their user principals ("carl", "carl@smallstep.com"),
+plus principals for any group accounts they need access to.
+
+Let's use the OIDC ID token to inject additional principals into an SSH user certificate.
+
+First, configure a custom `groups` claim with your identity provider, and add the claim to the payload of the ID token.
+In this example, we're assuming the `groups` claim contains a space-separated list of possible group accounts.
+
+Then, use the following template to merge the group accounts with the user's own principals (derived from the `email` claim):
+  ```json
+  {
+    "type": "{{ .Type }}",
+    "keyId": "{{ .KeyID }}",
+    "principals": {{ toJson ((concat .Principals (splitList " " .Token.groups)) | uniq) }},
+    "criticalOptions": {{ toJson .CriticalOptions }},
+    "extensions": {{ toJson .Extensions }}
+  }
+  ```
+
+This is a good example of the use of [Sprig functions](https://masterminds.github.io/sprig/) in templates.
+
+Finally, test out your flow with `step ssh login`, and use `step ssh inspect` to check the principals of the certificate you're issued by the CA.
 
 ### Even More Templates
 
