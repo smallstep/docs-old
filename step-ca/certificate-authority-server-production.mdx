@@ -131,24 +131,26 @@ to be able to bind to that port. See [Running `step-ca` as a Daemon](#running-st
 
 ## Running `step-ca` as a Daemon
 
-Note: _This section requires a Linux OS running `systemctl`._
+Note: _This section requires a Linux OS running `systemd`._
 
 1. Add a service user for the CA.
 
-  The service user only be used by `systemctl` to manage the CA. Run:
+  The service user will only be used by `systemd` to manage the CA. Run:
 
-  <CodeBlock language="shell-session" copyText="sudo useradd step
-  sudo passwd -l step
-  sudo chown -R step:step $(step path)
+  <codeblock language="shell-session" copytext="sudo useradd --system --home /etc/step-ca --shell /bin/false step
   ">
-  {`$ sudo useradd step
-  $ sudo passwd -l step
-  $ sudo chown -R step:step $(step path)`}
-  </CodeBlock>
+  {`$ sudo useradd --system --home /etc/step-ca --shell /bin/false step`}
+  </codeblock>
+
+  Set the `step` user as the owner of your CA configuration directory:
+
+  <codeblock language="shell-session" copytext="sudo chown -R step:step $(step path)
+  ">
+  {`$ sudo chown -R step:step $(step path)`}
+  </codeblock>
 
   If your CA will bind to port 443, the `step-ca` binary will need to be
-  given low port-binding capabilities. You'll need the `setcap` command
-  for this. Run:
+  given low port-binding capabilities:
 
   <CodeBlock language="shell-session" copyText="sudo setcap CAP_NET_BIND_SERVICE=+eip $(which step-ca)">
   {`$ sudo setcap CAP_NET_BIND_SERVICE=+eip $(which step-ca)`}
@@ -160,9 +162,9 @@ Note: _This section requires a Linux OS running `systemctl`._
   {`$ sudo mv $(step path) /etc/step-ca`}
   </CodeBlock>
 
-3. Create a `sytemctl` unit file.
+3. Create a `systemd` unit file.
 
-  Use the following example as a base for your `systemctl` unit file:
+  Use the following example as a base for your `systemd` unit file:
 
   ```
   [Unit]
@@ -173,7 +175,7 @@ Note: _This section requires a Linux OS running `systemctl`._
 
   User=step
   Group=step
-  ExecStart=/bin/sh -c '/usr/bin/step-ca /etc/step-ca/config/ca.json --password-file=/etc/step-ca/pwd >> /var/log/step-ca.log 2>&1'
+  ExecStart=/bin/sh -c '/usr/bin/step-ca /etc/step-ca/config/ca.json --password-file=/etc/step-ca/pwd'
   Type=simple
   Restart=on-failure
   RestartSec=10
@@ -182,18 +184,30 @@ Note: _This section requires a Linux OS running `systemctl`._
   WantedBy=multi-user.target
   ```
 
+  On most systems, the file can go into `/etc/systemd/system`.
+
 4. Enable and start the service.
 
-  The following are a few example commands you can use to check the status,
-  enable on restart, and start your `systemctl` service.
+  The following are a few useful commands for
+  checking the status of your CA,
+  enabling it on system startup,
+  and starting your CA.
 
   ```shell-session nocopy
-  # Check the current status of the `step-ca` service
-  $ systemctl status step-ca
-  # Configure the `step-ca` process to startup on reboot automatically
-  $ systemctl enable step-ca
-  # Start the `step-ca` service.
-  $ systemctl start step-ca
+  # Rescan the systemd unit files
+  $ sudo systemctl daemon-reload
+
+  # Check the current status of the step-ca service
+  $ sudo systemctl status step-ca
+
+  # Configure the step-ca process to startup on reboot automatically
+  $ sudo systemctl enable step-ca
+
+  # Start the step-ca service.
+  $ sudo systemctl start step-ca
+
+  # Follow the log messages for step-ca
+  $ journalctl --follow --unit=step-ca
   ```
 
 ## High Availability
@@ -280,7 +294,7 @@ out to password.txt so we don't have to enter it repeatedly.
 
 ```shell nocopy
 $ echo "p4ssword" > password.txt
-$ step ca init --name "Local CA" --provisioner admin \
+$ step ca init --name "Speedy" --provisioner admin \
                --dns localhost --address ":443" \
                --password-file password.txt \
                --provisioner-password-file password.txt
@@ -307,7 +321,7 @@ $ step ca certificate foo.local foo.crt foo.key --token $TOKEN
 $ step certificate inspect --short foo.crt
 X.509v3 TLS Certificate (ECDSA P-256) [Serial: 2599...1204]
   Subject:     foo.local
-  Issuer:      Local CA Intermediate CA
+  Issuer:      Speedy Intermediate CA
   Provisioner: admin [ID: w1OU...oZUg]
   Valid from:  2019-05-01T21:06:25Z
           to:  2019-05-02T21:06:25Z
@@ -331,7 +345,7 @@ Your certificate has been saved in foo.crt \n
 $ step certificate inspect --short foo.crt
 X.509v3 TLS Certificate (ECDSA P-256) [Serial: 1664...3445]
   Subject:     foo.local
-  Issuer:      Local CA Intermediate CA
+  Issuer:      Speedy Intermediate CA
   Provisioner: admin [ID: w1OU...oZUg]
   Valid from:  2019-05-01T21:15:16Z
           to:  2019-05-02T21:15:16Z
@@ -399,6 +413,12 @@ EOF
 ```
 
 Be sure the `User` has write access to the certificate and key you're renewing.
+
+Rescan the `systemd` unit files:
+
+```shell
+$ sudo systemctl daemon-reload
+```
 
 Start the service:
 
