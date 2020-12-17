@@ -421,16 +421,16 @@ sudo systemctl enable step
   </div>
 </Alert>
 
-
-[Service unit templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates) and [timers](https://wiki.archlinux.org/index.php/Systemd/Timers) in `systemd` can be used to regularly renew many certificates on a system,
+[Service templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates) and [timers](https://wiki.archlinux.org/index.php/Systemd/Timers) in `systemd` can be orchestrated to regularly renew many certificates on a system,
 with a bit more flexiblity than the `step renew` daemon.
 
-With this approach, `systemd` will test your certificates regularly (eg. every five minutes), and renew them when they're ready.
+With this approach, you'll create systemd services that renew your certificates,
+and corresponding systemd timers that make sure those services run every few minutes.
 
 In `/etc/systemd/system`, we'll start by creating template files `tls-renewer@.service`, and `tls-renewer@.timer`.
 
 These templates accept a single argument after the `@`.
-For example, for `tls-renewer@kafka.service`, the _service unit argument_ is `kafka`.
+For example, for `tls-renewer@postgres.service`, the _service unit argument_ is `postgres`.
 
 Let's review the service template first, then we'll look at the timer template.
 
@@ -453,7 +453,7 @@ Environment=STEPPATH=/etc/step-ca \
 ; ExecCondition checks if the certificate is ready for renewal,
 ; based on the exit status of the command.
 ExecCondition=/usr/bin/bash -c \
-  'step certificate inspect ${CERT_LOCATION} --format json | \
+  'step certificate inspect ${CERT_LOCATION} --format json --roots "${STEPPATH}/certs/root_ca.crt" | \
   jq -e "(((.validity.start | fromdate) + \
           ((.validity.end | fromdate) - (.validity.start | fromdate)) * 0.66) \
            - now) <= 0" > /dev/null'
@@ -467,37 +467,55 @@ EOF
 $ systemctl daemon-reload
 ```
 
-With this file in place,
-if you have a service called `postgresql`,
-and your certificate is located in `/etc/step-ca/certs/postgresql.crt`.
-you can manually run `systemctl start tls-renewer@postgresql.service`
-and systemd will immediately check the certificate's readiness for renewal, and potentially
-attempt to renew it.
+With this template file in place, we can now ask systemd to start any `tls-renewer@*.service`.
 
-#### Customizing the service template
+So, for example,
+if you have a service called `postgres`,
+with certificate and key files located in `/etc/step-ca/certs/postgres.crt` and `/etc/step-ca/certs/postgres.key`,
+you can manually run `systemctl start tls-renewer@postgres.service`
+and systemd will immediately check that certificate's readiness for renewal, and potentially renew it.
 
-You'll often need to customize the template for a given service.
-For example, here's a service unit customization for Grafana,
-which you would place in `/etc/systemd/system/tls-renewer@grafana.service.d/overrides.conf`:
+#### Customizing a service unit
+
+You'll often need to customize your service unit for a specific use case.
+Many services may need to either be sent a `SIGHUP` signal, or restarted entirely, in order to adopt a renewed TLS certificate.
+
+This is where _service template overrides_ come in handy.
+
+Here's an example of a service template override for a [Lighttpd](https://www.lighttpd.net/) server.
+This file would go into `/etc/systemd/system/tls-renewer@lighttpd.service.d/overrides.conf`:
+
+```
+[Service]
+; Note: `Environment=` overrides are applied per environment variable, not for the entire `Environments=` line.
+Environment=CERT_LOCATION=/etc/lighttpd/certs/example.com.crt KEY_LOCATION=/etc/lighttpd/certs/example.com.key
+
+; Send a SIGHUP to Lighttpd after the certificate is successfully renewed.
+ExecStartPost=/usr/bin/bash -c 'kill -HUP $(cat /var/run/lighttpd.pid)'
+```
+
+[Grafana](https://grafana.com/grafana/) is another example.
+Here's a service unit customization for Grafana,
+which you'd place in `/etc/systemd/system/tls-renewer@grafana.service.d/overrides.conf`:
 
 ```
 [Service]
 Environment=CERT_LOCATION=/etc/grafana/grafana.crt KEY_LOCATION=/etc/grafana/grafana.key
+
+; Restart Grafana after the certificate is successfully renewed.
 ExecStartPost=systemctl restart grafana-server
+
+; Alert a health check service that our certificate has successfully been renewed.
 ExecStartPost=curl -m 10 --retry 5 https://hc-ping.com/xxxxxx
 ```
 
-This override sets the cert and key locations,
-restarts Grafana after the certificate is successfully renewed,
-and calls a health check endpoint to indicate successful renewal.
-
-Note that `Environment=` overrides are applied per environment variable,
-not for the entire `Environments=` line.
+In this case, we're restarting grafana entirely,
+and we're calling out to a health check service that expects to see a ping from us each day, when the certificate is renewed.
 
 #### Enabling `systemd` renewal timers
 
 Timers and services go hand in hand in systemd:
-A `tls-renewer@kafka.timer` will always trigger a corresponding `tls-renewer@kafka.service`.
+A `tls-renewer@postgres.timer` will always trigger a corresponding `tls-renewer@postgres.service`.
 
 So, instead of enabling the `tls-renewer` service units directly, we'll enable timer units that will trigger each service unit.
 
@@ -529,13 +547,13 @@ $ systemctl daemon-reload
 Timers using this template will run every 5-10 minutes, with a random delay for each timer.
 
 With this file in place,
-let's start timers for our `postgresql` and `grafana` renewer services:
+let's start timers for our `postgres` and `grafana` renewer services:
 
 ```shell-session
-$ systemctl start tls-renewer@postgresql.timer
+$ systemctl start tls-renewer@postgres.timer
 $ systemctl start tls-renewer@grafana.timer
-$ systemctl enable tls-renewer@postgresql.timer
-Created symlink /etc/systemd/system/multi-user.target.wants/tls-renewer@postgresql.service → /etc/systemd/system/tls-renewer@.service.
+$ systemctl enable tls-renewer@postgres.timer
+Created symlink /etc/systemd/system/multi-user.target.wants/tls-renewer@postgres.service → /etc/systemd/system/tls-renewer@.service.
 $ systemctl enable tls-renewer@grafana.timer
 Created symlink /etc/systemd/system/multi-user.target.wants/tls-renewer@grafana.service → /etc/systemd/system/tls-renewer@.service.
 $ systemctl list-timers
