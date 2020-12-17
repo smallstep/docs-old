@@ -519,7 +519,7 @@ A `tls-renewer@postgres.timer` will always trigger a corresponding `tls-renewer@
 
 So, instead of enabling the `tls-renewer` service units directly, we'll enable timer units that will trigger each service unit.
 
-Here's a timer unit template:
+Here's the timer unit template:
 
 ```
 $ cat << EOF | sudo tee /etc/systemd/system/tls-renewer@.timer > /dev/null
@@ -546,6 +546,8 @@ $ systemctl daemon-reload
 
 Timers using this template will run every 5-10 minutes, with a random delay for each timer.
 
+You can override your timer units too, but you probably won't need to.
+
 With this file in place,
 let's start timers for our `postgres` and `grafana` renewer services:
 
@@ -560,9 +562,10 @@ $ systemctl list-timers
 NEXT                        LEFT          LAST                        PASSED       UNIT                            ACTIVATES
 Wed 2020-12-16 17:06:23 PST 8min left     n/a                         n/a          tls-renewer@postgres.timer      tls-renewer@postgres.service
 Wed 2020-12-16 17:04:12 PST 6min left     n/a                         n/a          tls-renewer@grafana.timer       tls-renewer@grafana.service
+...
 ```
 
-Continue to add service unit overrides (as needed) and start timers for each service requiring TLS certificate renewal.
+Your timers are now running.
 
 #### `cron`-based renewal
 
