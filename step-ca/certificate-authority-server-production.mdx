@@ -323,7 +323,9 @@ practice.
 
 ### Manual Renewal
 
-With short-lived certificates, your services and hosts will need to renew their certificates regularly, by extending their lifetimes _before they expire_. You can do this with the following command:
+With short-lived certificates, your services and hosts will need to renew their certificates regularly, by extending their lifetimes _before they expire_.
+
+You can do this with the following command:
 
 <CodeBlock language="shell" copyText="step ca renew --force foo.crt foo.key">
 {`$ step ca renew --force foo.crt foo.key
@@ -342,12 +344,14 @@ _Note the change in the validity period relative to the original certificate abo
 
 ### Automated renewal
 
-The `step ca renew` command includes tools that simplify automated renewal. After all, what good are short-lived certificates if we can't renew them automatically?
+What good are short-lived certificates if we can't renew them automatically?
 
 Here are three options for setting up automated renewal of certificates with `step ca renew`:
-* [Renewal using `systemd` timers](#renewal-using-systemd-timers) (This is the preferred approach.)
-* [The standalone `step` renewal daemon](#the-standalone-step-renewal-daemon)
-* [`cron`-based renewal](#-cron-based-renewal)
+* [Renewal using `systemd` timers](#renewal-using-systemd-timers). This is the preferred approach.
+
+* [The standalone `step` renewal daemon](#the-standalone-step-renewal-daemon).
+
+* [`cron`-based renewal](#-cron-based-renewal).
 
 #### Renewal using `systemd` timers
 
@@ -358,22 +362,24 @@ Here are three options for setting up automated renewal of certificates with `st
   </div>
 </Alert>
 
-[Service templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates) and [timers](https://wiki.archlinux.org/index.php/Systemd/Timers) in `systemd` can be orchestrated to regularly renew many certificates on a system.
+With this approach, a systemd service will renew your certificate after 2/3 of its lifetime has elapsed,
+and a corresponding [systemd timer](https://wiki.archlinux.org/index.php/Systemd/Timers) will run the service periodically for you.
 
-With this approach, you'll create systemd services that renew your certificates,
-and corresponding systemd timers that make sure those services run every few minutes.
+We will leverage systemd [service templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates)
+to simplify configuration of certificate renewal for many target services.
 
 In `/etc/systemd/system`, we'll start by creating template files `cert-renewer@.service`, and `cert-renewer@.timer`.
 
-These templates accept a single argument after the `@`.
-For example, for `cert-renewer@postgres.service`, the _service unit argument_ is `postgres`.
+Service templates accept a single argument after the `@`, called the _service unit argument_.
+For example, for `cert-renewer@postgresql.service`, the service unit argument is `postgresql`.
+In the template, `%i` represents the service unit argument.
 
 Let's review the service template first, then we'll look at the timer template.
 
 ```shell-session
 $ cat <<EOF | sudo tee /etc/systemd/system/cert-renewer@.service > /dev/null
 [Unit]
-Description=TLS certificate renewer for %I
+Description=Certificate renewer for %I
 After=network-online.target
 StartLimitIntervalSec=0
 
@@ -381,8 +387,6 @@ StartLimitIntervalSec=0
 Type=oneshot
 User=root
 
-; `%i` is replaced with the service unit argument,
-; eg. for 'cert-renewer@kafka.service', %i is 'kafka'
 Environment=STEPPATH=/etc/step-ca \
             CERT_LOCATION=/etc/step/certs/%i.crt \
             KEY_LOCATION=/etc/step/certs/%i.key
@@ -398,7 +402,7 @@ ExecCondition=/usr/bin/bash -c \
 ; ExecStart renews the certificate, if ExecCondition was successful.
 ExecStart=/usr/bin/step ca renew --force $CERT_LOCATION $KEY_LOCATION
 
-; Try to reload or restart the systemd service that parallels this cert-renewer
+; Try to reload or restart the systemd service that relies on this cert-renewer
 ExecStartPost=/usr/bin/bash -c 'systemctl --quiet is-enabled %i && systemctl try-reload-or-restart %i'
 
 [Install]
@@ -407,43 +411,49 @@ EOF
 $ systemctl daemon-reload
 ```
 
-With this template file in place, we can now ask systemd to start any `cert-renewer@*.service`.
+So, with this template file in place, we can now ask systemd to start any `cert-renewer@*.service`.
 
-So, for example, if you have a systemd service called `postgres`,
-with certificate and key files located in `/etc/step/certs/postgres.crt` and `/etc/step/certs/postgres.key`,
-you can manually run `systemctl start cert-renewer@postgres.service`
+For example, if you have a systemd service called `postgresql.service`,
+with certificate and key files located in `/etc/step/certs/postgresql.crt` and `/etc/step/certs/postgresql.key`,
+you can manually run `systemctl start cert-renewer@postgresql.service`
 and systemd will immediately check that certificate's readiness for renewal, and potentially renew it.
-
-If the certificate is renewed, the `ExecPostStart` command will run and the `postgres` service will be reloaded or restarted.
+If the certificate is successfully renewed, the `postgresql` service will be reloaded or restarted.
 
 #### Customizing a service unit
 
-You'll often need to customize your service unit for a specific use case.
+You'll often need to customize your service unit for a given service.
+
 For example, you may need to:
-* Reload or restart more services, or services not managed by systemd
+* Reload or restart additional services
+
 * Change the location of certficate files for a service
-* Run `step` with a different `STEPPATH` or as a different user (eg. to access a different CA)
+
+* Run `step` with a different `$STEPPATH` (eg. to access a different CA)
+
 * Ping a health check service or perform another action after a specific certificate is renewed
 
-This is where _service template overrides_ come in handy.
+Instead of modifying the service template, we'll use _service template overrides_ here.
+The overrides live in the drop-in configuration directory for the service being custommized.
 
-Here's an example of a service template override for a [Lighttpd](https://www.lighttpd.net/) server that
-uses docker-compose and is not managed by systemd.
-This file would go into `/etc/systemd/system/cert-renewer@docker-lighttpd.service.d/overrides.conf`:
+Here's an example override for a [Lighttpd](https://www.lighttpd.net/) service that uses Docker Compose and is not managed by systemd:
+
+`/etc/systemd/system/cert-renewer@lighttpd-docker.service.d/overrides.conf`:
 
 ```
 [Service]
-; Note: `Environment=` overrides are applied per environment variable, not for the entire `Environments=` line.
+; `Environment=` overrides are applied per environment variable. This line does not
+; affect any other variables set in the service template.
 Environment=CERT_LOCATION=/etc/docker/compose/lighttpd/certs/example.com.crt \
             KEY_LOCATION=/etc/docker/compose/lighttpd/certs/example.com.key
 WorkingDirectory=/etc/docker/compose/lighttpd
 
-; Restart docker containers after the certificate is successfully renewed.
+; Restart lighttpd docker containers after the certificate is successfully renewed.
 ExecStartPost=/usr/local/bin/docker-compose restart
 ```
 
-Here's another example for [Grafana](https://grafana.com/grafana/),
-which you'd place in `/etc/systemd/system/cert-renewer@grafana-server.service.d/overrides.conf`:
+Here's another example of an override for [Grafana](https://grafana.com/grafana/).
+
+`/etc/systemd/system/cert-renewer@grafana-server.service.d/overrides.conf`:
 
 ```
 [Service]
@@ -453,22 +463,22 @@ Environment=CERT_LOCATION=/etc/grafana/grafana.crt KEY_LOCATION=/etc/grafana/gra
 ExecStartPost=curl -m 10 --retry 5 https://hc-ping.com/xxxxxx
 ```
 
-In this case, when the certificate is renewed, the renewer will restart `grafana-server.service`,
-then out to a health check service that expects to see a ping from this unit each day.
+When the certificate is successfully renewed, the service template will reload or restart `grafana-server.service`,
+and the override configuration will ping a health check service that expects to hear from this unit each day.
 
 #### Enabling `systemd` renewal timers
 
-Timers and services go hand in hand in systemd:
-A `cert-renewer@postgres.timer` will always trigger a corresponding `cert-renewer@postgres.service`.
+The final piece of the puzzle is the renewal timer. Timers and services go hand in hand in systemd:
+A `cert-renewer@postgresql.timer` will always trigger a corresponding `cert-renewer@postgresql.service`.
 
-So, instead of enabling the `cert-renewer` service units directly, we'll enable timer units that will trigger each service unit.
+Therefore, instead of enabling the `cert-renewer@*.service` service units directly, we'll enable timer units that will periodically trigger each service unit.
 
 Here's the timer unit template:
 
 ```
 $ cat << EOF | sudo tee /etc/systemd/system/cert-renewer@.timer > /dev/null
 [Unit]
-Description=TLS certificate renewal timer for %I
+Description=Certificate renewal timer for %I
 
 [Timer]
 Persistent=true
@@ -488,28 +498,30 @@ EOF
 $ systemctl daemon-reload
 ```
 
-Timers using this template will run every 5-10 minutes, with a random delay for each timer.
+Timers using this template will run every 5-10 minutes,
+with a randomized delay on each timer.
+The randomized delay helps with [thundering herd problems](https://en.wikipedia.org/wiki/Thundering_herd_problem)
+that can occur when many virtual machines that were provisioned together try to renew their certificates at the same time.
 
-You can override your timer units too, but you probably won't need to.
-
-With this file in place,
-let's start timers for our `postgres` and `grafana-server` renewer services:
+With this template in place,
+let's start timers for our `postgresql` and `grafana-server` renewer services:
 
 ```shell-session
-$ systemctl start cert-renewer@postgres.timer
+$ systemctl start cert-renewer@postgresql.timer
 $ systemctl start cert-renewer@grafana-server.timer
-$ systemctl enable cert-renewer@postgres.timer
-Created symlink /etc/systemd/system/multi-user.target.wants/cert-renewer@postgres.service → /etc/systemd/system/cert-renewer@.service.
+$ systemctl enable cert-renewer@postgresql.timer
+Created symlink /etc/systemd/system/multi-user.target.wants/cert-renewer@postgresql.service → /etc/systemd/system/cert-renewer@.service.
 $ systemctl enable cert-renewer@grafana-server.timer
 Created symlink /etc/systemd/system/multi-user.target.wants/cert-renewer@grafana-server.service → /etc/systemd/system/cert-renewer@.service.
 $ systemctl list-timers
 NEXT                        LEFT          LAST                        PASSED       UNIT                                    ACTIVATES
-Wed 2020-12-16 17:06:23 PST 8min left     n/a                         n/a          cert-renewer@postgres.timer             cert-renewer@postgres.service
+Wed 2020-12-16 17:06:23 PST 8min left     n/a                         n/a          cert-renewer@postgresql.timer             cert-renewer@postgresql.service
 Wed 2020-12-16 17:04:12 PST 6min left     n/a                         n/a          cert-renewer@grafana-server.timer       cert-renewer@grafana-server.service
 ...
 ```
 
-Your timers are now running.
+Your periodic timers are now running and will run on system startup. 
+You can override your timer units too, but you probably won't need to.
 
 #### The standalone `step` renewal daemon
 
@@ -574,6 +586,20 @@ And tell systemd to restart it on reboot:
 sudo systemctl enable step
 ```
 
+#### Notifying Certificate-Dependent Services
+
+Many services that depend on certificates will only read the certificate files on startup.
+So when you renew a certificate, a server process that depends on it may not detect that it has changed.
+
+It's common for services (eg. `nginx`) to respond to a `SIGHUP` signal by reloading configuration files and certificates.
+To address this, `step ca renew` can send a `SIGHUP` to your service after each renewal.
+Here's an example for `nginx`:
+
+```shell-session nocopy
+$ step ca renew --daemon --exec "kill -HUP $NGINX_PID" foo.crt foo.key
+INFO: 2019/05/01 14:22:18 first renewal in 15h50m43s
+```
+
 
 #### `cron`-based renewal
 
@@ -601,17 +627,6 @@ EOF
 Be sure the user (in this example, `step`) has write access to the certificate and key you're renewing.
 
 ### Caveats of Automated Renewal
-
-#### Notifying Certificate-Dependent Services
-
-Many services that depend on certificates will only read the certificate files on startup. So when you renew a certificate, a server process that depends on it may not detect that it has changed.
-
-It's common for services (eg. `nginx`) to respond to a `SIGHUP` signal by reloading configuration files and certificates. To address this, `step ca renew` can send a `SIGHUP` to your service after each renewal. Here's an example for `nginx`:
-
-```shell-session nocopy
-$ step ca renew --daemon --exec "kill -HUP $NGINX_PID" foo.crt foo.key
-INFO: 2019/05/01 14:22:18 first renewal in 15h50m43s
-```
 
 #### Revoking a Certificate
 
