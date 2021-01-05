@@ -922,11 +922,16 @@ Once you’ve configured `step-ca` to accept IIDs for authentication,
 obtain an IID token from your cloud provider's metadata API,
 and use it to obtain a certificate from `step-ca`.
 
+From the CA's perspective, an IID is a single-use token.
+A host can only get one certificate, ever, per IID.
+A host can then renew its certificate using `step ca renew`.
+If the certificate ever expires, the host will need to use a different provisioner to issue a new one.
+
 ### Security Risks and Limitations
 
 While IIDs simplify the integration of `step-ca`, the approach comes with risks.
 
-Unfortunately, an IID usually doesn't contain enough information to generate a complete certificate a the host.
+Unfortunately, an IID usually doesn't contain enough information to authenticate a host certificate.
 For example, while an IID may contain the private or public IP for the host,
 it will not contain all of the DNS names and IP addresses that you may want on the certificate.
 
@@ -943,21 +948,21 @@ Because of this, every host in your infrastructure must be trusted.
 
 #### Mitigating the risk of IIDs
 
-`step-ca` has some mechanisms that strengthen these security characteristics:
-- A cloud provisioner will only grant a certificate _once per host_.
-  After this first grant, the host will need to renew the certificate using mTLS (`step ca renew`).
-  If the certificate ever expires, you'll need to use a different provisioner to issue a new one.
-- If you configure a max instance age (using `instanceAge`, below),
-  and your infrastructure is setup such that some trusted process (e.g., cloud-init config management),
-  that runs when every instance is launched,
-  to "consume" the instance identity document and obtain a certificate,
-  then you may have more assurance that the bound names in certificates are legitimate.
-- If you disable custom SANs (using `disableCustomSANs`, below) then the CA will only issue certificates with authentic name(s) extracted from the signed instance identity document.
+Here are some things you can do to mitigate risk when using IIDs:
+- **Configure the provisioner with `instanceAge`.**
+  The IID will effectively "expire" if it's not used within `instanceAge` after the instance is launched.
+- **Use a trusted launch configuration / User Data script to obtain a certificate.**
+  Coupled with `instanceAge`, this will give you more assuance that the names on your certificates can be trusted.
+- **Restrict provisioning by your cloud provider account or project IDs.** 
+  Configure the provisioner's `accounts` (AWS) or `projectIDs` (GCP) setting.
+- **Disable Custom SANs, if possible.**
+  When using the `disableCustomSANs` setting, the CA will only issue certificates with authentic name(s) extracted from the signed instance identity document.
   Unfortunately, the names on the IID may not be the names that you use to refer to your servers and services.
-
-Keep in mind that, in this model, instances that don't obtain a certificate are a risk:
-Anyone with access to the instance will be able to obtain a certificate binding any name,
-so long as the instance is younger than `instanceAge`.
+- **Instances that don't obtain a certificate are a risk.**
+  Anyone with access to the instance will be able to obtain a certificate binding any names,
+  so long as the instance is younger than `instanceAge`.
+  Consider requesting certificates even for instances that will never use them,
+  so that the IID cannot later be used by an attacker.
 
 There are a lot of details to get right to make this model secure, many of which are environment-dependent and beyond the scope of this document.
 
