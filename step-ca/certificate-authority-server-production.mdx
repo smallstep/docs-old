@@ -200,11 +200,8 @@ Note: _This section requires a Linux OS running `systemd`._
   # Check the current status of the step-ca service
   $ sudo systemctl status step-ca
 
-  # Configure the step-ca process to startup on reboot automatically
-  $ sudo systemctl enable step-ca
-
-  # Start the step-ca service.
-  $ sudo systemctl start step-ca
+  # Enable and start the `step-ca` process
+  $ systemctl enable --now step-ca
 
   # Follow the log messages for step-ca
   $ journalctl --follow --unit=step-ca
@@ -335,11 +332,9 @@ lifetime of an individual certificate. Very short lifetimes (eg. five minutes)
 are better from a security perspective, but this can be difficult in
 practice.
 
-### Manual Renewal
-
 With short-lived certificates, your services and hosts will need to renew their certificates regularly, by extending their lifetimes _before they expire_.
 
-You can do this with the following command:
+You can do this manually with the following command:
 
 <CodeBlock language="shell" copyText="step ca renew --force foo.crt foo.key">
 {`$ step ca renew --force foo.crt foo.key
@@ -390,8 +385,9 @@ In the template, `%i` represents the service unit argument.
 
 Let's review the service template first, then we'll look at the timer template.
 
+Place the following in `/etc/systemd/system/cert-renewer@.service`:
+
 ```shell-session
-$ cat <<EOF | sudo tee /etc/systemd/system/cert-renewer@.service > /dev/null
 [Unit]
 Description=Certificate renewer for %I
 After=network-online.target
@@ -405,15 +401,16 @@ Environment=STEPPATH=/etc/step-ca \
             CERT_LOCATION=/etc/step/certs/%i.crt \
             KEY_LOCATION=/etc/step/certs/%i.key
 
-; ExecCondition checks if the certificate is ready for renewal,
+; ExecStartPre checks if the certificate is ready for renewal,
 ; based on the exit status of the command.
-ExecCondition=/usr/bin/bash -c \
+; (In systemd 243 and above, you can use ExecCondition= here.)
+ExecStartPre=/usr/bin/bash -c \
   'step certificate inspect $CERT_LOCATION --format json --roots "$STEPPATH/certs/root_ca.crt" | \
   jq -e "(((.validity.start | fromdate) + \
           ((.validity.end | fromdate) - (.validity.start | fromdate)) * 0.66) \
            - now) <= 0" > /dev/null'
 
-; ExecStart renews the certificate, if ExecCondition was successful.
+; ExecStart renews the certificate, if ExecStartPre was successful.
 ExecStart=/usr/bin/step ca renew --force $CERT_LOCATION $KEY_LOCATION
 
 ; Try to reload or restart the systemd service that relies on this cert-renewer
@@ -421,9 +418,9 @@ ExecStartPost=/usr/bin/bash -c 'systemctl --quiet is-enabled %i && systemctl try
 
 [Install]
 WantedBy=multi-user.target
-EOF
-$ systemctl daemon-reload
 ```
+
+Then run `systemctl daemon-reload` to reload the service unit files.
 
 So, with this template file in place, we can now ask systemd to start any `cert-renewer@*.service`.
 
@@ -487,10 +484,9 @@ A `cert-renewer@postgresql.timer` will always trigger a corresponding `cert-rene
 
 Therefore, instead of enabling the `cert-renewer@*.service` service units directly, we'll enable timer units that will periodically trigger each service unit.
 
-Here's the timer unit template:
+Place the following in `/etc/systemd/system/cert-renewer@.timer`:
 
 ```
-$ cat << EOF | sudo tee /etc/systemd/system/cert-renewer@.timer > /dev/null
 [Unit]
 Description=Certificate renewal timer for %I
 
@@ -508,9 +504,9 @@ RandomizedDelaySec=5m
 
 [Install]
 WantedBy=timers.target
-EOF
-$ systemctl daemon-reload
 ```
+
+Then run `systemctl daemon-reload` to reload the service unit files.
 
 Timers using this template will run every 5-10 minutes,
 with a randomized delay on each timer.
@@ -521,15 +517,13 @@ With this template in place,
 let's start timers for our `postgresql` and `grafana-server` renewer services:
 
 ```shell-session
-$ systemctl start cert-renewer@postgresql.timer
-$ systemctl start cert-renewer@grafana-server.timer
-$ systemctl enable cert-renewer@postgresql.timer
+$ systemctl enable --now cert-renewer@postgresql.timer
 Created symlink /etc/systemd/system/multi-user.target.wants/cert-renewer@postgresql.service → /etc/systemd/system/cert-renewer@.service.
-$ systemctl enable cert-renewer@grafana-server.timer
+$ systemctl enable --now cert-renewer@grafana-server.timer
 Created symlink /etc/systemd/system/multi-user.target.wants/cert-renewer@grafana-server.service → /etc/systemd/system/cert-renewer@.service.
 $ systemctl list-timers
 NEXT                        LEFT          LAST                        PASSED       UNIT                                    ACTIVATES
-Wed 2020-12-16 17:06:23 PST 8min left     n/a                         n/a          cert-renewer@postgresql.timer             cert-renewer@postgresql.service
+Wed 2020-12-16 17:06:23 PST 8min left     n/a                         n/a          cert-renewer@postgresql.timer           cert-renewer@postgresql.service
 Wed 2020-12-16 17:04:12 PST 6min left     n/a                         n/a          cert-renewer@grafana-server.timer       cert-renewer@grafana-server.service
 ...
 ```
@@ -594,16 +588,10 @@ Rescan the `systemd` unit files:
 $ sudo systemctl daemon-reload
 ```
 
-Start the service:
+Enable and start the service:
 
 ```shell
-sudo systemctl start step
-```
-
-And tell systemd to restart it on reboot:
-
-```shell
-sudo systemctl enable step
+sudo systemctl enable --now step
 ```
 
 #### Notifying Certificate-Dependent Services
