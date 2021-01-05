@@ -888,34 +888,83 @@ see the [claims](#claims) section for all the options.
 
 ## Cloud Provisioners
 
-For cloud VMs running on AWS, GCP, or Azure `step-ca` can be configured to use
-instance identity documents (IIDs) to authorize certificate signing requests.
-IIDs make integrating `step-ca` even easier.
+`step-ca` can be configured to use instance identity documents (IIDs) to authorize certificate signing requests from cloud VMs running on AWS, GCP, or Azure.
+IIDs are signed JSON tokens, created when the instance is launched, and made available via the instance metadata API.
 
-Instead of building and integrating a JWK provisioner that issues tokens to
-workloads, `step` can request tokens directly from your cloud provider’s
-metadata API with no additional infrastructure requirements.
+Here's the contents of an example IID from AWS:
+
+```json
+{
+    "devpayProductCodes" : null,
+    "marketplaceProductCodes" : [ "1abc2defghijklm3nopqrs4tu" ], 
+    "availabilityZone" : "us-west-2b",
+    "privateIp" : "10.158.112.84",
+    "version" : "2017-09-30",
+    "instanceId" : "i-1234567890abcdef0",
+    "billingProducts" : null,
+    "instanceType" : "t2.micro",
+    "accountId" : "123456789012",
+    "imageId" : "ami-5fb8c835",
+    "pendingTime" : "2016-11-19T16:32:11Z",
+    "architecture" : "x86_64",
+    "kernelId" : null,
+    "ramdiskId" : null,
+    "region" : "us-west-2"
+}
+```
 
 ![example of provisioner working with step ca](../../../../../static/images/iid-provisioner.png)
 
 _Fig. 2: Diagram of how step works with a cloud service as the provisioner_
 
-Once you’ve configured `step-ca` to use IIDs for authentication, `step` will detect the provisioner type, obtain an IID token from your cloud provider, and use it to obtain a certificate from `step-ca` automatically.
+Once you’ve configured `step-ca` to accept IIDs for authentication,
+`step` will detect the provisioner type,
+obtain an IID token from your cloud provider's metadata API,
+and use it to obtain a certificate from `step-ca`.
 
-### Trust On First Use
+From the CA's perspective, an IID is a single-use token.
+A host can only get one certificate, ever, per IID.
+A host can then renew its certificate using `step ca renew`.
+If the certificate ever expires, the host will need to use a different provisioner to issue a new one.
 
-Instance Identity is implemented as a signed document (see an
-example GCP instance identity token [here][2]) encoding host information like
-_name_ and _owner_. The information contained in an IID may not be enough
-to generate a certificate. Due to this limitation, the cloud provisioners default
-to using a trust model called _Trust On First Use (TOFU)_.
+### Security Risks and Limitations
 
-The _Trust On First Use_ model allows the use of more permissive certificate
-signing requests (CSRs) that can have custom SANs that cannot be validated. It
-comes with the limitation that you can only grant a certificate once per host.
-After this first grant, the same machine will need to renew the certificate
-using mTLS and the CA will block any other attempt to grant a certificate to
-that instance.
+While IIDs simplify the integration of `step-ca`, the approach comes with risks.
+
+Unfortunately, an IID usually doesn't contain enough information to authenticate a host certificate.
+For example, while an IID may contain the private or public IP for the host,
+it will not contain all of the DNS names and IP addresses that you may want on the certificate.
+
+Because of this, `step-ca`'s cloud provisioners use the _Trust on First Use (TOFU)_ security model,
+allowing any instance to get a certificate with any names (SANs) on it.
+
+This allows for a "cryptographic perimeter":
+If a host presents a certificate that was signed by your CA using a cloud provisioner,
+and the CA is configured to verify the instance's account, project, or tenant ID in the IID,
+you can have some confidence that the request came from your infrastructure (not someone else's),
+but _you cannot assume that the names on the certificate are authentic_.
+
+Because of this, every host in your infrastructure must be trusted.
+
+#### Mitigating the risk of IIDs
+
+Here are some things you can do to mitigate risk when using IIDs:
+- **Configure the provisioner with `instanceAge`.**
+  The IID will effectively "expire" if it's not used within `instanceAge` after the instance is launched.
+- **Use a trusted launch configuration / User Data script to obtain a certificate.**
+  Coupled with `instanceAge`, this will give you more assuance that the names on your certificates can be trusted.
+- **Restrict provisioning by your cloud provider account or project IDs.** 
+  Configure the provisioner's `accounts` (AWS) or `projectIDs` (GCP) setting.
+- **Disable Custom SANs, if possible.**
+  When using the `disableCustomSANs` setting, the CA will only issue certificates with authentic name(s) extracted from the signed instance identity document.
+  Unfortunately, the names on the IID may not be the names that you use to refer to your servers and services.
+- **Instances that don't obtain a certificate are a risk.**
+  Anyone with access to the instance will be able to obtain a certificate binding any names,
+  so long as the instance is younger than `instanceAge`.
+  Consider requesting certificates even for instances that will never use them,
+  so that the IID cannot later be used by an attacker.
+
+There are a lot of details to get right to make this model secure, many of which are environment-dependent and beyond the scope of this document.
 
 ### AWS
 
