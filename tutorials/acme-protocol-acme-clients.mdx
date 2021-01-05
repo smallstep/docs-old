@@ -38,7 +38,7 @@ If you run into any issues please let us know [in GitHub Discussions][gh-discuss
 * [ACME and `step-ca`](#acme-and-step-ca-recap)
 * [Certbot](#certbot)
 * [acme.sh](#acmesh)
-* [Caddy](#caddy)
+* [Caddy v2](#caddy-v2)
 * [NGINX](#nginx)
 * [Apache](#apache)
 * [Node.js](#node)
@@ -158,7 +158,7 @@ Renewals are slightly easier since `acme.sh` remembers to use the right root cer
 0 */8 * * * root "/home/<user>/.acme.sh"/acme.sh --cron --home "/home/<user>/.acme.sh" --force > /dev/null
 ```
 
-### Caddy
+### Caddy v2
 
 [Caddy][] is an HTTP/2 web server with _automatic HTTPS_ powered by an integrated ACME client.
 In addition to serving static websites, Caddy is commonly used as a TLS-terminating [API gateway proxy][api-proxy].
@@ -166,35 +166,38 @@ In addition to serving static websites, Caddy is commonly used as a TLS-terminat
 [caddy]:https://caddyserver.com/ 
 [api-proxy]: https://caddyserver.com/docs/quick-starts/reverse-proxy
 
-Caddy v2 ships with an embedded ACME server that uses smallstep's open source libraries to issue certificates for internal and local addresses.
-In most cases you don't need to do any configuration and should follow the caddy documentation on [automatic HTTPS][auto-https].
+Caddy comes with its own ACME server and by default it will generate an internal CA and issue certificates to itself.
+But, you can configure Caddy to use a local `step-ca` instance to obtain certificates.
 
-[auto-https]: https://caddyserver.com/docs/automatic-https#local-https
+Here's a `Caddyfile` global config block. 
+Add this to the top of your `Caddyfile` to get certificates from `ca.internal` for all configured domains:
 
-If you want to set things up manually, to get a certificate from `step-ca` configure the [tls.issuance][tls-issuance] module in your Caddyfile:
-
-* Point Caddy at your ACME directory URL using the `ca` field
-* Tell Caddy to trust your root certificate using the `trusted_roots_pem_files` array
-
-[tls-issuance]: https://caddyserver.com/docs/modules/tls.issuance.acme#module-list-container
-
-An example module in your `Caddyfile` might resemble:
-
-```nginx
-foo.internal {
-  root /var/run/www
-  tls.issuance {
-    "ca": "https://ca.internal/acme/acme/directory",
-    "email": "mike@example.com",
-    "trusted_roots_pem_files": ["<step path>/certs/root_ca.crt"]
-  }
+```
+{
+  email carl@smallstep.com
+  acme_ca https://ca.internal/acme/acme/directory
+  acme_ca_root <step path>/root_ca.crt
 }
 ```
 
-Run `caddy` to start serving HTTPS!
+Here's a `Caddyfile` that will use `ca.internal` only to get a certificate for `foo.internal`:
+
+```
+foo.internal
+
+root * /var/www
+tls carl@smallstep.com {
+  ca https://ca.internal/acme/acme/directory
+  ca_root <step path>/certs/root_ca.crt
+}
+```
+
+Replace `<step path>` with the output of the `step path` command.
+
+Now run `caddy` to start serving HTTPS!
 
 ```shell
-caddy
+$ sudo caddy start
 ```
 
 Check your work with curl:
@@ -207,6 +210,8 @@ Check your work with curl:
  
 Hello, TLS!`}
 </CodeBlock>
+
+Caddy will automatically renew its certificates after &frac23; of the validity period elapses.
 
 ### NGINX
 
