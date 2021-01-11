@@ -164,6 +164,10 @@ Note: _This section requires a Linux OS running `systemd`._
 
 3. Create a `systemd` unit file.
 
+  ```
+  $ sudo touch /etc/systemd/system/step-ca.service
+  ```
+
   Use the following example as a base for your `systemd` unit file:
 
   ```
@@ -172,7 +176,6 @@ Note: _This section requires a Linux OS running `systemd`._
   After=syslog.target network.target
 
   [Service]
-
   User=step
   Group=step
   ExecStart=/bin/sh -c '/usr/bin/step-ca /etc/step-ca/config/ca.json --password-file=/etc/step-ca/pwd'
@@ -371,7 +374,7 @@ Here are three options for setting up automated renewal of certificates with `st
   </div>
 </Alert>
 
-With this approach, a systemd service will renew your certificate after 2/3 of its lifetime has elapsed,
+With this approach, a systemd service will renew your certificate after &frac23; of its lifetime has elapsed,
 and a corresponding [systemd timer](https://wiki.archlinux.org/index.php/Systemd/Timers) will run the service periodically for you.
 
 We will leverage systemd [service templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates)
@@ -385,9 +388,15 @@ In the template, `%i` represents the service unit argument.
 
 Let's review the service template first, then we'll look at the timer template.
 
-Place the following in `/etc/systemd/system/cert-renewer@.service`:
+Create a service unit template file:
 
 ```shell-session
+$ sudo touch /etc/systemd/system/cert-renewer@.service
+```
+
+Add the following configuration:
+
+```ini
 [Unit]
 Description=Certificate renewer for %I
 After=network-online.target
@@ -420,9 +429,7 @@ ExecStartPost=/usr/bin/bash -c 'systemctl --quiet is-enabled %i && systemctl try
 WantedBy=multi-user.target
 ```
 
-Then run `systemctl daemon-reload` to reload the service unit files.
-
-So, with this template file in place, we can now ask systemd to start any `cert-renewer@*.service`.
+With this template file in place, we can now ask systemd to start any `cert-renewer@*.service`.
 
 For example, if you have a systemd service called `postgresql.service`,
 with certificate and key files located in `/etc/step/certs/postgresql.crt` and `/etc/step/certs/postgresql.key`,
@@ -484,7 +491,13 @@ A `cert-renewer@postgresql.timer` will always trigger a corresponding `cert-rene
 
 Therefore, instead of enabling the `cert-renewer@*.service` service units directly, we'll enable timer units that will periodically trigger each service unit.
 
-Place the following in `/etc/systemd/system/cert-renewer@.timer`:
+Create a timer unit template file:
+
+```shell-session
+$ sudo touch /etc/systemd/system/cert-renewer@.timer
+```
+
+Add the following configuration to the file:
 
 ```
 [Unit]
@@ -505,8 +518,6 @@ RandomizedDelaySec=5m
 [Install]
 WantedBy=timers.target
 ```
-
-Then run `systemctl daemon-reload` to reload the service unit files.
 
 Timers using this template will run every 5-10 minutes,
 with a randomized delay on each timer.
