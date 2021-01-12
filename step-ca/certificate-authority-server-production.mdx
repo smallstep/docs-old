@@ -170,16 +170,18 @@ Note: _This section requires a Linux OS running `systemd`._
 
   ```ini
   [Unit]
-  Description=step-ca
-  After=syslog.target network.target
+  Description=step-ca service
+  After=network.target
+  StartLimitIntervalSec=0
 
   [Service]
+  Type=simple
+  Restart=always
+  RestartSec=1
   User=step
   Group=step
-  ExecStart=/bin/sh -c '/usr/bin/step-ca /etc/step-ca/config/ca.json --password-file=/etc/step-ca/pwd'
-  Type=simple
-  Restart=on-failure
-  RestartSec=10
+  Environment=STEPPATH=/etc/step-ca
+  ExecStart=/bin/sh -c "/usr/local/bin/step-ca ${STEPPATH}/config/ca.json --password-file=${STEPPATH}/password.txt"
 
   [Install]
   WantedBy=multi-user.target
