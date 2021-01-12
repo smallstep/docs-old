@@ -374,10 +374,13 @@ Here are three options for setting up automated renewal of certificates with `st
   </div>
 </Alert>
 
-This approach runs a periodic [systemd timer](https://wiki.archlinux.org/index.php/Systemd/Timers) for each certificate you want to keep current. The timer will run a one-shot systemd service every few minutes. The one-shot service checks the certificate and renews it if more than &frac23; of its lifetime has elapsed. Upon renewal, the service can try to reload or restart a service using the certificate files, if it exists. Custom post-renewal commands can be configured as well.
+This approach runs a periodic [systemd timer](https://wiki.archlinux.org/index.php/Systemd/Timers) for each certificate you want to keep current.
+The timer will run a one-shot systemd service every few minutes.
+The one-shot service checks the certificate and renews it if more than &frac23; of its lifetime has elapsed.
+Upon renewal, the service can try to reload or restart a service using the certificate files, if it exists.
+Custom post-renewal commands can be configured as well.
 
-We will leverage systemd [service templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates)
-to simplify configuration of certificate renewal for many target services.
+We will leverage systemd [service templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates) to simplify configuration of certificate renewal for many target services.
 
 In `/etc/systemd/system`, we'll start by creating template files `cert-renewer@.service`, and `cert-renewer@.timer`.
 
@@ -623,7 +626,10 @@ INFO: 2019/05/01 14:22:18 first renewal in 15h50m43s
 
 With `cron`-based renewal, you can have `step ca renew` run at a regular cadence (eg. every five minutes) and renew a certificate only when it's approaching its expiration date.
 
-You can request that certificate renewal only occur if the certificate is approaching its expiry using the `--expires-in <duration>` flag. The `<duration>` is a time interval like `4h` or `30m`. Renewal will only occur if the expiry is within `<duration>` of the current time. For example:
+You can request that certificate renewal only occur if the certificate is approaching its expiry using the `--expires-in <duration>` flag.
+The `<duration>` is a time interval like `4h` or `30m`.
+Renewal will only occur if the expiry is within `<duration>` of the current time.
+For example:
 
 ```shell-session nocopy
 $ step ca renew --force --expires-in 4h foo.crt foo.key
@@ -648,27 +654,38 @@ Be sure the user (in this example, `step`) has write access to the certificate a
 
 #### Revoking a Certificate
 
-`step ca renew` allows a certificate owner to extend the lifetime of a
-certificate before it expires. Unfortunately, it also lets an attacker with the
-right private key do the same thing. To prevent this, you need to tell
-`step-ca` to revoke a particular certificate. See the [certificate revocation
-section](#certificate-revocation) for details.
+`step ca renew` allows a certificate owner to extend the lifetime of a certificate before it expires.
+Unfortunately, it also lets an attacker with the private key do the same thing.
+To prevent this, you need to explicitly tell `step-ca` to revoke a retired certificate.
+See the [certificate revocation section](#certificate-revocation) for details.
 
 ## X.509 Certificate Revocation
 
 The hardware, software and policies for managing and distributing public keys and certificates is called Public Key Infrastructure (PKI). 
 
-A beautiful thing about certificate-based PKI is that once certificates are issued, the infrastructure itself can be completely decentralized. You can independently validate any certificate you receive without communicating with any central authority.
+The beauty of certificate-based PKI is that once certificates are issued, the infrastructure itself can be completely decentralized.
+You can independently validate any certificate you receive without communicating with any central authority.
 
 Certificate-based is PKI inherently fault-tolerant, and trivial to scale.
 
-With simplicity comes an inherent trade-off: Once a certificate is issued, the certificate authority (CA) can't un-issue it. It's valid until it expires. Certificates do eventually expire, but until they do, a bad actor can use a compromised private key to impersonate the certificate owner.
+With simplicity comes an inherent trade-off:
+Once a certificate is issued, the certificate authority (CA) can't un-issue it.
+It's valid until it expires.
+Certificates do eventually expire,
+but until they do, a bad actor can use a compromised private key to impersonate the certificate owner.
 
-This is one reason `step-ca` is designed to issue short-lived certificates. When you revoke a certificate in `step-ca`, the CA will block the certificate's future renewal. This is called _passive revocation_. Passive revocation is a good option for internal PKI, because it avoids the complexity of relying on centralized third parties to check the real-time revocation status of a certificate.
+This is one reason `step-ca` is designed to issue short-lived certificates.
+When you revoke a certificate in `step-ca`, the CA will block the certificate's future renewal.
+This is called _passive revocation_.
+Passive revocation is a good option for internal PKI,
+because it avoids the complexity of relying on centralized third parties to check the real-time revocation status of a certificate.
 
 A certificate that has been passively revoked will still be valid for the remainder of it's validity period.
 
-Contrast this with _active revocation_ techniques used on the public internet. On the web, TLS certificates are valid for up to a year. Web browsers have to check CRLs (Certificate Revocation Lists) or use OCSP (Online Certificate Status Protocol) to verify that every certificate they receive has not been revoked. Active revocation requires clients to take an active role in certificate validation for the benefit of real-time certificate status.
+Contrast this with _active revocation_ techniques used on the public internet.
+Web TLS certificates are valid for up to a year.
+Web browsers have to check CRLs (Certificate Revocation Lists) or use OCSP (Online Certificate Status Protocol) to verify that every certificate they receive has not been revoked.
+Active revocation requires clients to take an active role in certificate validation for the benefit of real-time certificate status.
 
 <Alert severity="info">
   <div>
