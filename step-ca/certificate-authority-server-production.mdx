@@ -137,17 +137,15 @@ Note: _This section requires a Linux OS running `systemd`._
 
   The service user will only be used by `systemd` to manage the CA. Run:
 
-  <codeblock language="shell-session" copytext="sudo useradd --system --home /etc/step-ca --shell /bin/false step
-  ">
+  <CodeBlock language="shell-session" copytext="sudo useradd --system --home /etc/step-ca --shell /bin/false step">
   {`$ sudo useradd --system --home /etc/step-ca --shell /bin/false step`}
-  </codeblock>
+  </CodeBlock>
 
   Set the `step` user as the owner of your CA configuration directory:
 
-  <codeblock language="shell-session" copytext="sudo chown -R step:step $(step path)
-  ">
+  <CodeBlock language="shell-session" copytext="sudo chown -R step:step $(step path)">
   {`$ sudo chown -R step:step $(step path)`}
-  </codeblock>
+  </CodeBlock>
 
   If your CA will bind to port 443, the `step-ca` binary will need to be
   given low port-binding capabilities:
@@ -164,13 +162,13 @@ Note: _This section requires a Linux OS running `systemd`._
 
 3. Create a `systemd` unit file.
 
-  ```
+  ```shell-session
   $ sudo touch /etc/systemd/system/step-ca.service
   ```
 
   Use the following example as a base for your `systemd` unit file:
 
-  ```
+  ```ini
   [Unit]
   Description=step-ca
   After=syslog.target network.target
@@ -374,8 +372,7 @@ Here are three options for setting up automated renewal of certificates with `st
   </div>
 </Alert>
 
-With this approach, a systemd service will renew your certificate after &frac23; of its lifetime has elapsed,
-and a corresponding [systemd timer](https://wiki.archlinux.org/index.php/Systemd/Timers) will run the service periodically for you.
+This approach runs a periodic [systemd timer](https://wiki.archlinux.org/index.php/Systemd/Timers) for each certificate you want to keep current. The timer will run a one-shot systemd service every few minutes. The one-shot service checks the certificate and renews it if more than &frac23; of its lifetime has elapsed. Upon renewal, the service can try to reload or restart a service using the certificate files, if it exists. Custom post-renewal commands can be configured as well.
 
 We will leverage systemd [service templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates)
 to simplify configuration of certificate renewal for many target services.
@@ -457,7 +454,7 @@ Here's an example override for a [Lighttpd](https://www.lighttpd.net/) service t
 
 `/etc/systemd/system/cert-renewer@lighttpd-docker.service.d/overrides.conf`:
 
-```
+```ini
 [Service]
 ; `Environment=` overrides are applied per environment variable. This line does not
 ; affect any other variables set in the service template.
