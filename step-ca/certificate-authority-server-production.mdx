@@ -137,17 +137,15 @@ Note: _This section requires a Linux OS running `systemd`._
 
   The service user will only be used by `systemd` to manage the CA. Run:
 
-  <codeblock language="shell-session" copytext="sudo useradd --system --home /etc/step-ca --shell /bin/false step
-  ">
+  <CodeBlock language="shell-session" copytext="sudo useradd --system --home /etc/step-ca --shell /bin/false step">
   {`$ sudo useradd --system --home /etc/step-ca --shell /bin/false step`}
-  </codeblock>
+  </CodeBlock>
 
   Set the `step` user as the owner of your CA configuration directory:
 
-  <codeblock language="shell-session" copytext="sudo chown -R step:step $(step path)
-  ">
+  <CodeBlock language="shell-session" copytext="sudo chown -R step:step $(step path)">
   {`$ sudo chown -R step:step $(step path)`}
-  </codeblock>
+  </CodeBlock>
 
   If your CA will bind to port 443, the `step-ca` binary will need to be
   given low port-binding capabilities:
@@ -164,21 +162,26 @@ Note: _This section requires a Linux OS running `systemd`._
 
 3. Create a `systemd` unit file.
 
+  ```shell-session
+  $ sudo touch /etc/systemd/system/step-ca.service
+  ```
+
   Use the following example as a base for your `systemd` unit file:
 
-  ```
+  ```ini
   [Unit]
-  Description=step-ca
-  After=syslog.target network.target
+  Description=step-ca service
+  After=network.target
+  StartLimitIntervalSec=0
 
   [Service]
-
+  Type=simple
+  Restart=always
+  RestartSec=1
   User=step
   Group=step
-  ExecStart=/bin/sh -c '/usr/bin/step-ca /etc/step-ca/config/ca.json --password-file=/etc/step-ca/pwd'
-  Type=simple
-  Restart=on-failure
-  RestartSec=10
+  Environment=STEPPATH=/etc/step-ca
+  ExecStart=/bin/sh -c "/usr/local/bin/step-ca ${STEPPATH}/config/ca.json --password-file=${STEPPATH}/password.txt"
 
   [Install]
   WantedBy=multi-user.target
@@ -371,11 +374,13 @@ Here are three options for setting up automated renewal of certificates with `st
   </div>
 </Alert>
 
-With this approach, a systemd service will renew your certificate after 2/3 of its lifetime has elapsed,
-and a corresponding [systemd timer](https://wiki.archlinux.org/index.php/Systemd/Timers) will run the service periodically for you.
+This approach runs a periodic [systemd timer](https://wiki.archlinux.org/index.php/Systemd/Timers) for each certificate you want to keep current.
+The timer will run a one-shot systemd service every few minutes.
+The one-shot service checks the certificate and renews it if more than &frac23; of its lifetime has elapsed.
+Upon renewal, the service can try to reload or restart a service using the certificate files, if it exists.
+Custom post-renewal commands can be configured as well.
 
-We will leverage systemd [service templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates)
-to simplify configuration of certificate renewal for many target services.
+We will leverage systemd [service templates](https://www.freedesktop.org/software/systemd/man/systemd.service.html#Service%20Templates) to simplify configuration of certificate renewal for many target services.
 
 In `/etc/systemd/system`, we'll start by creating template files `cert-renewer@.service`, and `cert-renewer@.timer`.
 
@@ -385,9 +390,15 @@ In the template, `%i` represents the service unit argument.
 
 Let's review the service template first, then we'll look at the timer template.
 
-Place the following in `/etc/systemd/system/cert-renewer@.service`:
+Create a service unit template file:
 
 ```shell-session
+$ sudo touch /etc/systemd/system/cert-renewer@.service
+```
+
+Add the following configuration:
+
+```ini
 [Unit]
 Description=Certificate renewer for %I
 After=network-online.target
@@ -420,9 +431,7 @@ ExecStartPost=/usr/bin/bash -c 'systemctl --quiet is-enabled %i && systemctl try
 WantedBy=multi-user.target
 ```
 
-Then run `systemctl daemon-reload` to reload the service unit files.
-
-So, with this template file in place, we can now ask systemd to start any `cert-renewer@*.service`.
+With this template file in place, we can now ask systemd to start any `cert-renewer@*.service`.
 
 For example, if you have a systemd service called `postgresql.service`,
 with certificate and key files located in `/etc/step/certs/postgresql.crt` and `/etc/step/certs/postgresql.key`,
@@ -450,7 +459,7 @@ Here's an example override for a [Lighttpd](https://www.lighttpd.net/) service t
 
 `/etc/systemd/system/cert-renewer@lighttpd-docker.service.d/overrides.conf`:
 
-```
+```ini
 [Service]
 ; `Environment=` overrides are applied per environment variable. This line does not
 ; affect any other variables set in the service template.
@@ -484,7 +493,13 @@ A `cert-renewer@postgresql.timer` will always trigger a corresponding `cert-rene
 
 Therefore, instead of enabling the `cert-renewer@*.service` service units directly, we'll enable timer units that will periodically trigger each service unit.
 
-Place the following in `/etc/systemd/system/cert-renewer@.timer`:
+Create a timer unit template file:
+
+```shell-session
+$ sudo touch /etc/systemd/system/cert-renewer@.timer
+```
+
+Add the following configuration to the file:
 
 ```
 [Unit]
@@ -505,8 +520,6 @@ RandomizedDelaySec=5m
 [Install]
 WantedBy=timers.target
 ```
-
-Then run `systemctl daemon-reload` to reload the service unit files.
 
 Timers using this template will run every 5-10 minutes,
 with a randomized delay on each timer.
@@ -613,7 +626,10 @@ INFO: 2019/05/01 14:22:18 first renewal in 15h50m43s
 
 With `cron`-based renewal, you can have `step ca renew` run at a regular cadence (eg. every five minutes) and renew a certificate only when it's approaching its expiration date.
 
-You can request that certificate renewal only occur if the certificate is approaching its expiry using the `--expires-in <duration>` flag. The `<duration>` is a time interval like `4h` or `30m`. Renewal will only occur if the expiry is within `<duration>` of the current time. For example:
+You can request that certificate renewal only occur if the certificate is approaching its expiry using the `--expires-in <duration>` flag.
+The `<duration>` is a time interval like `4h` or `30m`.
+Renewal will only occur if the expiry is within `<duration>` of the current time.
+For example:
 
 ```shell-session nocopy
 $ step ca renew --force --expires-in 4h foo.crt foo.key
@@ -638,27 +654,38 @@ Be sure the user (in this example, `step`) has write access to the certificate a
 
 #### Revoking a Certificate
 
-`step ca renew` allows a certificate owner to extend the lifetime of a
-certificate before it expires. Unfortunately, it also lets an attacker with the
-right private key do the same thing. To prevent this, you need to tell
-`step-ca` to revoke a particular certificate. See the [certificate revocation
-section](#certificate-revocation) for details.
+`step ca renew` allows a certificate owner to extend the lifetime of a certificate before it expires.
+Unfortunately, it also lets an attacker with the private key do the same thing.
+To prevent this, you need to explicitly tell `step-ca` to revoke a retired certificate.
+See the [certificate revocation section](#certificate-revocation) for details.
 
 ## X.509 Certificate Revocation
 
 The hardware, software and policies for managing and distributing public keys and certificates is called Public Key Infrastructure (PKI). 
 
-A beautiful thing about certificate-based PKI is that once certificates are issued, the infrastructure itself can be completely decentralized. You can independently validate any certificate you receive without communicating with any central authority.
+The beauty of certificate-based PKI is that once certificates are issued, the infrastructure itself can be completely decentralized.
+You can independently validate any certificate you receive without communicating with any central authority.
 
 Certificate-based is PKI inherently fault-tolerant, and trivial to scale.
 
-With simplicity comes an inherent trade-off: Once a certificate is issued, the certificate authority (CA) can't un-issue it. It's valid until it expires. Certificates do eventually expire, but until they do, a bad actor can use a compromised private key to impersonate the certificate owner.
+With simplicity comes an inherent trade-off:
+Once a certificate is issued, the certificate authority (CA) can't un-issue it.
+It's valid until it expires.
+Certificates do eventually expire,
+but until they do, a bad actor can use a compromised private key to impersonate the certificate owner.
 
-This is one reason `step-ca` is designed to issue short-lived certificates. When you revoke a certificate in `step-ca`, the CA will block the certificate's future renewal. This is called _passive revocation_. Passive revocation is a good option for internal PKI, because it avoids the complexity of relying on centralized third parties to check the real-time revocation status of a certificate.
+This is one reason `step-ca` is designed to issue short-lived certificates.
+When you revoke a certificate in `step-ca`, the CA will block the certificate's future renewal.
+This is called _passive revocation_.
+Passive revocation is a good option for internal PKI,
+because it avoids the complexity of relying on centralized third parties to check the real-time revocation status of a certificate.
 
 A certificate that has been passively revoked will still be valid for the remainder of it's validity period.
 
-Contrast this with _active revocation_ techniques used on the public internet. On the web, TLS certificates are valid for up to a year. Web browsers have to check CRLs (Certificate Revocation Lists) or use OCSP (Online Certificate Status Protocol) to verify that every certificate they receive has not been revoked. Active revocation requires clients to take an active role in certificate validation for the benefit of real-time certificate status.
+Contrast this with _active revocation_ techniques used on the public internet.
+Web TLS certificates are valid for up to a year.
+Web browsers have to check CRLs (Certificate Revocation Lists) or use OCSP (Online Certificate Status Protocol) to verify that every certificate they receive has not been revoked.
+Active revocation requires clients to take an active role in certificate validation for the benefit of real-time certificate status.
 
 <Alert severity="info">
   <div>
