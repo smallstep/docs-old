@@ -100,16 +100,16 @@ and a list of space-separated host tags
 
 The `ssh-host.sh` utility can also be run non-interactively,
 as long as you provide the following _required flags_:
-* `--team="[your team ID]"`
-* `--token="[your enrollment token]"`
-* `--hostname="[the hostname]"`
-* One or more `--tag="key=value"` to assign [host tags](#understanding-host-tags)
+* `--team "[your team ID]"`
+* `--token "[your enrollment token]"`
+* `--hostname "[the hostname]"`
+* One or more `--tag "key=value"` to assign [host tags](#understanding-host-tags)
 
 The following additional flags are available:
-* Any number of `--principal="[additional hostname]"`,
+* Any number of `--principal "[additional hostname]"`,
 to add additional hostnames to the host certificate
 * `--is-bastion` to indicate a bastion host
-* `--bastion="[bastion hostname]"` to specify the bastion that sits in front of this host
+* `--bastion "[bastion hostname]"` to specify the bastion that sits in front of this host
 
 ### Step 2. Test your installation
 
