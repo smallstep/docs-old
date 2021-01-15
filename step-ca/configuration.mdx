@@ -1282,8 +1282,8 @@ Here is `step-ca`'s default [SSH certificate template](https://github.com/smalls
 
 ```json
 {
-	"type": "{{ .Type }}",
-	"keyId": "{{ .KeyID }}",
+	"type": {{ toJson .Type }},
+	"keyId": {{ toJson .KeyID }},
 	"principals": {{ toJson .Principals }},
 	"extensions": {{ toJson .Extensions }},
 	"criticalOptions": {{ toJson .CriticalOptions }}
@@ -1544,7 +1544,7 @@ a root certificate.
 
 The default template for an intermediate certificate is:
 
-```
+```json
 {
 	"subject": {{ toJson .Subject }},
 	"keyUsage": ["certSign", "crlSign"],
@@ -1672,7 +1672,7 @@ but falls back to the default leaf template if it's not present:
 {
 	"subject": {{ toJson .Subject }},
 {{- if .Insecure.User.dnsName }}
-	"dnsNames": "{{ .Insecure.User.dnsName}}",
+	"dnsNames": {{ toJson .Insecure.User.dnsName}},
 {{- else }}
 	"sans": {{ toJson .SANs }},
 {{- end }}
@@ -1829,7 +1829,7 @@ This is a template you can use in a provisioner signing OpenVPN client certifica
 
 ```
 {
-  "subject": {"commonName":"{{ .Insecure.CR.Subject.CommonName }}"},
+  "subject": {"commonName": {{ toJson .Insecure.CR.Subject.CommonName }}},
   "sans": {{ toJson .SANs }},
   "keyUsage": ["digitalSignature", "keyAgreement"],
   "extKeyUsage": ["clientAuth"]
@@ -1868,13 +1868,13 @@ Here's an SSH template that supports the GitHub custom SSH certificate extension
 
 ```bash
 {
-	"type": "{{ .Type }}",
-	"keyId": "{{ .KeyID }}",
+	"type": {{ toJson .Type }},
+	"keyId": {{ toJson .KeyID }},
 	"principals": {{ toJson .Principals }},
 	"criticalOptions": {{ toJson .CriticalOptions }},
 {{ if .Token.ghu }}
 	"extensions": {
-	  "login@github.com": "{{ .Token.ghu }}"
+	  "login@github.com": {{ toJson .Token.ghu }}
 	}
 {{ else }}
 	"extensions": {{ toJson .Extensions }}
@@ -1990,8 +1990,8 @@ In this example, we're assuming the `groups` claim contains a space-separated li
 Then, use the following template to merge the group accounts with the user's own principals (derived from the `email` claim):
   ```json
   {
-    "type": "{{ .Type }}",
-    "keyId": "{{ .KeyID }}",
+    "type": {{ toJson .Type }},
+    "keyId": {{ toJson .KeyID }},
     "principals": {{ toJson ((concat .Principals (splitList " " .Token.groups)) | uniq) }},
     "criticalOptions": {{ toJson .CriticalOptions }},
     "extensions": {{ toJson .Extensions }}
