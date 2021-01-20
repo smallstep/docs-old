@@ -131,7 +131,7 @@ to be able to bind to that port. See [Running `step-ca` as a Daemon](#running-st
 
 ## Running `step-ca` as a Daemon
 
-Note: _This section requires a Linux OS running `systemd`._
+Note: _This section requires a Linux OS running `systemd` version 229 or greater._
 
 1. Add a service user for the CA.
 
@@ -139,12 +139,6 @@ Note: _This section requires a Linux OS running `systemd`._
 
   <CodeBlock language="shell-session" copytext="sudo useradd --system --home /etc/step-ca --shell /bin/false step">
   {`$ sudo useradd --system --home /etc/step-ca --shell /bin/false step`}
-  </CodeBlock>
-
-  Set the `step` user as the owner of your CA configuration directory:
-
-  <CodeBlock language="shell-session" copytext="sudo chown -R step:step $(step path)">
-  {`$ sudo chown -R step:step $(step path)`}
   </CodeBlock>
 
   If your CA will bind to port 443, the `step-ca` binary will need to be
@@ -160,34 +154,80 @@ Note: _This section requires a Linux OS running `systemd`._
   {`$ sudo mv $(step path) /etc/step-ca`}
   </CodeBlock>
 
+  Make sure your CA password is located in `/etc/step-ca/password.txt`,
+  so that it can be read upon server startup. If you've initialized the CA
+  but have never run it, you may also need to create an empty `/etc/step-ca/db` directory:
+
+  <CodeBlock language="shell-session" copytext="sudo mkdir -p /etc/step-ca/db">
+  {`$ sudo mkdir -p /etc/step-ca/db`}
+  </CodeBlock>
+
+  Set the `step` user as the owner of your CA configuration directory:
+
+  <CodeBlock language="shell-session" copytext="sudo chown -R step:step /etc/step-ca">
+  {`$ sudo chown -R step:step /etc/step-ca`}
+  </CodeBlock>
+
 3. Create a `systemd` unit file.
 
   ```shell-session
   $ sudo touch /etc/systemd/system/step-ca.service
   ```
 
-  Use the following example as a base for your `systemd` unit file:
+  Add the following contents:
 
   ```ini
   [Unit]
   Description=step-ca service
-  After=network.target
-  StartLimitIntervalSec=0
+  Documentation=https://smallstep.com/docs/step-ca
+  After=network-online.target
+  Wants=network-online.target
+  StartLimitIntervalSec=30
+  StartLimitBurst=3
+  ConditionFileNotEmpty=/etc/step-ca/config/ca.json
+  ConditionFileNotEmpty=/etc/step-ca/password.txt
 
   [Service]
   Type=simple
-  Restart=always
-  RestartSec=1
   User=step
   Group=step
   Environment=STEPPATH=/etc/step-ca
-  ExecStart=/bin/sh -c "/usr/local/bin/step-ca ${STEPPATH}/config/ca.json --password-file=${STEPPATH}/password.txt"
+  WorkingDirectory=/etc/step-ca
+  ExecStart=/usr/local/bin/step-ca config/ca.json --password-file=password.txt
+  ExecReload=/bin/kill --signal HUP $MAINPID
+  Restart=on-failure
+  RestartSec=5
+  TimeoutStopSec=30
+  StartLimitInterval=30
+  StartLimitBurst=3
+
+  ; Process capabilities & privileges
+  AmbientCapabilities=CAP_NET_BIND_SERVICE
+  CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+  SecureBits=keep-caps
+  NoNewPrivileges=yes
+
+  ; Sandboxing
+  ProtectSystem=full
+  ProtectHome=true
+  PrivateTmp=yes
+  ReadWriteDirectories=/etc/step-ca/db
 
   [Install]
   WantedBy=multi-user.target
   ```
 
-  On most systems, the file can go into `/etc/systemd/system`.
+   Here are some notes on the security properties in this file:
+   * `User` and `Group` cause `step-ca` to run as a non-privileged user.
+   * `ConditionFileNotEmpty` will prevent the service process from starting without configuration files.
+   * `AmbientCapabilities` gives capabilities to the process upon startup.
+    `CAP_NET_BIND_SERVICE` allows the process to bind to ports < 1024. See [capabiliites(7)]("https://man7.org/linux/man-pages/man7/capabilities.7.html").
+   * `CapabilityBoundingSet` limits the set of capabilities the process can have.
+   * `SecureBits` allows the service to keep its capabilities even after switching to the `step` user.
+   * `NoNewPrivileges` ensures no future privilege escalation by the process.
+   * `ProtectSystem` and `ProtectHome` configure sandboxing via a read-only file system namespace dedicated to the process.
+   * `PrivateTmp` adds a private `/tmp` to the process sandbox, to secure access to temporary files.
+   * `ReadWriteDirectories` ensures that the process can write its state directories.
 
 4. Enable and start the service.
 
