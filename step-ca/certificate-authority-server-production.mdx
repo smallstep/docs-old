@@ -210,7 +210,10 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   ; Sandboxing
   ProtectSystem=full
   ProtectHome=true
-  PrivateTmp=yes
+  RestrictNamespaces=true
+  RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+  PrivateTmp=true
+  PrivateUsers=true
   ReadWriteDirectories=/etc/step-ca/db
 
   [Install]
@@ -488,7 +491,7 @@ For example, you may need to:
 
 * Change the location of certficate files for a service
 
-* Run `step` with a different `$STEPPATH` (eg. to access a different CA)
+* Combine the certificate and key files into a bundled `.pem` or a PKCS#12 `.p12` file, as needed by some services
 
 * Ping a health check service or perform another action after a specific certificate is renewed
 
