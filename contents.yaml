@@ -75,6 +75,8 @@ tutorials:
     path: tutorials/cloud-vm-certificate
   - title: Connect your identity provider and issue X.509 user certificates
     path: tutorials/user-authentication
+  - title: Use Keycloak to issue SSH certificates with step-ca
+    path: tutorials/keycloak-oidc-provisioner
   - title: Run an SSH CA and connect to VMs using SSH certificates
     path: tutorials/ssh-certificate-login
   - title: Use AWS to deploy a certificate authority and secure microservices
