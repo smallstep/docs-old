@@ -219,6 +219,7 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   ProtectKernelModules=true
   ProtectKernelLogs=true
   ProtectControlGroups=true
+  RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 
   [Install]
   WantedBy=multi-user.target
