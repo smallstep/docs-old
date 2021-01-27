@@ -189,10 +189,9 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
 
   [Service]
   Type=simple
-  User=step
-  Group=step
-  Environment=STEPPATH=/etc/step-ca
-  WorkingDirectory=/etc/step-ca
+  Environment=STEPPATH=/var/lib/step-ca
+  WorkingDirectory=/var/lib/step-ca
+  StateDirectory=step-ca
   ExecStart=/usr/local/bin/step-ca config/ca.json --password-file=password.txt
   ExecReload=/bin/kill --signal HUP $MAINPID
   Restart=on-failure
@@ -211,7 +210,6 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   ProtectSystem=full
   ProtectHome=true
   PrivateTmp=yes
-  ReadWriteDirectories=/etc/step-ca/db
   PrivateDevices=true
   PrivateUsers=true
   ProtectKernelTunables=true
@@ -230,6 +228,7 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   ProtectProc=invisible
   ProcSubset=pid
   SystemCallFilter=~@clock @debug @module @mount @raw-io @reboot @swap @privileged @resources @cpu-emulation @obsolete
+  DynamicUser=true
 
   [Install]
   WantedBy=multi-user.target
