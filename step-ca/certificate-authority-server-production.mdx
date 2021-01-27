@@ -229,6 +229,7 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   MemoryDenyWriteExecute=true
   ProtectProc=invisible
   ProcSubset=pid
+  SystemCallFilter=~@clock @debug @module @mount @raw-io @reboot @swap @privileged @resources @cpu-emulation @obsolete
 
   [Install]
   WantedBy=multi-user.target
