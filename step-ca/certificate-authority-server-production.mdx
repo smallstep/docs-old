@@ -222,6 +222,7 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
   RestrictNamespaces=yes
   LockPersonality=yes
+  RestrictRealtime=yes
 
   [Install]
   WantedBy=multi-user.target
