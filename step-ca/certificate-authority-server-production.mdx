@@ -225,6 +225,7 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   RestrictRealtime=yes
   RestrictSUIDSGID=yes
   RemoveIPC=true
+  SystemCallArchitectures=native
 
   [Install]
   WantedBy=multi-user.target
