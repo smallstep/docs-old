@@ -228,6 +228,7 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   SystemCallArchitectures=native
   MemoryDenyWriteExecute=true
   ProtectProc=invisible
+  ProcSubset=pid
 
   [Install]
   WantedBy=multi-user.target
