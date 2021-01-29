@@ -1420,8 +1420,8 @@ The following snippet shows a provisioner with custom X.509 and SSH templates:
         ```json
         {
             "subject": {
-                "organizationalUnit": "{{ .OrganizationalUnit }}",
-                "commonName": "{{ .Subject.CommonName }}"
+                "organizationalUnit": {{ toJson .OrganizationalUnit }},
+                "commonName": {{ toJson .Subject.CommonName }}
             },
             "sans": {{ toJson .SANs }},
             "keyUsage": ["digitalSignature"],
