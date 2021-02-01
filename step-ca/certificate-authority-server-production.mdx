@@ -180,49 +180,63 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   [Unit]
   Description=step-ca service
   Documentation=https://smallstep.com/docs/step-ca
+  Documentation=https://smallstep.com/docs/step-ca/certificate-authority-server-production
   After=network-online.target
   Wants=network-online.target
   StartLimitIntervalSec=30
   StartLimitBurst=3
   ConditionFileNotEmpty=/etc/step-ca/config/ca.json
   ConditionFileNotEmpty=/etc/step-ca/password.txt
-
+  
   [Service]
   Type=simple
   User=step
   Group=step
   Environment=STEPPATH=/etc/step-ca
   WorkingDirectory=/etc/step-ca
-  ExecStart=/usr/local/bin/step-ca config/ca.json --password-file=password.txt
+  ExecStart=/usr/local/bin/step-ca config/ca.json --password-file password.txt
   ExecReload=/bin/kill --signal HUP $MAINPID
   Restart=on-failure
   RestartSec=5
   TimeoutStopSec=30
   StartLimitInterval=30
   StartLimitBurst=3
-
+  
   ; Process capabilities & privileges
   AmbientCapabilities=CAP_NET_BIND_SERVICE
   CapabilityBoundingSet=CAP_NET_BIND_SERVICE
   SecureBits=keep-caps
   NoNewPrivileges=yes
-
+  
   ; Sandboxing
   ProtectSystem=full
   ProtectHome=true
   RestrictNamespaces=true
   RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
   PrivateTmp=true
-  PrivateUsers=true
+  PrivateDevices=true
+  ProtectClock=true
+  ProtectControlGroups=true
+  ProtectKernelTunables=true
+  ProtectKernelLogs=true
+  ProtectKernelModules=true
+  LockPersonality=true
+  RestrictSUIDSGID=true
+  RemoveIPC=true
+  RestrictRealtime=true
+  SystemCallFilter=@system-service
+  SystemCallArchitectures=native
+  MemoryDenyWriteExecute=true
   ReadWriteDirectories=/etc/step-ca/db
-
+  
   [Install]
   WantedBy=multi-user.target
   ```
 
+  (This file is also hosted [on GitHub](https://github.com/smallstep/certificates/blob/master/systemd/step-ca.service))
+
    Here are some notes on the security properties in this file:
    * `User` and `Group` cause `step-ca` to run as a non-privileged user.
-   * `ConditionFileNotEmpty` will prevent the service process from starting without configuration files.
    * `AmbientCapabilities` allows the process to receive ambient capabilities.
     `CAP_NET_BIND_SERVICE` allows the process to bind to ports < 1024. See [capabiliites(7)]("https://man7.org/linux/man-pages/man7/capabilities.7.html").
    * `CapabilityBoundingSet` limits the set of capabilities the process can have.
@@ -231,9 +245,20 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
    * `ProtectSystem` and `ProtectHome` configure sandboxing via a read-only file system namespace dedicated to the process.
    * `ProtectNamespaces` prevents the process from creating kernel namespaces.
    * `RestrictAddressFamilies` prevents the service from allocating esoteric sockets such as `AF_PACKET`.
-   * `PrivateTmp` adds a private `/tmp` to the process sandbox, to secure access to temporary files.
-   * `PrivateUsers` restricts the service from accessing arbitrary system user information.
+   * `PrivateTmp` gives the service its own private `/tmp`.
+   * `PrivateDevices` presents a very limited `/dev` to the service.
+   * `Protect*` limits access to system resources.
+   * `LockPersonality` locks the process's execution domain.
+   * `RestrictSUIDSGID` restricts setuid/setgid file creation.
+   * `RemoveIPC` removes any IPC objects created by the service when it is stopped.
+   * `RestrictRealtime` restricts real-time scheduling access.
+   * `SystemCallFilter` defines an allow list of system calls the service can use.
+   * `SystemCallArchitectures` restricts the service to only be able to call native system calls.
+   * `MemoryDenyWriteExecute` prevents the service from creating writable-executable memory mappings.
    * `ReadWriteDirectories` ensures that the process can write its state directories.
+
+   See [systemd.exec(5)](https://freedesktop.org/software/systemd/man/systemd.exec.html), [systemd.unit(5)](https://freedesktop.org/software/systemd/man/systemd.unit.html#),
+   and [systemd.service(5)](https://freedesktop.org/software/systemd/man/systemd.service.html#) for more details.
 
 4. Enable and start the service.
 
@@ -448,6 +473,7 @@ Add the following configuration:
 [Unit]
 Description=Certificate renewer for %I
 After=network-online.target
+Documentation=https://smallstep.com/docs/step-ca/certificate-authority-server-production
 StartLimitIntervalSec=0
 
 [Service]
@@ -476,6 +502,8 @@ ExecStartPost=/usr/bin/bash -c 'systemctl --quiet is-enabled %i && systemctl try
 [Install]
 WantedBy=multi-user.target
 ```
+
+(This file is also hosted [on GitHub](https://github.com/smallstep/certificates/blob/master/systemd/cert-renewer@.service))
 
 With this template file in place, we can now ask systemd to start any `cert-renewer@*.service`.
 
@@ -547,9 +575,10 @@ $ sudo touch /etc/systemd/system/cert-renewer@.timer
 
 Add the following configuration to the file:
 
-```
+```ini
 [Unit]
 Description=Certificate renewal timer for %I
+Documentation=https://smallstep.com/docs/step-ca/certificate-authority-server-production
 
 [Timer]
 Persistent=true
@@ -566,6 +595,8 @@ RandomizedDelaySec=5m
 [Install]
 WantedBy=timers.target
 ```
+
+(This file is also hosted [on GitHub](https://github.com/smallstep/certificates/blob/master/systemd/cert-renewer@.timer))
 
 Timers using this template will run every 5-10 minutes,
 with a randomized delay on each timer.
