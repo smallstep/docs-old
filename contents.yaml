@@ -71,6 +71,8 @@ tutorials:
     path: tutorials/acme-challenge
   - title: Configure popular ACME clients to use a private CA
     path: tutorials/acme-protocol-acme-clients
+  - title: Use Kubernetes cert-manager with an internal ACME CA
+    path: tutorials/kubernetes-acme-ca
   - title: Use the AWS, GCP, or Azure metadata API to issue X.509 certificates
     path: tutorials/cloud-vm-certificate
   - title: Connect your identity provider and issue X.509 user certificates
