@@ -1,0 +1,295 @@
+---
+title: Getting Started — SSH
+html_title: Getting started — SSH
+description: Initialize and run an SSH Certificate Authority
+unfurl: /static/graphics/smallstep-docs-unfurl.png
+
+---
+
+import CodeBlock from 'docs/CodeBlock';
+import Code from 'docs/Code';
+import Alert from 'docs/Alert';
+import AlertTitle from 'docs/AlertTitle';
+
+In this guide we will:
+
+- [Initialize an SSH certificate authority](#initialize-an-ssh-certificate-authority)
+- [Access the certificate authority](#access-the-certificate-authority)
+- [Create your first SSH user certificate](#create-your-first-ssh-user-certificate)
+- [Create your first SSH host certificate](#create-your-first-ssh-host-certificate)
+- [Enable single sign-on and cloud identities](#enable-single-sign-on-and-cloud-identities)
+
+## Requirements
+
+You will need [`step`](/docs/step-cli/) and [`step-ca`](/docs/step-ca/) installed on your system.
+See [Installation](/docs/step-ca/installation) for details.
+
+## Initialize an SSH certificate authority
+
+The `step-ca` server can issue SSH certificates to your users and/or hosts.
+
+Run the command `step ca init --ssh` in a terminal to create an SSH CA for use with `step-ca`.
+
+<Alert severity="info">
+    <AlertTitle>Enabling SSH on an existing CA</AlertTitle>
+    <div>
+        If you already have <code>step-ca</code> up and running, you can manually enable the SSH CA.
+        See our tutorial, <a href="/docs/tutorials/ssh-existing-ca">Enabling SSH On An Existing CA</a>.
+    </div>
+</Alert>
+
+Note that one of the prompts is about the default provisioner, but for now an email address works fine as an identifier.
+
+```shell-session nocopy
+$ step ca init --ssh
+
+✔ What would you like to name your new PKI? (e.g. Smallstep): Example Inc.
+✔ What DNS names or IP addresses would you like to add to your new CA? (e.g. ca.smallstep.com[,1.1.1.1,etc.]): localhost
+✔ What address will your new CA listen at? (e.g. :443): 127.0.0.1:8443
+✔ What would you like to name the first provisioner for your new CA? (e.g. you@smallstep.com): bob@example.com
+✔ What do you want your password to be? [leave empty and we will generate one]: abc123
+
+Generating root certificate...
+all done!
+
+Generating intermediate certificate...
+all done!
+
+Generating user and host SSH certificate signing keys...
+all done!
+
+✔ Root certificate: /Users/bob/.step/certs/root_ca.crt
+✔ Root private key: /Users/bob/.step/secrets/root_ca_key
+✔ Root fingerprint: d6065acd801a0e58a6b622eb0fd1f03db24f63500566e1667ed2dc293cd95997
+✔ Intermediate certificate: /Users/bob/.step/certs/intermediate_ca.crt
+✔ Intermediate private key: /Users/bob/.step/secrets/intermediate_ca_key
+✔ SSH user root certificate: /Users/bob/.step/certs/ssh_user_ca_key.pub
+✔ SSH user root private key: /Users/bob/.step/secrets/ssh_user_ca_key
+✔ SSH host root certificate: /Users/bob/.step/certs/ssh_host_ca_key.pub
+✔ SSH host root private key: /Users/bob/.step/secrets/ssh_host_ca_key
+✔ Database folder: /Users/bob/.step/db
+✔ Templates folder: /Users/bob/.step/templates
+✔ Default configuration: /Users/bob/.step/config/defaults.json
+✔ Certificate Authority configuration: /Users/bob/.step/config/ca.json
+
+Your PKI is ready to go.
+```
+
+**Make a note of the root fingerprint!** You'll need it to connect to your CA from other environments or hosts.
+
+## Access The Certificate Authority
+
+Run your certificate authority and pass it the configuration file you just generated.
+
+```shell-session nocopy
+$ step-ca $(step path)/config/ca.json
+Please enter the password to decrypt /Users/bob/.step/secrets/intermediate_ca_key:
+Please enter the password to decrypt /Users/bob/.step/secrets/ssh_host_ca_key:
+Please enter the password to decrypt /Users/bob/.step/secrets/ssh_user_ca_key:
+2021/02/02 15:19:02 Serving HTTPS on :443 ...
+```
+
+### Access `step-ca` locally
+
+With your CA running, you can use the `step ssh` command group to interact with the CA.
+Your CA can also [generate X.509/TLS certificates](/docs/step-ca/basic-certificate-authority-operations), using the `step ca` command group.
+
+### Access `step-ca` on other hosts
+
+To configure `step` to access your CA from a different machine, run:
+
+```shell-session
+$ step ca bootstrap --ca-url [CA URL] --fingerprint [root certificate fingerprint]
+```
+
+This command will download the root CA certificate and write CA connection details to `$HOME/.step/config/defaults.json`.
+You can now use the `step ssh` command group to interact with the CA remotely.
+
+### Enable your SSH agent
+
+Because user certificates issued by `step-ca` are ephemeral, they are best stored in memory, in the SSH agent.
+
+#### On macOS
+
+On macOS, the SSH agent is already enabled by default.
+
+#### On Windows
+
+Here are [Microsoft's instructions for installing OpenSSH](https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse) on Windows 10 or Windows Server.
+
+Once installed, you'll want to enable OpenSSH's `ssh-agent` service to run automatically on Windows startup. (It's disabled by default.)
+In PowerShell, as an administartor, run:
+
+```
+C:\> Get-Service -Name ssh-agent | Set-Service -StartupType Automatic
+```
+
+## Create your first SSH user certificate
+
+Now that you've bootstrapped the CA, you can issue a certificate for yourself.
+The `step ssh login` command will get an SSH certificate from the CA and add it to your SSH agent:
+
+```shell-session nocopy
+$ step ssh login alice@smallstep.com
+✔ Provisioner: bob@smallstep.com (JWK) [kid: jMA2qpIpuNRREhj_p6BsxF7TJuydSnb2vOn8EP6qrZU]
+✔ Please enter the password to decrypt the provisioner key: ...
+✔ CA: https://localhost
+✔ SSH Agent: yes
+```
+
+Here we're using the default (JWK) provisioner to obtain a certificate.
+Let's look at the certificate:
+
+```shell-session nocopy
+$ ssh-add -L | step ssh inspect
+-:
+        Type: ecdsa-sha2-nistp256-cert-v01@openssh.com user certificate
+        Public key: ECDSA-CERT SHA256:QPrlEixws3KLuoXy0HIT0wrOVKjYKBRW/hDxs2gg3Hc
+        Signing CA: ECDSA SHA256:NwZqIOB4HJLeefVUhl1osMlpe1EiP8KWKknTLpt9GrE
+        Key ID: "alice@smallstep.com"
+        Serial: 13129648048486693404
+        Valid: from 2021-02-02T16:45:35 to 2021-02-03T08:45:35
+        Principals:
+                alice
+                alice@smallstep.com
+        Critical Options: (none)
+        Extensions:
+                permit-pty
+                permit-user-rc
+                permit-X11-forwarding
+                permit-agent-forwarding
+                permit-port-forwarding
+```
+
+This SSH certificate for `alice` and `alice@smallstep.com` is now stored in the SSH agent,
+and it will be valid for 16 hours.
+
+Any host that trusts your user CA will allow login for usernames `alice` or `alice@smallstep.com` using this certificate.
+
+So, how does a host come to trust the user CA?
+
+### Host configuration overview
+
+There's two ways for a host to trust the user CA: system-wide, or per-user.
+
+A CA can be trusted system-wide with the following SSHD configuration block, in `/etc/ssh/sshd_config` on the host:
+
+```
+TrustedUserCAKeys /etc/ssh/ssh_user_ca_key.pub
+```
+
+If you don't want system-wide trust,
+or if you don't have have `root` access on the host and you still want to use certificates,
+the contents of `ssh_user_ca_key` can be added to `$HOME/.ssh/authorized_keys`, prepended with the `@cert-authority` option spec, eg:
+
+```
+@cert-authority ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBDrpdETJQMH5JPvU+kGFhWDW8PjTAmFNLckmV9YAZF1FX0l+AvawQ9o5Ugq+cD3EiRQR0GsnYbLt99cCxIyqx5o=
+```
+
+Be careful when modifying `~/.ssh/authorized_keys`.
+If you delete your key(s), you won't be able to connect back to the server.
+Keep a connection open to the server, and test certificate authentication in a new window, so you can revert if something goes sideways.
+
+Finally, OpenSSH is very finicky about permissions on files under `~/.ssh`.
+The files should be owned by your user, and the correct modes are:
+
+```shell-session
+$ chmod 700 ~/.ssh
+$ chmod 644 ~/.ssh/authorized_keys
+```
+
+See [sshd(8)](https://www.man7.org/linux/man-pages/man8/sshd.8.html) for more.
+
+### Client configuration overview
+
+It would be a hassle to get a new certificate with `step ssh login` every day.
+So, we've made things a little more streamlined.
+Run `step ssh config` to add an `Include` to your local SSH configuration.
+The included configuration block will make sure you always get a new certificate when you connect to any host that the CA has issued a certificate for.
+
+## Create your first SSH host certificate
+
+You can create host certificates using `step ssh certificate`.
+A host that's configured to use a host certificate will present the certificate to clients during the SSH handshake.
+Any client that trusts the host CA will therefore be able to authenticate the host, even if it has never seen the host key before.
+This avoids the need to blindly trust an unfamiliar host key (["Trust on first use"](https://smallstep.com/blog/use-ssh-certificates/)).
+
+Let's create a host certificate and look at it:
+
+```shell-session nocopy
+$ step ssh certificate --host --insecure --no-password internal.example.com test_key
+✔ Provisioner: bob@smallstep.com (JWK) [kid: jMA2qpIpuNRREhj_p6BsxF7TJuydSnb2vOn8EP6qrZU]
+✔ Please enter the password to decrypt the provisioner key: ...
+✔ CA: https://localhost
+✔ Private Key: test_key
+✔ Public Key: test_key.pub
+✔ Certificate: test_key-cert.pub
+
+$ step ssh inspect test_key-cert.pub
+test_key-cert.pub:
+        Type: ecdsa-sha2-nistp256-cert-v01@openssh.com host certificate
+        Public key: ECDSA-CERT SHA256:RNxqRfGzwBXw999rII2XYmUXcDxt5lvyRFc1DNhpYUQ
+        Signing CA: ECDSA SHA256:3gr3EwaecsuZ9cBn3P7UdP6D0OkxjhtJW5nG8i0AVXs
+        Key ID: "internal.example.com"
+        Serial: 16818630151641855472
+        Valid: from 2021-02-02T17:43:26 to 2021-03-04T17:44:26
+        Principals:
+                internal.example.com
+        Critical Options: (none)
+        Extensions: (none)
+```
+
+By default, a host certificate from `step-ca` is valid for a month.
+
+### Server-side configuration overview
+
+A host certificate can be enabled with the following SSHD configuration block, in `/etc/ssh/sshd_config` on the host:
+
+```
+# This is our host private key and certificate:
+HostKey /etc/ssh/test_key
+HostCertificate /etc/ssh/test_key-cert.pub
+```
+
+#### What about certificate renewal?
+
+If you use host certificates, you'll want to add the [SSHPOP provisioner](/docs/step-ca/configuration#sshpop-ssh-certificate) to your CA.
+When hosts renew their SSH certificates, you'll configure them to use this provisioner to trade in their current certificate for a fresh one.
+To add the provisioner, run:
+
+```shell-session
+$ step ca provisioner add sshpop --type SSHPOP
+```
+
+On your hosts, you'll want a certificate renewal job that runs weekly.
+The renewal job can use `step ssh renew` to renew the host certificate.
+
+## Enable single sign-on and cloud identities
+
+Your SSH CA consists of a _user CA_ and a _host CA_.
+
+* The _user CA_ signs SSH certificates that your users will use to authenticate to SSH hosts.
+  We suggest [adding an OIDC provisioner](/docs/step-ca/configuration#oauthoidc-single-sign-on) to enable single sign-on SSH.
+
+* The _host CA_ signs SSH certificates for your hosts.
+  Host certificates can be obtained using [cloud provisioners]()
+
+* If you use _host certificates_, you'll want the [SSHPOP provisioner](/docs/step-ca/configuration#sshpop-ssh-certificate).
+  When hosts renew their SSH certificates, you'll configure them to use this provisioner to trade in their current certificate for a fresh one.
+  Run:
+
+  ```shell-session
+  $ step ca provisioner add sshpop --type SSHPOP
+  ```
+
+* If you use _user certificates_, you'll probably want to [configure an OIDC provisioner](/docs/step-ca/configuration#oauthoidc-single-sign-on) to use single sign-on SSH.
+
+
+## Next Steps
+
+* Familiarize yourself with [Basic CA Operations](/docs/step-ca/basic-certificate-authority-operations) using `step ca` and `step ssh` command groups.
+* Check out the [Configuration](/docs/step-ca/configuration) and [Core Concepts](/docs/step-ca/certificate-authority-core-concepts) sections to learn more about tailoring
+`step-ca` to your infrastructure needs.
+* Or, head straight to our [tutorials](/docs/tutorials) to see more examples of using `step-ca` in the wild.
+* If you want to run your CA as a daemon on Linux using systemd, see [Running step-ca as a daemon](/docs/step-ca/certificate-authority-server-production#running-step-ca-as-a-daemon).
+
