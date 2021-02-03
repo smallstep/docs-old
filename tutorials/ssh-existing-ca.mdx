@@ -1,0 +1,64 @@
+---
+title: Enabling SSH support on an existing Certificate Authority
+html_title: Enabling SSH support on an existing step-ca
+description: A simple edit to the configuration and you'll be on your way.
+unfurl: /static/graphics/smallstep-docs-unfurl.png
+---
+
+import Alert from 'docs/Alert';
+import CodeBlock from 'docs/CodeBlock';
+import Link from 'docs/Link';
+
+By default, the SSH CA feature in `step-ca` is disabled.
+This tutorial assumes you've already run `step ca init` and now want to enable SSH support on your existing CA.
+If you don't have an existing `step-ca` instance already, read [Getting Started — SSH](/docs/step-ca/ssh-getting-started) to create an SSH CA from scratch.
+
+## 1. Add SSH Support to `ca.json`
+
+You'll need to manually edit your `config/ca.json`, located in `$STEPPATH` (the default is `$HOME/.step`).
+
+Add this block to the file:
+
+```json
+"ssh": {
+    "hostKey": "/home/name/.step/secrets/ssh_host_ca_key",
+    "userKey": "/home/name/.step/secrets/ssh_user_ca_key"
+}
+```
+
+Replace `/home/name/.step` with your `$STEPPATH`.
+
+## 2. Generate your SSH CAs
+
+These are your SSH CA keys. There's one for users, and one for hosts.
+
+You'll need to genreate these two files. Run:
+
+```shell-session nocopy
+$ cd $(step path)/secrets
+$ step crypto keypair ssh_host_ca.pub ssh_host_ca_key
+Please enter the password to encrypt the private key: ...
+Your public key has been saved in ssh_host_ca.pub.
+Your private key has been saved in ssh_host_ca_key.
+$ step crypto keypair ssh_user_ca.pub ssh_user_ca_key
+Please enter the password to encrypt the private key: ...
+Your public key has been saved in ssh_user_ca.pub.
+Your private key has been saved in ssh_user_ca_key.
+```
+
+When prompted, _use the same password_ you used for your root CA when setting up `step-ca`.
+Otherwise, `step-ca` will fail to start up if you're using it with the `--password-file` flag (or with the `password` property in `ca.json`).
+
+Your CA is now configured to issue SSH certificates.
+
+## Next Steps
+
+* If you use host certificates, you'll want the [SSHPOP provisioner](/docs/step-ca/configuration#sshpop-ssh-certificate).
+  When hosts renew their SSH certificates, you'll configure them to use this provisioner to exchange their current certificate for a new one.
+  Run:
+
+  ```shell-session
+  $ step ca provisioner add sshpop --type SSHPOP
+  ```
+
+* If you use user certificates, you'll probably want to [configure an OIDC provisioner](/docs/step-ca/configuration#oauthoidc-single-sign-on) to use single sign-on SSH.

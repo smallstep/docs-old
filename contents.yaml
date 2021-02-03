@@ -77,6 +77,8 @@ tutorials:
     path: tutorials/user-authentication
   - title: Run an SSH CA and connect to VMs using SSH certificates
     path: tutorials/ssh-certificate-login
+  - title: Add SSH support to an existing CA
+    path: tutorials/ssh-existing-ca
   - title: Use AWS to deploy a certificate authority and secure microservices
     path: tutorials/mutual-tls-aws
   - title: Run a private online certificate authority in a docker container
