@@ -68,7 +68,7 @@ which causes a delay at login
 As `root`, run:
 
 ```shell-session nocopy
-$ curl -sSf http://files.smallstep.com/ssh-host.sh
+$ curl -sSLO https://files.smallstep.com/ssh-host.sh
 $ bash ssh-host.sh --is-bastion
 ```
 
@@ -77,7 +77,7 @@ $ bash ssh-host.sh --is-bastion
 As `root`, run:
 
 ```shell-session nocopy
-$ curl -sSf http://files.smallstep.com/ssh-host.sh
+$ curl -sSLO https://files.smallstep.com/ssh-host.sh
 $ bash ssh-host.sh --bastion=<bastion hostname>
 ```
 
@@ -86,7 +86,7 @@ $ bash ssh-host.sh --bastion=<bastion hostname>
 As `root`, run:
 
 ```shell
-curl -sSf http://files.smallstep.com/ssh-host.sh | bash
+curl -sSLO https://files.smallstep.com/ssh-host.sh | bash
 ```
 
 You'll be prompted for
@@ -131,7 +131,7 @@ you can follow our [step-by-step installation instructions](hosts-step-by-step) 
 As `root` on the host, run:
 
 ```shell-session
-curl -sSf http://files.smallstep.com/ssh-host-uninstall.sh | bash
+curl -sSLO https://files.smallstep.com/ssh-host-uninstall.sh | bash
 ```
 
 This script will:
