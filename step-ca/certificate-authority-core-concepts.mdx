@@ -10,63 +10,37 @@ import CodeBlock from 'docs/CodeBlock';
 This document defines and describes certificate authority core concepts that are integral to the design
 and practical usage of `step-ca`.
 
-Readers who are not yet familiar with public key infrastructure (PKI) and 
-certificate management may want to check out...
+## Before You Begin
 
-- [Everything you should know about certificates and PKI but are too afraid to ask](https://smallstep.com/blog/everything-pki/)
-- [The case for using TLS everywhere](https://smallstep.com/blog/use-tls/)
+* If you're unfamiliar with public key infrastructure (PKI) and the world of certificate management, start with our blog post [Everything PKI](https://smallstep.com/blog/everything-pki/).
+* Why should I use TLS certificates and mutual TLS? Read [the case for using TLS everywhere](https://smallstep.com/blog/use-tls/)
+* What are SSH certificates and how do they compare with public keys? Read [If you’re not using SSH certificates you’re doing SSH wrong](https://smallstep.com/blog/use-ssh-certificates/)
 
 ## Overview
 
-- [Online and Offline X.509 Certificate Authority](#online-and-offline-x509-certificate-authority)
+- [Online vs. Offline Modes (X.509/TLS Only)](#online-vs-offline-modes-x509-tls-only)
 - [Provisioners](#provisioners)
 - [Active vs. Passive Revocation](#active-vs-passive-revocation)
 
-## Online and Offline X.509 Certificate Authority
-
-When referring to Certificate Authorities (CAs), _offline_ generally means
-air-gapped or network isolated. However, the term _offline_ has a different
-meaning in the context of `step-ca`. When `step-ca` is online (using the
-`step-ca` server) it is responding to network requests. But `step-ca` can
-also operate "offline", without the `step-ca` server, by accessing the signing
-keys locally. We call this static, non-daemonized operation _offline mode_. Any
-further use of the term _offline_ in these docs will refer to _offline mode_ in
-the context of `step-ca` (local access only).
+## Online vs. Offline Modes (X.509/TLS Only)
 
 Our tools support three modes of generating and operating a Certificate Authority (CA):
-* An online database-backed CA, using the `step-ca` daemon and `step ca` subcommand ([docs here][stateful-ca]).
-* A local (or airgapped) database-backed CA, using the `step ca` subcommand with `--offline`.
-* A minimalist, offline, stateless CA, using the `step certificate` subcommand
+* Online: An online database-backed CA, running the `step-ca` server and `step ca` client subcommand.
+* Local: A local (or airgapped) database-backed CA, using the `step ca` subcommand with `--offline`.
+* Offline: A minimalist, offline, stateless CA, using the `step certificate` subcommand
   ([docs here][stateless-ca]).
 
 ![](../../../static/images/cas-three-ways.png)
 
+When referring to CAs, _offline_ generally means air-gapped or network isolated.
+However, the term _offline_ has a different meaning in the context of `step-ca`.
+When the `step-ca` daemon is running, it is responding to network requests.
+But `step-ca` can also operate "offline", without the `step-ca` server, by accessing the signing keys locally.
+We call this static, non-daemonized operation _offline mode_.
+Any further use of the term _offline_ in these docs will refer to _offline mode_ in the context of `step-ca` (local access only).
+
 [stateless-ca]: /docs/step-cli/basic-crypto-operations#run-an-offline-x509-certificate-authority
 [stateful-ca]: /docs/step-ca/getting-started
-
-### CA Offline Mode
-
-It's not always practical or desirable to run an online CA.
-Smallstep provides the means to create certificates without `step-ca` running.
-`step-cli` offline mode leverages the CA's configuration, which must be available locally, to issue certificates.
-
-```shell-session nocopy
-$ step ca init --name "Local CA" --provisioner admin --dns localhost --address ":443"
-$ step ca certificate --offline foo.smallstep.com foo.crt foo.key
-```
-
-`step-cli` can also generate bootstrap tokens in offline mode and exchange them with a running CA for a certificate.
-This workflow is useful when generating tokens on a host without direct access to the running CA.
-
-```shell-session nocopy
-$ TOKEN=$(step ca token --offline foo.smallstep.com) 
-$ step ca certificate --token=$TOKEN foo.smallstep.com foo.crt foo.key
-```
-
-<Alert severity="info">
-You cannot exchange a token for a certificate that will be generated offline.
-The token must be exchanged with an online CA.
-</Alert>
 
 ## Provisioners
 
@@ -123,4 +97,5 @@ Certificate Authority knows to reject any attempts to renew it.
 
 ## Next Steps
 
-- Read the [Getting Started guide](/docs/step-ca/getting-started) to set up a CA and get your first certificate.
+- Read the [Getting Started](/docs/step-ca/getting-started) to set up a CA and get your first certificate.
+- Read the [Getting Started with SSH](/docs/step-ca/ssh-getting-started) to set up an SSH CA.

@@ -13,7 +13,6 @@ import AlertTitle from 'docs/AlertTitle';
 
 One could write several telephone books about the innards of X.509, asn.1 and the vast topics of infosec, netsec, and public key cryptography that are implicated in the design of a PKI. It's daunting. So let's begin at the beginning, with a simple online CA and a humble TLS-enabled "Hello World" application.
 
-
 In this guide we will:
 
 - [Initialize your certificate authority](#initialize-your-certificate-authority)
@@ -79,11 +78,36 @@ Please enter the password to decrypt /Users/bob/.step/secrets/intermediate_ca_ke
 2019/02/18 13:28:58 Serving HTTPS on 127.0.0.1:8443 ...
 ```
 
+### Using Offline Mode
+
+It's not always practical or desirable to run the CA as a daemon.
+And, you don't always need to!
+`step` offline mode leverages the CA's configuration, which must be available locally, to issue certificates.
+Just use the `--offline` flag:
+
+```shell-session nocopy
+$ step ca init --name "Local CA" --provisioner admin --dns localhost --address ":443"
+$ step ca certificate --offline foo.smallstep.com foo.crt foo.key
+```
+
+`step` can also generate bootstrap tokens in offline mode and exchange them with a running CA for a certificate.
+This workflow is useful when generating tokens on a host without direct access to the running CA.
+
+```shell-session nocopy
+$ TOKEN=$(step ca token --offline foo.smallstep.com)
+$ step ca certificate --token=$TOKEN foo.smallstep.com foo.crt foo.key
+```
+
+<Alert severity="info">
+You cannot exchange a token for a certificate that will be generated offline.
+The token must be exchanged with an online CA.
+</Alert>
+
 ### Accessing your Certificate Authority
 
 #### Accessing `step-ca` locally
 
-You can use `step ca` and `step ssh` command groups to interact with the CA.
+You can use the `step ca` command group to interact with the CA.
 
 See [Basic CA Operations](/docs/step-ca/basic-certificate-authority-operations) for an overview of common operations.
 
