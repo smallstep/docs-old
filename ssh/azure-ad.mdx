@@ -21,6 +21,12 @@ The following provisioning features are supported:
 * Push User Deactivation
 * Reactivate Users
 
+## Overview
+1. Create Groups in Azure Active Directory
+2. Enter OIDC details into the Smallstep SSH UI
+3. Create a SCIM Application in Azure Active Directory
+4. Check logs to confirm users and groups are syncing to Smallstep SSH
+
 ## Step By Step Instructions
 
 ### Step 1. Create Groups
@@ -107,11 +113,20 @@ Your mappings should look like this when you're finished:
 
 > 🤦‍♂️ There's a quirk in Microsoft's UI here, and you may see an error when saving after turning provisioning on. If so, wait 60 seconds and try Save again.
 
-### Step 5. Confirm the directory connection
+### Step 4. Confirm the directory connection
 
-Sign in at `https://smallstep.com/app/[Team ID]`. You should see your directory with users and groups synced.
+Sign in at `https://smallstep.com/app/[Team ID]`
+
+* Navigate to the LOGS menu. You should see a list of success messages assocated with `SCIM-SYNC` catagory items.
+
+   ![](/static/graphics/quickstart/scim-logs.png "SCIM Logs")
+
+* Navigate to the USERS menu. If the onboarding dialog is open, press `Esc` to close.
+* You should see your Users and Groups synced over from Azure AD.
 
 > **Don't see your users and groups?** Microsoft's SCIM service may add a 40-minute delay after you set it up. You can force an update by checking ✅**Clear current state and restart synchronization** in the Provisioning panel, and choosing Save. Even then, it may take a minute to sync with Smallstep.
+
+### Azure AD Configuration Complete
 
 ## Troubleshooting Tips
 
