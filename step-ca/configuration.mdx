@@ -1207,9 +1207,19 @@ and how to configure the CA to use templates.
     In templates, there are <code>.Insecure</code> variables. These are denoted as such because
     they contain information that has not been cryptographically signed
     by a source that the CA trusts.
-    For example, the `.Insecure.CR` variable holds the user-supplied Certificate Request.
+    For example, the <code>.Insecure.CR</code> variable holds the user-supplied Certificate Request.
   </div>
 </Alert>
+
+<Alert severity="warning">
+  <div>
+    <strong>Warning: Always wrap values in <code>toJson</code></strong><br />
+    In the templates below, variables are pulled into templates using <code>{`{{`} toJson .variableName {`}}`}</code> 
+    to sanitize the value of the variable.
+    When using templates, you must sanitize all variables using <code>toJson</code> to avoid template injection vulnerabilities.
+  </div>
+</Alert>
+
 
 ### X.509 Templates
 
