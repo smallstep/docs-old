@@ -35,9 +35,12 @@ The following provisioning features are supported:
   * User accounts can be reactivated in the application.
 
 ## Overview
-1. Create a new OIDC application in Okta for single sign-on
+
+In this quickstart, we will:
+
+1. Create a new OIDC application in Okta, for single sign-on
 2. Enter OIDC details into the Smallstep SSH UI
-3. Add and configure the Smallstep Application from the Okta Application Directory for user sync via SCIM
+3. Add and configure the Smallstep application from the Okta Application Directory, for user sync via SCIM
 4. Check logs to confirm users and groups are syncing to Smallstep SSH
 
 ## Step By Step Instructions
@@ -93,10 +96,10 @@ The following provisioning features are supported:
 
 ### Step 3. Configure User Sync in Okta
 
-* In the OKTA admin console, add the Smallstep Application
+* In the OKTA admin console, add the Smallstep application
   * Applications → Add Application → Search
-    * Search: `Smallstep`
-    * Select the Smallstep App:
+    * Search for `Smallstep`
+    * Select the Smallstep app:
 
       ![](/static/graphics/quickstart/okta-app-tile.png "Smallstep Tile")
 * Click "Add"
@@ -120,41 +123,41 @@ The following provisioning features are supported:
 
   ![](/static/graphics/quickstart/okta-enable-api.png "Enable API")
 
-* Return to Smallstep UI or open a new browser tab and sign into the Smallstep UI: `https://smallstep.com/app/[TEAM-NAME]`
-* Navigate to the Onboarding UI > Add Your Team > SCIM Details
-* Copy **Base URL,** and **API token** from Smallstep UI and Paste into Okta Provisioning form.
-* In Okta Provisioning form click Test API Credentials, after successful verification, click Save
+* Return to the Smallstep dashboard, or open a new browser tab and sign into the Smallstep dashboard: `https://smallstep.com/app/[TEAM-NAME]`
+* Navigate to the Onboarding UI → Add Your Team → SCIM Details
+* Copy **Base URL,** and **API Token** from Smallstep dashboard, and paste into Okta Provisioning form.
+* In Okta, choose **Test API Credentials**. After successful verification, choose **Save**.
 
   ![](/static/graphics/quickstart/okta-api-auth.png "API Auth")
 
 * Reload the provision tab
-* Under Provisioning > Settings >To App click "edit" and enable
+* Under Provisioning → Settings → To App, choose **Edit** and enable
   * Create Users
   * Update User Attributes
   * Deactivate Users
-* click Save
+* Save.
 
   ![](/static/graphics/quickstart/okta-enable-sync.png "enable and save")
 
 * Assignments
-  * Select the "Assignments" tab  → Click "Assign" button  →  "Assign to Groups"
-  * Search by group →  Assign any groups that will need either `sudo` and/or `ssh` access to hosts
+  * Select the **Assignments** tab → Click **Assign**  → **Assign to Groups**
+  * Search by group → Assign any groups that will need either `sudo` and/or `ssh` access to hosts
   * Group names that contain a `/` are not supported in this release.
 * Push Groups
-  * Select the "Push Groups" tab  → Click "Push Groups" button  →  "Find Groups By Name"
-  * Search for the same groups that will need either `sudo` and/or `ssh` access to hosts
-  * Click "Save"
+  * Select the **Push Groups** tab → **Push Groups** → **Find Groups By Name**
+  * Search for the same groups that will need either `sudo` and/or `ssh` access to hosts.
+  * Save.
   * Repeat for each desired group.
 
 ### Step 4. Sign in to the smallstep UI
 
 Sign in at `https://smallstep.com/app/[Team ID]`
 
-* Navigate to the LOGS menu. You should see a list of success messages assocated with `SCIM-SYNC` catagory items.
+* Select the **Logs** tab. You should see a list of success messages assocated with `SCIM-SYNC` catagory items.
 
    ![](/static/graphics/quickstart/scim-logs.png "SCIM Logs")
 
-* Navigate to the USERS menu. If the onboarding dialog is open, press `Esc` to close.
+* Select the **Users** tab. If the onboarding dialog is open, press `Esc` to close.
 * You should see your Users and Groups synced over from Okta.
 
 ### OKTA Configuration Complete
