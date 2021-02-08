@@ -34,6 +34,12 @@ The following provisioning features are supported:
 * Reactivate Users
   * User accounts can be reactivated in the application.
 
+## Overview
+* Create a new OIDC application in Okta for Single Sign-on
+* Enter OIDC details into the Smallstep SSH UI
+* Add and configure the Smallstep Application from the Okta Application Directory for user sync via SCIM
+* Check logs to confirm users and groups are syncing to Smallstep SSH
+
 ## Step By Step Instructions
 
 ### **Step 1. Create Okta OIDC Application**
@@ -59,7 +65,7 @@ The following provisioning features are supported:
    ![](/static/graphics/quickstart/okta-client-auth.png)
 
 5. Go to the **Assignments** tab.
-   * Assign the `sudo` and `ssh` groups to the `smallstep-oidc` app:
+   * Assign any groups that will need either `sudo` and/or `ssh` access to hosts to the `smallstep-oidc` app:
      * Assignments → Assign → Assign to Group → Click "Assign" for `ssh`
      * Assignments → Assign → Assign to Group → Click "Assign" for `sudo`
      * Repeat this process for any other groups you created for controlling SSH/sudo access
@@ -68,7 +74,7 @@ The following provisioning features are supported:
 ### Step 2. Enter your OIDC Details into the Smallstep SSH UI
 
 1. Open a new browser tab and log in to Smallstep: `https://smallstep.com/app/[TEAM-NAME]`
-2. Navigate the Onboarding Dialog. If the dialog is not open, you can relaunch it from the "Resources" page.
+2. Navigate the Onboarding Dialog. If the dialog is not open, you can relaunch it by visiting the "USERS" page.
 
    ![](/static/graphics/quickstart/oidc-copy.png "onboarding")
 
@@ -82,7 +88,7 @@ The following provisioning features are supported:
 
    This is your **Configuration Endpoint**. For example, if you normally sign into Okta at `https://example.okta.com/`, then your configuration endpoint is `https://example.okta.com/.well-known/openid-configuration`
 
-5. Click **"ENABLE SINGLE SIGN-ON"**
+5. Click **"SAVE"**
 6. You've completed this portion of the setup.
 
 ### Step 3. Configure User Sync in Okta
