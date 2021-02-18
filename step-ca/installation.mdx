@@ -58,7 +58,7 @@ brew install step
     Download and install the Debian package from our [latest release](https://github.com/smallstep/cli/releases/latest):
     
     ```shell
-    wget https://github.com/smallstep/cli/releases/download/v0.15.3/step-cli_0.15.3_amd64.deb
+    wget https://github.com/smallstep/cli/releases/download/v0.15.7/step_linux_0.15.7_amd64.deb
     sudo dpkg -i step-cli_0.15.3_amd64.deb
     ```
 
@@ -67,8 +67,8 @@ brew install step
     Download and install the Debian package from our [latest release](https://github.com/smallstep/certificates/releases/latest):
 
     ```shell
-    wget https://github.com/smallstep/certificates/releases/download/v0.15.4/step-certificates_0.15.4_amd64.deb
-    sudo dpkg -i step-certificates_0.15.4_amd64.deb
+    wget https://github.com/smallstep/certificates/releases/download/v0.15.8/step-certificates_0.15.8_amd64.deb
+    sudo dpkg -i step-certificates_0.15.8_amd64.deb
     ```
 
 #### Arch Linux
@@ -88,9 +88,9 @@ You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
     Download and install the Linux tarball from our [latest release](https://github.com/smallstep/cli/releases/latest):
 
     ```shell
-    wget -O step-cli.tar.gz https://github.com/smallstep/cli/releases/download/v0.15.3/step_linux_0.15.3_amd64.tar.gz
-    tar -xf step-cli.tar.gz
-    sudo cp step_0.15.3/bin/step /usr/bin
+    wget -O step.tar.gz https://github.com/smallstep/cli/releases/download/v0.15.7/step_linux_0.15.7_amd64.tar.gz
+    tar -xf step.tar.gz
+    sudo cp step_0.15.7/bin/step /usr/bin
     ```
 
 2. Install `step-ca`
@@ -98,9 +98,9 @@ You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
     Download and install the Linux tarball from our [latest release](https://github.com/smallstep/certificates/releases/latest):
 
     ```shell
-    wget -O step-ca.tar.gz https://github.com/smallstep/certificates/releases/download/v0.15.4/step-certificates_linux_0.15.4_amd64.tar.gz
+    wget -O step-ca.tar.gz https://github.com/smallstep/certificates/releases/download/v0.15.8/step-certificates_linux_0.15.8_amd64.tar.gz
     tar -xf step-ca.tar.gz
-    sudo cp step-certificates_0.15.4/bin/step-ca /usr/bin
+    sudo cp step-certificates_0.15.8/bin/step-ca /usr/bin
     ```
 
 See the [`systemctl`][systemctl-setup] setup section for a guide on configuring `step-ca` as a daemon.
