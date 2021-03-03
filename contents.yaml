@@ -65,25 +65,25 @@ step_ca:
 mutual_tls: []
 
 tutorials:
-  - title: Create a new CA or an intermediate CA using `step-ca`
-    path: tutorials/intermediate-ca-new-ca
-  - title: Run an ACME server and issue internal X.509 certificates
+  - title: Run a private internal ACME CA
     path: tutorials/acme-challenge
   - title: Configure popular ACME clients to use a private CA
     path: tutorials/acme-protocol-acme-clients
-  - title: Use Kubernetes cert-manager with an internal ACME CA
+  - title: Use Kubernetes cert-manager with `step-ca`
     path: tutorials/kubernetes-acme-ca
-  - title: Use the AWS, GCP, or Azure metadata API to issue X.509 certificates
+  - title: Issue X.509 host certificates to cloud VMs
     path: tutorials/cloud-vm-certificate
-  - title: Connect your identity provider and issue X.509 user certificates
+  - title: Issue X.509 user certificates via your identity provider
     path: tutorials/user-authentication
+  - title: Import an existing root or intermediate CA into `step-ca`
+    path: tutorials/intermediate-ca-new-ca
   - title: Use Keycloak to issue SSH certificates with step-ca
     path: tutorials/keycloak-oidc-provisioner
   - title: Run an SSH CA and connect to VMs using SSH certificates
     path: tutorials/ssh-certificate-login
   - title: Use AWS to deploy a certificate authority and secure microservices
     path: tutorials/mutual-tls-aws
-  - title: Run a private online certificate authority in a docker container
+  - title: Run `step-ca` in a Docker container
     path: tutorials/docker-tls-certificate-authority
   - title: Federate multiple autonomous certificate authorities
     path: tutorials/pki-trust-model-federation
