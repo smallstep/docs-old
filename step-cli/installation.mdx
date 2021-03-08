@@ -33,7 +33,9 @@ Install `step` via [Homebrew](https://brew.sh/):
 brew install step
 ```
 
-### Debian Linux
+### Linux
+
+#### Debian Linux
 
 Download and install the Debian package from our [latest release](https://github.com/smallstep/cli/releases/latest):
 
@@ -42,7 +44,7 @@ wget https://github.com/smallstep/cli/releases/download/v0.15.7/step_linux_0.15.
 sudo dpkg -i step_linux_0.15.7_amd64.deb
 ```
 
-### Arch Linux
+#### Arch Linux
 
 We are using the [Arch User Repository](https://aur.archlinux.org/) to
 distribute `step` binaries for Arch Linux.
@@ -52,10 +54,37 @@ distribute `step` binaries for Arch Linux.
 
 You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
 
-### Linux (other)
+#### Linux (other)
 
 We have amd64, arm64, and armv7 releases available to download from our [latest
 release](https://github.com/smallstep/cli/releases/latest).
+
+### Windows
+
+#### Install via Scoop
+
+Install `step` via [scoop](https://scoop.sh/):
+
+```shell
+scoop bucket add smallstep https://github.com/smallstep/scoop-bucket.git
+scoop install smallstep/step
+```
+
+#### Install manually
+
+Download the Windows binary from our [latest releases](https://github.com/smallstep/cli/releases/latest) page and install it using PowerShell.
+
+Open PowerShell as an Administartor and run the following:
+
+```shell
+PS C:\Users\Administrator> curl.exe -LO https://github.com/smallstep/cli/releases/download/v0.15.7/step_windows_0.15.7_amd64.zip
+PS C:\Users\Administrator> Expand-Archive -LiteralPath .\step_windows_0.15.7_amd64.zip
+PS C:\Users\Administrator> .\step.exe --version
+Smallstep CLI/0.15.7 (windows/amd64)
+Release Date: 2021-02-18 22:18 UTC
+```
+
+Move the `step.exe` binary wherever you'd like it to be in your path.
 
 ### Testing your installation
 
