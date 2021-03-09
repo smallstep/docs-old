@@ -44,11 +44,26 @@ target and we expect our recommendations to change and evolve as well.
 
 ### Safeguard Your Root Key
 
-When you initialize your PKI two private keys are generated; one intermediate
-private key and one root private key. It is very important that these private keys
-are kept secret. The root private key should be moved around as little as possible,
-preferably not all - meaning it never leaves the server on which it was created.
-Ideally, you should store your private keys in a [hardware security module](https://en.wikipedia.org/wiki/Hardware_security_module). 
+When you initialize a simple CA, two private keys are generated: one intermediate
+private key, and one root private key. It is very important that these private keys
+are kept secret.
+
+The intermediate key is used by the CA to sign certificates. The root key is not needed for day-to-day CA operation and should be stored offline.
+Typically the root key is generated on an air-gapped device, and it never leaves the device on which it was created.
+
+Here's an example key protection strategy for a high-security production PKI.
+
+In this example, `step-ca` acts as a subordinate CA to an offline root CA.
+
+1. Generate a root CA (private key and certificate) on a [Hardware Security Module (HSM)](https://en.wikipedia.org/wiki/Hardware_security_module) that is kept in "cold storage", off the internet.
+HSMs are ideal for storing private keys and performing signing operations securely.
+2. Generate intermediate key(s) on a separate, online cloud HSM or in a key management service (KMS) that will be used by the CA in production
+3. Generate Certificate Signing Requests (CSRs) for your intermediate CA(s)
+4. Sign the generated CSR using the root HSM
+5. Configure `step-ca` to use the signed root and intermediate certificates
+6. Configure `step-ca` to access the cloud HSM or KMS intermediate key for online signing operations
+
+See the [Cryptographic Protection](/docs/step-ca/configuration#cryptographic-protection) section of our [Configuration Guide](/docs/step-ca/configuration) to learn more about your options for using HSMs or cloud KMS with `step-ca`.
 
 ### Use Strong Passwords and Store Them Well
 

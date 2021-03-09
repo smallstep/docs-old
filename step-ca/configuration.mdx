@@ -54,10 +54,11 @@ learn how to configure your CA to:
   - [BoltDB](#boltdb)
   - [MySQL](#mysql)
   - [Schema](#schema)
-- [Cloud Key Management Service](#cloud-key-management-service)
-  - [Google's Cloud KMS](#googles-cloud-kms)
+- [Cryptographic Protection](#cryptographic-protection)
+  - [Google Cloud KMS](#google-cloud-kms)
   - [AWS KMS](#aws-kms)
-  - [YubiKey](#yubikey)
+  - [YubiKey PIV](#yubikey-piv)
+  - [PKCS #11](#pkcs-11)
 
 ## Specifying a Configuration File
 
@@ -2142,13 +2143,19 @@ At this time `step-ca` does not have any API or interface for easily exporting d
 
 [scripted-export-db]: https://gist.github.com/dopey/89ec20f22c66c1333bf38c9b19b89758
 
-## Cloud Key Management Service
+## Cryptographic Protection
 
-Support for multiple KMS are planned, but only Google's Cloud KMS and Amazon's
-AWS KMS are currently supported. An [experimental version for YubiKeys](#yubikey) is also
-available.
+By default, `step-ca` stores its signing keys encrypted on disk, on the CA.
+Some use cases may require more advanced cryptographic protection.
+For protection of you signing keys,
+`step-ca` integrates with [Google Cloud KMS](#google-cloud-kms), [AWS KMS](#aws-kms),
+[YubiKey PIV](#yubikey-piv),
+and [PKCS #11 hardware security modules (HSMs)](#pkcs-11).
 
-### Google's Cloud KMS
+For a complete, end-to-end tutorial using YubiKeys,
+see our blog post [Build a Tiny Certificate Authority For Your Homelab](https://smallstep.com/blog/build-a-tiny-ca-with-raspberry-pi-yubikey/).
+
+### Google Cloud KMS
 
 [Cloud KMS](https://cloud.google.com/kms/docs) is Google's cloud-hosted KMS that allows you to store the cryptographic keys and sign certificates using their infrastructure. Cloud KMS supports two different protection levels: `SOFTWARE` and `HSM`.
 
@@ -2256,42 +2263,22 @@ The `--region` parameter is only required if your AWS configuration does not def
 
 Run the `step-awskms-init --help` command for more options.
 
-### YubiKey
+### YubiKey PIV
 
-**This feature is experimental and is not enabled by default.**
+<Alert severity="info">
+  <div>
+    <strong>This feature is experimental and is not enabled by default</strong><br />
+    To enable support, you will need to build <code>step-ca</code> yourself, using CGO support.<br />
+    See <a href="https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#building-from-source">Building From Source</a>. 
+  </div>
+</Alert>
 
-You can use a hardware [YubiKey](https://www.yubico.com/)—and the YubiKey PIV application—to store your CA keys and sign TLS certificates.
+You can leverage a hardware [YubiKey](https://www.yubico.com/)—and the [YubiKey PIV application](https://www.yubico.com/authentication-standards/smart-card/)—to store your CA keys and sign TLS certificates.
 
-This module is not enabled by default, and only TLS signing can be configured.
-
-The YubiKey implementation requires `cgo`, and our build system does not produce binaries with it. To enable YubiKey, download the source code and run:
-
-```shell
-make build GOFLAGS=""
-```
-
-`step-ca` uses [piv-go](https://github.com/go-piv/piv-go) and requires PCSC support. This is available by default on macOS and Windows operating systems, but on Linux piv-go requires PCSC lite.
-
-To install on Debian-based distributions, run:
-
-```shell
-sudo apt-get install libpcsclite-dev
-```
-
-On Fedora:
-
-```shell
-sudo yum install pcsc-lite-devel
-```
-
-On CentOS:
-
-<CodeBlock
-    language="shell"
-    copyText="sudo yum install 'dnf-command(config-manager)' && sudo yum config-manager --set-enabled PowerTools && sudo yum install pcsc-lite-devel"
-  >{`sudo yum install 'dnf-command(config-manager)'
-sudo yum config-manager --set-enabled PowerTools
-sudo yum install pcsc-lite-devel`}</CodeBlock>
+#### Before You Begin
+* You will need a YubiKey 5 NFC, YubiKey 5 Nano, YubiKey 5C, or YubiKey 5C Nano
+* Only TLS signing can be configured; SSH CAs are not supported
+* To enable YubiKey support, follow our [Instructions for building from source using CGO](https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#build-step-ca-using-cgo)
 
 The initialization of the public key infrastructure (PKI) for YubiKeys is not currently integrated into `step`, but an experimental tool named `step-yubikey-init` addresses this use case. In a future release, this tool will be integrated into `step`.
 
@@ -2324,3 +2311,81 @@ Finally, to enable it in `ca.json`, point the `root` and `crt` options to the ge
     }
 }
 ```
+
+### PKCS #11
+
+<Alert severity="info">
+  <div>
+    <strong>This feature is not enabled by default.</strong><br />
+    To enable support, you will need to build <code>step-ca</code> yourself, using CGO support.<br />
+    See <a href="https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#building-from-source">Building From Source</a>. 
+  </div>
+</Alert>
+
+A Hardware Security Module (HSM) is a specialized piece of hardware that is designed to generate and store private keys, and sign messages using those keys.
+The private keys on an HSM cannot be exported from the device.
+One can only run signing operations using the key.
+This is an excellent way to protect private keys for a Certificate Authority,
+which in normal operation simply needs to be able to sign Certificate Signing Requests.
+ 
+[Public-Key Cryptography Standards #11 (PKCS #11)](https://en.wikipedia.org/wiki/PKCS_11) is the most common platform-independent API used by HSM hardware.
+It's supported by most HSM hardware, like Yubico's [YubiHSM2](https://www.yubico.com/product/yubihsm-2/), and the [Nitrokey HSM 2](https://shop.nitrokey.com/shop/product/nk-hsm-2-nitrokey-hsm-2-7).
+There's also a software-based "HSM," [SoftHSMv2](https://github.com/opendnssec/SoftHSMv2), which offers a PKCS #11 interface without the hardware.
+
+#### 1. Initialize your PKI using the `step-pkcs11-init` tool.
+
+The `step-pkcs11-init` tool will create or import CA keys and/or certificates onto your HSM, for use with `step-ca`.
+It is configured to work with the YubiHSM2 by default, but you can provide a different PKCS #11 URI by using the `--kms` flag.
+
+Here are some examples of PKCS #11 URIs for various HSMs:
+* YubiHSM2 (Linux): `pkcs11:module-path=/usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so;token=YubiHSM`
+* AWS CloudHSM: `pkcs11:module-path=/opt/cloudhsm/lib/libcloudhsm_pkcs11.so;token=cavium?pin-value=$HSM_USER:$HSM_PASSWORD`
+* SoftHSM: `pkcs11:module-path=/usr/lib/softhsm/libsofthsm2.so;token=token1?pin-value=$HSM_PASSWORD`
+* nCipher nShield: `pkcs11:module-path=/opt/nfast/toolkits/pkcs11/libcknfast.so;token=rjk?pin-value=$HSM_PASSWORD`
+
+You'll need to substitute `$HSM_USER` and `$HSM_PASSWORD` with your own values.
+
+In this URI,
+* `module-path` points to your PKCS #11 `.dll`, `.so`, or `.dylib` library file.
+* `token` is the label (`CKA_LABEL`) of the HSM you're using.
+* `pin-value` should contain your HSM credentials. It may be a PIN, username and password, or password value, depending on the HSM.
+
+Once the utility creates your PKI, it will output a few paths for your keys and certificates before exiting.
+You'll need these for step 2.
+
+#### 2. Configure the CA to use PKCS #11
+
+One you've created your PKI on the HSM using `step-pkcs11-init`, you'll need to configure `step-ca` to use the HSM.
+
+Start with a standard CA configuration, created using `step ca init` or `step ca init --ssh`.
+
+Now open up ``.step/config/ca.json` in an editor.
+You'll want the top of the file to reference the HSM key paths provided by the `step-pkcs11-init` utility.
+
+For this, you'll need to change the `key` and `ssh` values to match the `pkcs11:` URIs above. These are the values you need to change:
+
+```json
+{
+        ...
+        "key": "pkcs11:id=7331;object=intermediate-key",
+        "ssh": {
+                "hostKey": "pkcs11:id=7332;object=ssh-host-key",
+                "userKey": "pkcs11:id=7333;object=ssh-user-key"
+        },
+        ...
+}
+```
+
+You'll also need to add a `kms` top-level object that contains your `pkcs11` module URI:
+
+```json
+{
+        ...
+        "kms": {
+                "type": "pkcs11",
+                "uri": "pkcs11:module-path=/opt/cloudhsm/lib/libcloudhsm_pkcs11.so;token=cavium?pin-value=step_ca:RiFJrg93Tn_EXAMPLE"
+        },
+        ...
+}
+```
+

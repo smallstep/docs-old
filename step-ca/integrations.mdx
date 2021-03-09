@@ -16,17 +16,22 @@ library (e.g. [autocert][autocert]).
 This document lists, briefly describes, and links to documentation for all 
 `step-ca` integrations.
 
-- [ACME](#acme)
-- [OIDC](#oidc)
-- [Cloud Key Management Service](#cloud-key-management-service)
-- [Cloud Instance Identity](#cloud-instance-identity)
-- [Kubernetes: `autocert`](#kubernetes-autocert)
-- [Envoy Secret Discovery Service: `step-sds`](#envoy-secret-discovery-service-sds-step-sds)
-- [YubiKey PIV](#yubikey-piv)
+- Protocols and Platforms
+  - [ACME](#acme)
+  - [OIDC](#oidc)
+  - [Cloud Instance Identity](#cloud-instance-identity)
+  - [Kubernetes](#kubernetes)
+  - [Envoy Secret Discovery Service](#envoy-secret-discovery-service-sds)
+- Cryptographic Protection
+  - [Cloud Key Management Service](#cloud-key-management-service)
+  - [YubiKey PIV](#yubikey-piv)
+  - [PKCS#11 HSMs](#pkcs11-hsms)
 
 [acme-rfc]: https://tools.ietf.org/html/rfc8555
 [oidc]: https://openid.net/connect/
 [autocert]: https://github.com/smallstep/autocert
+
+## Protocols and Platforms
 
 ### ACME
 
@@ -49,17 +54,6 @@ Learn more about how to [configure an OIDC provisioner][configure-oidc].
 
 [configure-oidc]: /docs/step-ca/configuration#oauthoidc-single-sign-on
 
-### Cloud Key Management Service
-
-Cloud Key Management Services (Cloud KMS) allow users to store cryptographic 
-keys and sign certificates using cloud storage and APIs.
-
-Google Cloud KMS and Amazon AWS KMS are currently supported. An experimental version for YubiKey PIV is also available.
-
-Learn more about how to [configure Cloud KMS][configure-cloudkms].
-
-[configure-cloudkms]: /docs/step-ca/configuration#cloud-key-management-service
-
 ### Cloud Instance Identity
 
 Cloud Instance Identity Documents (IIDs) are cryptographically signed blobs of
@@ -73,13 +67,14 @@ Learn more about how to [configure a cloud identity document provisioner][config
 
 [configure-iid]: /docs/step-ca/configuration#cloud-provisioners
 
-### Kubernetes: `autocert`
+### Kubernetes
 
-`autocert` is a kubernetes add-on that automatically injects TLS/HTTPS certificates into your containers.
-
+`autocert` is our kubernetes add-on that automatically injects TLS/HTTPS certificates into your containers.
 Learn more about how to [install and configure `autocert`][autocert].
 
-### Envoy Secret Discovery Service (SDS): `step-sds`
+Alternatively, if you already use `cert-manager`, you can [configure it to trust `step-ca` for use with ACME](/docs/tutorials/kubernetes-acme-ca).
+
+### Envoy Secret Discovery Service (SDS)
 
 `step-sds` implements the server-side API of [Envoy SDS][envoy-sds], which
 pushes certificates to the client. Both mTLS and Unix Domain Socket
@@ -90,7 +85,27 @@ Learn more about how to [install and configure `step-sds`][step-sds].
 [step-sds]: https://github.com/smallstep/step-sds
 [envoy-sds]: https://www.envoyproxy.io/docs/envoy/latest/configuration/security/secret
 
+## Cryptographic Protection
+
+### Cloud Key Management Service
+
+Cloud Key Management Services (Cloud KMS) allow users to store cryptographic 
+keys and sign certificates using cloud storage and APIs.
+
+Google Cloud KMS and Amazon AWS KMS are currently supported.
+
+Learn more about how to [configure Cloud KMS][configure-cloudkms].
+
+[configure-cloudkms]: /docs/step-ca/configuration#cloud-key-management-service
+
 ### YubiKey PIV
 
-Want to store your CA locally on a YubiKey? Experimental support for YubiKey's PIV application is available. [Learn more.](/docs/step-ca/configuration#yubikey)
+Want to store your CA locally on a YubiKey? `step-ca` supports the YubiKey PIV application.
+[Learn more.](/docs/step-ca/configuration#yubikey)
+
+### PKCS#11 HSMs
+
+`step-ca` supports PKCS#11 hardware security modules (HSMs).
+[Learn more.](/docs/step-ca/configuration#pkcs-11)
+
 
