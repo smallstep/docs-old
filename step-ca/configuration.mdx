@@ -2281,18 +2281,19 @@ Run the `step-awskms-init --help` command for more options.
 
 <Alert severity="info">
   <div>
-    <strong>This feature is experimental and is not enabled by default</strong><br />
+    <strong>This feature is not enabled by default</strong><br />
     To enable support, you will need to build <code>step-ca</code> yourself, using CGO support.<br />
-    See <a href="https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#building-from-source">Building From Source</a>. 
+    See <a href="https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#build-step-ca-using-cgo">Building From Source Using CGO</a>. 
   </div>
 </Alert>
 
 You can leverage a hardware [YubiKey](https://www.yubico.com/)—and the [YubiKey PIV application](https://www.yubico.com/authentication-standards/smart-card/)—to store your CA keys and sign TLS certificates.
 
-#### Before You Begin
-* You will need a YubiKey 5 NFC, YubiKey 5 Nano, YubiKey 5C, or YubiKey 5C Nano
-* Only TLS signing can be configured; SSH CAs are not supported
-* To enable YubiKey support, follow our [Instructions for building from source using CGO](https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#build-step-ca-using-cgo)
+#### Prerequisites and Caveats
+* To enable YubiKey support in `step-ca`, you must follow our [Instructions for building from source using CGO](https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#build-step-ca-using-cgo)
+* You will need a YubiKey that supports the PIV application: YubiKey 5 NFC, YubiKey 5 Nano, YubiKey 5C, or YubiKey 5C Nano
+* [Certificate slots](https://developers.yubico.com/PIV/Introduction/Certificate_slots.html) 9a, 9c, 9d, 9e, and 82-95 are supported
+* Only X.509 signing can be configured; SSH CAs are not supported
 
 The initialization of the public key infrastructure (PKI) for YubiKeys is not currently integrated into `step`, but an experimental tool named `step-yubikey-init` addresses this use case. In a future release, this tool will be integrated into `step`.
 
