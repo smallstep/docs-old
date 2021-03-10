@@ -55,7 +55,7 @@ print the version
 
 ## Version
 
-Smallstep CLI/0.15.8
+Smallstep CLI/0.15.9
 
 ## Copyright
 
