@@ -14,10 +14,11 @@ menu:
 ```raw
 step certificate create <subject> <crt-file> <key-file>
 [--csr] [--profile=<profile>] [--template=<path>]
-[--ca=<issuer-cert>] [--ca-key=<issuer-key>]
+[--not-before=<duration>] [--not-after=<duration>]
+[--password-file=<path>] [--ca=<issuer-cert>]
+[--ca-key=<issuer-key>] [--ca-password-file=<path>]
 [--san=<SAN>] [--bundle] [--key=<path>]
-[--kty=<type>] [--curve=<curve>] [--size=<size>]
-[--no-password]
+[--kty=<type>] [--curve=<curve>] [--size=<size>] [--no-password]
 ```
 
 ## Description
@@ -66,11 +67,19 @@ The certificate profile sets various certificate details such as
 **--template**=`path`
 The certificate template `path`, a JSON representation of the certificate to create.
 
+**--password-file**=`path`
+The `path` to the file containing the password to
+encrypt the new private key or decrypt the user submitted private key.
+
 **--ca**=`value`
 The certificate authority used to issue the new certificate (PEM file).
 
 **--ca-key**=`value`
 The certificate authority private key used to sign the new certificate (PEM file).
+
+**--ca-password-file**=`path`
+The `path` to the file containing the password to
+decrypt the CA private key.
 
 **--key**=`path`
 The `path` of the private key to use instead of creating a new one (PEM file).
@@ -205,6 +214,18 @@ Create a CSR and key:
 $ step certificate create foo foo.csr foo.key --csr
 ```
 
+Create a CSR using an existing private key:
+
+```shell
+$ step certificate create --csr --key key.priv foo foo.csr
+```
+
+Create a CSR using an existing encrypted private key:
+
+```shell
+$ step certificate create --csr --key key.priv --password-file key.pass foo foo.csr
+```
+
 Create a CSR and key with custom Subject Alternative Names:
 
 ```shell
@@ -231,19 +252,26 @@ $ step certificate create intermediate-ca intermediate-ca.crt intermediate-ca.ke
   --profile intermediate-ca --ca ./root-ca.crt --ca-key ./root-ca.key
 ```
 
-Create an intermediate certificate and key with custom Subject Alternative Names:
-
-```shell
-$ step certificate create intermediate-ca intermediate-ca.crt intermediate-ca.key \
-  --profile intermediate-ca --ca ./root-ca.crt --ca-key ./root-ca.key \
-  --san inter.smallstep.com --san 1.1.1.1 --san ca.smallstep.com
-```
-
 Create a leaf certificate and key:
 
 ```shell
 $ step certificate create foo foo.crt foo.key --profile leaf \
   --ca ./intermediate-ca.crt --ca-key ./intermediate-ca.key
+```
+
+Create a leaf certificate and encrypt the private key:
+
+```shell
+$ step certificate create foo foo.crt foo.key --profile leaf \
+   --password-file ./leaf.pass \
+   --ca ./intermediate-ca.crt --ca-key ./intermediate-ca.key
+```
+
+Create a leaf certificate and decrypt the CA private key:
+
+```shell
+$ step certificate create foo foo.crt foo.key --profile leaf \
+   --ca ./intermediate-ca.crt --ca-key ./intermediate-ca.key --ca-password-file ./intermediate.pass
 ```
 
 Create a leaf certificate and key with custom Subject Alternative Names:

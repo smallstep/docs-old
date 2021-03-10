@@ -17,6 +17,7 @@ menu:
       - key
       - nacl
       - otp
+      - winpe
 ---
 
 ## Name
@@ -182,4 +183,5 @@ Forward secrecy can protect against an attacker who stores intercepted
 | **[key](key/)** | manage keys |
 | **[nacl](nacl/)** | easy-to-use high-speed tools for encryption and signing |
 | **[otp](otp/)** | generate and verify one-time passwords |
+| **[winpe](winpe/)** | extract certificates and verify Windows Portable Executable files |
 

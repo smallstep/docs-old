@@ -72,10 +72,7 @@ The provisioner `name` to use.
 
 **--provisioner-password-file**=`file`
 The path to the `file` containing the password to decrypt the one-time token
-          generating key.
-
-**--password-file**=`file`
-The path to the `file` containing the password to encrypt or decrypt the private key.
+generating key.
 
 **--kty**=`kty`
 The `kty` to build the certificate upon.

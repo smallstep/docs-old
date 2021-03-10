@@ -13,8 +13,11 @@ menu:
 
 ```raw
 step ca renew <crt-file> <key-file>
-[--ca-url=<uri>] [--root=<file>]
-[--out=<file>] [--expires-in=<duration>] [--force]
+[--ca-url=<uri>] [--root=<path>] [--password-file=<path>]
+[--out=<path>] [--expires-in=<duration>] [--force]
+[--expires-in=<duration>] [--pid=<int>] [--pid-file=<path>]
+[--signal=<int>] [--exec=<string>] [--daemon]
+[--renew-period=<duration>]
 ```
 
 ## Description
@@ -81,6 +84,11 @@ Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 **--pid**=`value`
 The process id to signal after the certificate has been renewed. By default the
 the SIGHUP (1) signal will be used, but this can be configured with the **--signal**
+flag.
+
+**--pid-file**=`path`
+The `path` from which to read the process id that will be signaled after the certificate
+has been renewed. By default the the SIGHUP (1) signal will be used, but this can be configured with the **--signal**
 flag.
 
 **--signal**=`number`

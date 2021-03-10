@@ -13,8 +13,9 @@ menu:
 
 ```raw
 step ca sign <csr-file> <crt-file>
-[--token=<token>] [--issuer=<name>] [--ca-url=<uri>] [--root=<path>]
+[--token=<token>] [--issuer=<name>] [--provisioner-password-file=<file>]
 [--not-before=<time|duration>] [--not-after=<time|duration>]
+[--ca-url=<uri>] [--root=<path>]
 [--set=<key=value>] [--set-file=<path>]
 [--acme=<uri>] [--standalone] [--webroot=<path>]
 [--contact=<email>] [--http-listen=<address>] [--console]
@@ -53,6 +54,10 @@ certificate.
 
 **--provisioner**=`name`, **--issuer**=`name`
 The provisioner `name` to use.
+
+**--provisioner-password-file**=`file`
+The path to the `file` containing the password to decrypt the one-time token
+generating key.
 
 **--not-before**=`time|duration`
 The `time|duration` when the certificate validity period starts. If a `time` is

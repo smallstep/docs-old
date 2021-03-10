@@ -14,21 +14,21 @@ menu:
 ```raw
 step oauth
 [--provider=<provider>] [--client-id=<client-id> --client-secret=<client-secret>]
-[--scope=<scope> ...] [--bare [--oidc]] [--header [--oidc]]
+[--scope=<scope> ...] [--bare [--oidc]] [--header [--oidc]] [--prompt=<prompt>]
 
-step oauth 
---authorization-endpoint=<authorization-endpoint> 
+step oauth
+--authorization-endpoint=<authorization-endpoint>
 --token-endpoint=<token-endpoint>
 --client-id=<client-id> --client-secret=<client-secret>
-[--scope=<scope> ...] [--bare [--oidc]] [--header [--oidc]]
+[--scope=<scope> ...] [--bare [--oidc]] [--header [--oidc]] [--prompt=<prompt>]
 
-step oauth [--account=<account>] 
-[--authorization-endpoint=<authorization-endpoint>] 
+step oauth [--account=<account>]
+[--authorization-endpoint=<authorization-endpoint>]
 [--token-endpoint=<token-endpoint>]
-[--scope=<scope> ...] [--bare [--oidc]] [--header [--oidc]]
+[--scope=<scope> ...] [--bare [--oidc]] [--header [--oidc]] [--prompt=<prompt>]
 
-step oauth --account=<account> --jwt 
-[--scope=<scope> ...] [--header] [-bare]
+step oauth --account=<account> --jwt
+[--scope=<scope> ...] [--header] [-bare] [--prompt=<prompt>]
 ```
 
 ## Description
@@ -88,6 +88,27 @@ Only output the token
 
 **--scope**=`value`
 OAuth scopes
+
+**--prompt**=`value`
+Whether the Authorization Server prompts the End-User for reauthentication and consent.
+OpenID standard defines the following values, but your provider may support some or none of them:
+
+- **none**: The Authorization Server MUST NOT display any authentication or consent user interface pages.
+        An error is returned if an End-User is not already authenticated or the Client does not have
+        pre-configured consent for the requested Claims or does not fulfill other conditions for
+        processing the request.
+
+- **login**: The Authorization Server SHOULD prompt the End-User for reauthentication. If it cannot
+        reauthenticate the End-User, it MUST return an error, typically login_required.
+
+- **consent**: The Authorization Server SHOULD prompt the End-User for consent before returning information
+        to the Client. If it cannot obtain consent, it MUST return an error, typically consent_required.
+
+- **select_account**: The Authorization Server SHOULD prompt the End-User to select a user account. This enables an
+        End-User who has multiple accounts at the Authorization Server to select amongst the multiple
+        accounts that they might have current sessions for. If it cannot obtain an account selection
+        choice made by the End-User, it MUST return an error, typically account_selection_required.
+
 
 **--jwt**
 Generate a JWT Auth token instead of an OAuth Token (only works with service accounts)

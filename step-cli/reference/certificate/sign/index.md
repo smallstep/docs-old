@@ -13,7 +13,8 @@ menu:
 
 ```raw
 step certificate sign <csr_file> <crt_file> <key_file>
-[--profile=<profile>] [--template=<path>] [--path-len=<maximum>]
+[--profile=<profile>] [--template=<path>]
+[--password-file=<path>] [--path-len=<maximum>]
 [--not-before=<time|duration>] [--not-after=<time|duration>]
 [--bundle]
 ```
@@ -52,6 +53,9 @@ The certificate profile sets various certificate details such as
 
 **--template**=`path`
 The certificate template `path`, a JSON representation of the certificate to create.
+
+**--password-file**=`file`
+The path to the `file` containing the password to encrypt or decrypt the private key.
 
 **--not-before**=`time|duration`
 The `time|duration` set in the NotBefore property of the certificate. If a

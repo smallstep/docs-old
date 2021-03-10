@@ -12,7 +12,7 @@ menu:
 ## Usage
 
 ```raw
-step ca federation <federation-file>
+step ca federation [<federation-file>]
 [--ca-url=<uri>] [--root=<file>]
 ```
 
@@ -52,4 +52,8 @@ $ step ca federation federation.pem \
     --root /path/to/root_ca.crt
 ```
 
+Print the federated roots using flags set by `step ca bootstrap`:
+```shell
+$ step ca federation
+```
 

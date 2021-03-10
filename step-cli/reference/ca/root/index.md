@@ -12,7 +12,7 @@ menu:
 ## Usage
 
 ```raw
-step ca root <root-file>
+step ca root [<root-file>]
 [--ca-url=<uri>] [--fingerprint=<fingerprint>]
 ```
 
@@ -57,5 +57,10 @@ Download the root certificate using a given certificate authority:
 $ step ca root root_ca.crt \
   --ca-url https://ca.smallstep.com:9000 \
   --fingerprint 0d7d3834cf187726cf331c40a31aa7ef6b29ba4df601416c9788f6ee01058cf3
+```
+
+Print the root certificate using the flags set by `step ca bootstrap`:
+```shell
+$ step ca root
 ```
 

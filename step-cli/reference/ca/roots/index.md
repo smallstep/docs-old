@@ -12,7 +12,7 @@ menu:
 ## Usage
 
 ```raw
-step ca roots <roots-file>
+step ca roots [<roots-file>]
 [--ca-url=<uri>] [--root=<file>]
 ```
 
@@ -50,5 +50,10 @@ Download the roots with custom flags:
 $ step ca roots roots.pem \
     --ca-url https://ca.example.com \
     --root /path/to/root_ca.crt
+```
+
+Print the roots using flags set by `step ca bootstrap`:
+```shell
+$ step ca roots
 ```
 

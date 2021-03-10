@@ -33,8 +33,15 @@ multiple CAs or intermediates.
 **--password-file**=`file`
 The path to the `file` containing the password to encrypt the .p12 file.
 
+**--no-password**
+Do not ask for a password to encrypt a private key. Sensitive key material will
+be written to disk unencrypted. This is not recommended. Requires **--insecure** flag.
+
 **-f**, **--force**
 Force the overwrite of files without asking.
+
+**--insecure**
+
 
 ## Exit codes
 
@@ -58,5 +65,11 @@ Package a CA certificate into a "trust store" for Java applications:
 
 ```shell
 $ step certificate p12 trust.p12 --ca ca.crt
+```
+
+Package a certificate and private key with an empty password:
+
+```shell
+$ step certificate p12 --no-password --insecure foo.p12 foo.crt foo.key
 ```
 

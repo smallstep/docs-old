@@ -13,7 +13,8 @@ menu:
 
 ```raw
 step crypto change-pass <key-file>
-[--out=<file>] [--insecure] [--no-password]
+[--out=<path>] [--password-file=<path>] [--new-password-file=<path>]
+[--insecure] [--no-password]
 ```
 
 ## Description
@@ -30,6 +31,12 @@ The PEM or JWK file with the encrypted key.
 ## Options
 
 
+**--password-file**=`file`
+The path to the `file` containing the password to decrypt the private key.
+
+**--new-password-file**=`file`
+The path to the `file` containing the password to encrypt the private key.
+
 **--out**=`file`, **--output-file**=`file`
 The `file` new encrypted key path. Default to overwriting the `key` positional argument
 
@@ -40,9 +47,8 @@ Force the overwrite of files without asking.
 
 
 **--no-password**
-Do not ask for a password to encrypt the private key.
-Sensitive key material will be written to disk unencrypted. This is not
-recommended. Requires **--insecure** flag.
+Do not ask for a password to encrypt a private key. Sensitive key material will
+be written to disk unencrypted. This is not recommended. Requires **--insecure** flag.
 
 ## Examples
 

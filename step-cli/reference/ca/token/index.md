@@ -54,10 +54,6 @@ sequence of decimal numbers, each with optional fraction and a unit suffix, such
 as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms",
 "s", "m", "h".
 
-**--password-file**=`file`
-The path to the `file` containing the password to decrypt the one-time token
-generating key.
-
 **--kid**=`kid`
 The provisioner `kid` to use.
 
@@ -110,6 +106,10 @@ The path to the PEM `file` used as the root certificate authority.
 
 **--provisioner**=`name`, **--issuer**=`name`
 The provisioner `name` to use.
+
+**--provisioner-password-file**=`file`, **--password-file**=`file`
+The path to the `file` containing the password to decrypt the one-time token
+generating key.
 
 **--x5c-cert**=`chain`
 Certificate (`chain`) in PEM format to store in the 'x5c' header of a JWT.
@@ -235,11 +235,11 @@ $ step ca token --offline --revoke 146103349666685108195655980390445292315
 
 Get a new token for an SSH user certificate:
 ```shell
-$ step ca token max@smallstep.com max_ecdsa --ssh
+$ step ca token max@smallstep.com --ssh
 ```
 
 Get a new token for an SSH host certificate:
 ```shell
-$ step ca token my-remote.hostname remote_ecdsa --ssh --host
+$ step ca token my-remote.hostname --ssh --host
 ```
 
