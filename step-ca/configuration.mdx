@@ -201,15 +201,15 @@ CA's keys.
 
 - **kms**: enables and configures [cryptographic protection](#cryptographic-protection) using cloud key management services or hardware security modules.
 
-  - **type**: one of `awskms`, `cloudkms`, `pkcs11`, or `yubikey`
+  - **type**: required. one of `awskms`, `cloudkms`, `pkcs11`, or `yubikey`
+
+  - **uri**: this field can be used to specify other fields in this section, and its value will take precedence over those values. See [cryptographic protection](#cryptographic-protection) for examples.
 
   - **region**: for `awskms`, the AWS region
 
   - **profile**: for `awskms`, the AWS profile
 
   - **credentialsFile**: for `cloudkms`, the path to a Google Cloud Platform credentials JSON file for a role that can access cloudkms
-
-  - **uri**: for `pkcs11`, the PKCS #11 URI for the token
 
   - **pin**: for `yubikey`, the PIN of the YubiKey PIV application
 
@@ -2182,7 +2182,7 @@ To configure Cloud KMS in your certificate authority, add the `kms` property to 
     "key": "projects/<project-id>/locations/global/keyRings/<ring-id>/cryptoKeys/<key-id>/cryptoKeyVersions/<version-number>",
     "kms": {
         "type": "cloudkms",
-        "credentialsFile": "path/to/credentials.json"
+        "uri": "cloudkms:credentials-file=/path/to/kms-credentials.json"
     }
 }
 ```
@@ -2235,12 +2235,12 @@ To configure AWS KMS in your certificate authority, add the `kms` property to `c
     "key": "awskms:key-id=f879f239-feb6-4596-9ed2-b1606277c7fe",
     "kms": {
         "type": "awskms",
-        "region": "us-east-1"
+        "uri": "awskms:region=us-west-2;profile=foo;credentials-file=/path/to/credentials"
     }
 }
 ```
 
-By default, `step-ca` uses the credentials stored in `~/.aws/credentials`. Use the `credentialsFile` option to override. The `region` and `profile` options specify the AWS region and configuration profiles respectively . These options can also be configured using environment variables as described in the [AWS SDK for Go session documentation](https://docs.aws.amazon.com/sdk-for-go/api/aws/session/).
+By default, `step-ca` uses the credentials stored in `~/.aws/credentials`. Use the `credentials-file` option to override. The `region` and `profile` options specify the AWS region and configuration profiles respectively. These options can also be configured using environment variables as described in the [AWS SDK for Go session documentation](https://docs.aws.amazon.com/sdk-for-go/api/aws/session/).
 
 In similar manner, to configure SSH certificate signing, replace the SSH keys with the keys from AWS KMS:
 
@@ -2293,7 +2293,7 @@ You can leverage a hardware [YubiKey](https://www.yubico.com/)—and the [YubiKe
 * To enable YubiKey support in `step-ca`, you must follow our [Instructions for building from source using CGO](https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#build-step-ca-using-cgo)
 * You will need a YubiKey that supports the PIV application: YubiKey 5 NFC, YubiKey 5 Nano, YubiKey 5C, or YubiKey 5C Nano
 * [Certificate slots](https://developers.yubico.com/PIV/Introduction/Certificate_slots.html) 9a, 9c, 9d, 9e, and 82-95 are supported
-* Only X.509 signing can be configured; SSH CAs are not supported
+* You can use the YubiKey for X.509 and SSH CAs; however, the `step-yubikey-init` utility only supports X.509 at this time. For SSH support, you must manually generate and configure SSH CA keys on the YubiKey.
 
 The initialization of the public key infrastructure (PKI) for YubiKeys is not currently integrated into `step`, but an experimental tool named `step-yubikey-init` addresses this use case. In a future release, this tool will be integrated into `step`.
 
@@ -2322,7 +2322,7 @@ Finally, to enable it in `ca.json`, point the `root` and `crt` options to the ge
     "key": "yubikey:slot-id=9c",
     "kms": {
         "type": "yubikey",
-        "pin": "123456"
+        "uri": "yubikey:management-key=01020304...?pin-value=123456"
     }
 }
 ```
@@ -2333,7 +2333,7 @@ Finally, to enable it in `ca.json`, point the `root` and `crt` options to the ge
   <div>
     <strong>This feature is not enabled by default.</strong><br />
     To enable support, you will need to build <code>step-ca</code> yourself, using CGO support.<br />
-    See <a href="https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#building-from-source">Building From Source</a>. 
+    See <a href="https://github.com/smallstep/certificates/blob/master/docs/CONTRIBUTING.md#build-step-ca-using-cgo">Building From Source Using CGO</a>. 
   </div>
 </Alert>
 
@@ -2359,14 +2359,15 @@ HSM              | URI format
 YubiHSM2 (Linux) | `pkcs11:module-path=/usr/lib/x86_64-linux-gnu/pkcs11/yubihsm_pkcs11.so;token=YubiHSM`
 AWS CloudHSM     | `pkcs11:module-path=/opt/cloudhsm/lib/libcloudhsm_pkcs11.so;token=cavium?pin-value=$HSM_USER:$HSM_PASSWORD`
 SoftHSM          | `pkcs11:module-path=/usr/lib/softhsm/libsofthsm2.so;token=token1?pin-value=$HSM_PASSWORD`
-nCipher nShield  | `pkcs11:module-path=/opt/nfast/toolkits/pkcs11/libcknfast.so;token=rjk?pin-value=$HSM_PASSWORD`
+nCipher nShield  | `pkcs11:module-path=/opt/nfast/toolkits/pkcs11/libcknfast.so;token=rjk?pin-source=/etc/step-ca/hsm-pin.txt`
 
 You'll need to substitute `$HSM_USER` and `$HSM_PASSWORD` with your own values.
 
 In this URI,
-* `module-path` points to your PKCS #11 `.dll`, `.so`, or `.dylib` library file.
-* `token` is the label (`CKA_LABEL`) of the HSM you're using.
-* `pin-value` should contain your HSM credentials. It may be a PIN, username and password, or password value, depending on the HSM.
+* `module-path` points to your PKCS #11 `.dll`, `.so`, or `.dylib` library file,
+* `token` is the label (`CKA_LABEL`) of the HSM you're using,
+* `pin-value` contains hardcoded HSM credentials. It may be a PIN, username and password, password, or a filename depending on the HSM,
+* Or, `pin-source` is a filename containing HSM credentials.
 
 Once the utility creates your PKI, it will output a few paths for your keys and certificates before exiting.
 You'll need these for step 2.
@@ -2398,12 +2399,12 @@ You'll also need to add a `kms` top-level object that contains your `pkcs11` mod
 
 ```json
 {
-        ...
-        "kms": {
-                "type": "pkcs11",
-                "uri": "pkcs11:module-path=/opt/cloudhsm/lib/libcloudhsm_pkcs11.so;token=cavium?pin-value=step_ca:RiFJrg93Tn_EXAMPLE"
-        },
-        ...
+  ...
+  "kms": {
+    "type": "pkcs11",
+    "uri": "pkcs11:module-path=/opt/cloudhsm/lib/libcloudhsm_pkcs11.so;token=cavium?pin-value=step_ca:RiFJrg93Tn_EXAMPLE"
+  },
+  ...
 }
 ```
 
