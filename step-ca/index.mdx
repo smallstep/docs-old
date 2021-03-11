@@ -52,7 +52,10 @@ For example, you can have your CA issue certificates in exchange for:
 
 `step-ca` ships with several built-in templates for everyday operations, and you can use Golang's `text/template` syntax to create new templates.
 
-### Integrations
+### Cryptographic Protection
 
-We've built `step-ca` integrations for Kubernetes, Cloud KMS, Envoy Secret Discovery Service, and Yubikey PIV, among others. See [Integrations](/docs/step-ca/integrations) to learn more.
+For strong protection of your CA signing keys, we've built `step-ca` integrations for PKCS #11 HSMs, Google Cloud KMS, AWS KMS, and Yubikey PIV, among others.
 
+### Other Integrations
+
+`step-ca` plays well with Kubernetes cert-manager and Envoy Secret Discovery Service. See [Integrations](/docs/step-ca/integrations) to learn more.
