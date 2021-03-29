@@ -59,6 +59,7 @@ learn how to configure your CA to:
   - [AWS KMS](#aws-kms)
   - [YubiKey PIV](#yubikey-piv)
   - [PKCS #11](#pkcs-11)
+- [Registration Authority (RA) mode](#registration-authority-ra-mode)
 
 ## Specifying a Configuration File
 
@@ -84,108 +85,108 @@ CA's keys.
 
 ```json
 {
-	"root": "examples/pki/secrets/root_ca.crt",
-	"federatedRoots": "examples/pki/secrets/federated_root_ca.crt",
-	"crt": "examples/pki/secrets/intermediate_ca.crt",
-	"key": "examples/pki/secrets/intermediate_ca_key",
-	"address": ":9000",
-	"dnsNames": [
-		"localhost"
-	],
-	"logger": {
-		"format": "text"
-	},
-    "db": {
-      "type": "badger",
-      "dataSource": "./.step/db",
+  "root": "examples/pki/secrets/root_ca.crt",
+  "federatedRoots": "examples/pki/secrets/federated_root_ca.crt",
+  "crt": "examples/pki/secrets/intermediate_ca.crt",
+  "key": "examples/pki/secrets/intermediate_ca_key",
+  "address": ":9000",
+  "dnsNames": [
+  	"localhost"
+  ],
+  "logger": {
+  	"format": "text"
+  },
+  "db": {
+    "type": "badger",
+    "dataSource": "./.step/db",
+  },
+  "authority": {
+    "claims": {
+      "minTLSCertDuration": "5m",
+      "maxTLSCertDuration": "24h",
+      "defaultTLSCertDuration": "24h",
+      "disableRenewal": false,
+      "minHostSSHCertDuration": "5m",
+      "maxHostSSHCertDuration": "1680h",
+      "defaultHostSSHCertDuration": "720h",
+      "minUserSSHCertDuration": "5m",
+      "maxUserSSHCertDuration": "24h",
+      "defaultUserSSHCertDuration": "16h",
     },
-	"authority": {
+  	"provisioners": [
+  		{
+  			"type": "jwk",
+  			"name": "mike@smallstep.com",
+  			"key": {
+  				"use": "sig",
+  				"kty": "EC",
+  				"kid": "YYNxZ0rq0WsT2MlqLCWvgme3jszkmt99KjoGEJJwAKs",
+  				"crv": "P-256",
+  				"alg": "ES256",
+  				"x": "LsI8nHBflc-mrCbRqhl8d3hSl5sYuSM1AbXBmRfznyg",
+  				"y": "F99LoOvi7z-ZkumsgoHIhodP8q9brXe4bhF3szK-c_w"
+  			},
+  			"encryptedKey": "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjdHkiOiJqd2sranNvbiIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjEwMDAwMCwicDJzIjoiVERQS2dzcEItTUR4ZDJxTGo0VlpwdyJ9.2_j0cZgTm2eFkZ-hrtr1hBIvLxN0w3TZhbX0Jrrq7vBMaywhgFcGTA.mCasZCbZJ-JT7vjA.bW052WDKSf_ueEXq1dyxLq0n3qXWRO-LXr7OzBLdUKWKSBGQrzqS5KJWqdUCPoMIHTqpwYvm-iD6uFlcxKBYxnsAG_hoq_V3icvvwNQQSd_q7Thxr2_KtPIDJWNuX1t5qXp11hkgb-8d5HO93CmN7xNDG89pzSUepT6RYXOZ483mP5fre9qzkfnrjx3oPROCnf3SnIVUvqk7fwfXuniNsg3NrNqncHYUQNReiq3e9I1R60w0ZQTvIReY7-zfiq7iPgVqmu5I7XGgFK4iBv0L7UOEora65b4hRWeLxg5t7OCfUqrS9yxAk8FdjFb9sEfjopWViPRepB0dYPH8dVI.fb6-7XWqp0j6CR9Li0NI-Q",
+  			"claims": {
+  				"minTLSCertDuration": "1m0s",
+  				"defaultTLSCertDuration": "2m0s"
+  			},
+        "options": {
+          "x509": {
+            "templateFile": "templates/certs/x509/default.tpl"
+          },
+          "ssh": {
+            "templateFile": "templates/certs/ssh/default.tpl"
+          }
+        }
+  		},
+      {
+        "type": "OIDC",
+        "name": "Google",
+        "clientID": "1087160488420-8qt7bavg3qesdhs6it824mhnfgcfe8il.apps.googleusercontent.com",
+        "clientSecret": "udTrOT3gzrO7W9fDPgZQLfYJ",
+        "configurationEndpoint": "https://accounts.google.com/.well-known/openid-configuration",
+        "admins": ["you@smallstep.com"],
+        "domains": ["smallstep.com"],
+        "listenAddress": ":10000",
         "claims": {
-            "minTLSCertDuration": "5m",
-            "maxTLSCertDuration": "24h",
-            "defaultTLSCertDuration": "24h",
-            "disableRenewal": false,
-            "minHostSSHCertDuration": "5m",
-            "maxHostSSHCertDuration": "1680h",
-            "defaultHostSSHCertDuration": "720h",
-            "minUserSSHCertDuration": "5m",
-            "maxUserSSHCertDuration": "24h",
-            "defaultUserSSHCertDuration": "16h",
+          "maxTLSCertDuration": "8h",
+          "defaultTLSCertDuration": "2h",
+          "enableSSHCA": true,
+          "disableRenewal": true
         },
-		"provisioners": [
-			{
-				"type": "jwk",
-				"name": "mike@smallstep.com",
-				"key": {
-					"use": "sig",
-					"kty": "EC",
-					"kid": "YYNxZ0rq0WsT2MlqLCWvgme3jszkmt99KjoGEJJwAKs",
-					"crv": "P-256",
-					"alg": "ES256",
-					"x": "LsI8nHBflc-mrCbRqhl8d3hSl5sYuSM1AbXBmRfznyg",
-					"y": "F99LoOvi7z-ZkumsgoHIhodP8q9brXe4bhF3szK-c_w"
-				},
-				"encryptedKey": "eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJjdHkiOiJqd2sranNvbiIsImVuYyI6IkEyNTZHQ00iLCJwMmMiOjEwMDAwMCwicDJzIjoiVERQS2dzcEItTUR4ZDJxTGo0VlpwdyJ9.2_j0cZgTm2eFkZ-hrtr1hBIvLxN0w3TZhbX0Jrrq7vBMaywhgFcGTA.mCasZCbZJ-JT7vjA.bW052WDKSf_ueEXq1dyxLq0n3qXWRO-LXr7OzBLdUKWKSBGQrzqS5KJWqdUCPoMIHTqpwYvm-iD6uFlcxKBYxnsAG_hoq_V3icvvwNQQSd_q7Thxr2_KtPIDJWNuX1t5qXp11hkgb-8d5HO93CmN7xNDG89pzSUepT6RYXOZ483mP5fre9qzkfnrjx3oPROCnf3SnIVUvqk7fwfXuniNsg3NrNqncHYUQNReiq3e9I1R60w0ZQTvIReY7-zfiq7iPgVqmu5I7XGgFK4iBv0L7UOEora65b4hRWeLxg5t7OCfUqrS9yxAk8FdjFb9sEfjopWViPRepB0dYPH8dVI.fb6-7XWqp0j6CR9Li0NI-Q",
-				"claims": {
-					"minTLSCertDuration": "1m0s",
-					"defaultTLSCertDuration": "2m0s"
-				},
-                "options": {
-                    "x509": {
-                        "templateFile": "templates/certs/x509/default.tpl"
-                    },
-                    "ssh": {
-                        "templateFile": "templates/certs/ssh/default.tpl"
-                    }
-                }
-			},
-            {
-              "type": "OIDC",
-              "name": "Google",
-              "clientID": "1087160488420-8qt7bavg3qesdhs6it824mhnfgcfe8il.apps.googleusercontent.com",
-              "clientSecret": "udTrOT3gzrO7W9fDPgZQLfYJ",
-              "configurationEndpoint": "https://accounts.google.com/.well-known/openid-configuration",
-              "admins": ["you@smallstep.com"],
-              "domains": ["smallstep.com"],
-              "listenAddress": ":10000",
-              "claims": {
-                "maxTLSCertDuration": "8h",
-                "defaultTLSCertDuration": "2h",
-                "enableSSHCA": true,
-                "disableRenewal": true
-              },
-              "options": {
-                  "x509": {
-                      "templateFile": "templates/certs/x509/default.tpl"
-                  },
-                  "ssh": {
-                      "templateFile": "templates/certs/ssh/default.tpl"
-                  }
-              }
-            },
-            {
-				"type": "SSHPOP",
-				"name": "sshpop-smallstep",
-				"claims": {
-					"enableSSHCA": true
-				}
-			},
-            {
-				"type": "ACME",
-				"name": "my-acme-provisioner"
-			}
-		]
-	},
-	"tls": {
-		"cipherSuites": [
-			"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
-			"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
-		],
-		"minVersion": 1.2,
-		"maxVersion": 1.2,
-		"renegotiation": false
-	},
-	"password": "p@55w0rd"
+        "options": {
+          "x509": {
+            "templateFile": "templates/certs/x509/default.tpl"
+          },
+          "ssh": {
+            "templateFile": "templates/certs/ssh/default.tpl"
+          }
+        }
+      },
+      {
+  			"type": "SSHPOP",
+  			"name": "sshpop-smallstep",
+  			"claims": {
+  				"enableSSHCA": true
+  			}
+  		},
+      {
+  			"type": "ACME",
+  			"name": "my-acme-provisioner"
+  		}
+  	]
+  },
+  "tls": {
+  	"cipherSuites": [
+  		"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
+  		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+  	],
+  	"minVersion": 1.2,
+  	"maxVersion": 1.2,
+  	"renegotiation": false
+  },
+  "password": "p@55w0rd"
 }
 ```
 
@@ -234,6 +235,9 @@ CA's keys.
 - **tls**: settings for negotiating communication with the CA; includes acceptable ciphersuites, min/max TLS version, etc.
 
 - **authority**: controls the request authorization and signature processes.
+
+  - **type**: the type of backing CA service that issues certificates for this step-ca instance. The default is an internal certificate authority service.
+  Other options can turn `step-ca` into a Registration Authority: `stepcas` uses a remote `step-ca` instance as the backend, and `cloudcas` uses a Google CloudCAS.
 
   - **template**: default ASN1DN values for new certificates.
 
@@ -2407,4 +2411,83 @@ You'll also need to add a `kms` top-level object that contains your `pkcs11` mod
   ...
 }
 ```
+
+## Registration Authority (RA) Mode
+
+Sometimes you may wish to run a Registration Authority (RA).
+An RA acts as a front-end to a CA, authenticating certificate requests from its clients before passing them along to an upstream Certificate Auothority that will issue the certificates.
+This operational mode centralizes and simplifies CA key management, because a single backing CA can serve several RAs.
+
+In RA mode, `step-ca` currently supports two backing CA types: Another `step-ca` instance ("StepCAS"), or Google CloudCAS.
+
+![Example PKI topology with StepCAS RA Mode](/static/graphics/stepcas-ra-mode.png)
+
+### StepCAS RA mode
+
+StepCAS allows configuring step-ca as an RA, using another step-ca as the main CA.
+
+The current implementation supports X5C and JWK provisioners for communication between RAs and the CA.
+The RA can use any provisioners with its clients.
+
+
+The configuration of the RA can look like
+```json
+{
+	"address": ":9100",
+	"dnsNames": ["ra.smallstep.com"],
+	"db": {
+		"type": "badgerV2",
+		"dataSource": "/home/step/db"
+	},
+	"logger": {"format": "text"},
+	"authority": {
+		"type": "stepcas",
+		"certificateAuthority": "https://ca.smallstep.com:9000",
+		"certificateAuthorityFingerprint": "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe134a2c257726f92c403f5",
+		"certificateIssuer": {
+			"type": "x5c", 
+			"provisioner": "X5C",
+			"crt": "/home/step/x5c.crt",
+			"key": "/home/step/x5c.key"
+		},
+		"provisioners": [{
+			"type": "ACME",
+			"name": "acme"
+		}]
+	},
+	"tls": {
+		"cipherSuites": [
+			"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
+ 			"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+		],
+		"minVersion": 1.2,
+		"maxVersion": 1.3,
+		"renegotiation": false
+	}
+}
+```
+
+To configure it with a JWK provisioner we'll change the `"certificateIssuer"` property to something like:
+```json
+{
+	"type": "jwk", 
+	"provisioner": "mariano@smallstep.com",
+	"key": "/Users/mariano/.step/secrets/provisioner.key"
+}
+```		
+
+If either the x5c key or the jwk key is password-protected, the password can be given in the configuration like
+```json
+{
+	"type": "jwk", 
+	"provisioner": "mariano@smallstep.com",
+	"key": "/Users/mariano/.step/secrets/provisioner.enc.key",
+	"password": "super-secret-password"
+}
+```		
+
+An RA can use any provisioners to authenticate requests, but there are some caveats:
+* `step ca renew` (mTLS renewals) are not yet supported between `step` clients and an RA.
+* ACME load balancing between RAs is not supported.
+* RAs keys cannot be stored in KMS or HSMs; only files are supported.
 

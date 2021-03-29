@@ -6,6 +6,8 @@ unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
 import CodeBlock from 'docs/CodeBlock';
+import Alert from 'docs/Alert';
+import AlertTitle from 'docs/AlertTitle';
 
 This document defines and describes certificate authority core concepts that are integral to the design
 and practical usage of `step-ca`.
@@ -19,10 +21,14 @@ certificate management may want to check out...
 ## Overview
 
 - [Online and Offline X.509 Certificate Authority](#online-and-offline-x509-certificate-authority)
+- [Other Operational Modes](#other-operational-modes)
 - [Provisioners](#provisioners)
 - [Active vs. Passive Revocation](#active-vs-passive-revocation)
 
 ## Online and Offline X.509 Certificate Authority
+
+Certificate Authorities (CAs) tend to be either "online" or "offline" mode.
+
 
 When referring to Certificate Authorities (CAs), _offline_ generally means
 air-gapped or network isolated. However, the term _offline_ has a different
@@ -44,7 +50,7 @@ Our tools support three modes of generating and operating a Certificate Authorit
 [stateless-ca]: /docs/step-cli/basic-crypto-operations#run-an-offline-x509-certificate-authority
 [stateful-ca]: /docs/step-ca/getting-started
 
-### CA Offline Mode
+### Example: Offline Mode
 
 It's not always practical or desirable to run an online CA.
 Smallstep provides the means to create certificates without `step-ca` running.
@@ -55,18 +61,17 @@ $ step ca init --name "Local CA" --provisioner admin --dns localhost --address "
 $ step ca certificate --offline foo.smallstep.com foo.crt foo.key
 ```
 
-`step-cli` can also generate bootstrap tokens in offline mode and exchange them with a running CA for a certificate.
-This workflow is useful when generating tokens on a host without direct access to the running CA.
+## Registration Authority (RA) mode
 
-```shell-session nocopy
-$ TOKEN=$(step ca token --offline foo.smallstep.com) 
-$ step ca certificate --token=$TOKEN foo.smallstep.com foo.crt foo.key
-```
+Sometimes you may wish to run a Registration Authority (RA).
+An RA acts as a front-end to a CA, authenticating certificate requests from its clients before passing them along to an upstream Certificate Auothority that will issue the certificates.
+This operational mode centralizes and simplifies CA key management, because a single backing CA can serve several RAs.
 
-<Alert severity="info">
-You cannot exchange a token for a certificate that will be generated offline.
-The token must be exchanged with an online CA.
-</Alert>
+In RA mode, `step-ca` currently supports two backing CA types: Another `step-ca` instance ("StepCAS"), or Google CloudCAS.
+
+![Example PKI topology with StepCAS RA Mode](/static/graphics/stepcas-ra-mode.png)
+
+See the [Registration Authority (RA) Mode](configuration#registration-authority-ra-mode) section of our Configuration Guide for more on RA mode.
 
 ## Provisioners
 
