@@ -2542,6 +2542,11 @@ As before, use `--issuer-password-file` to provide the encrypted key password wh
 
 #### Using the X5C provisioner
 
+Instead of a JWK, the RA can alternatively use certificate authentication with the CA, via the [X5C Provisioner](#x5c-x509-certificate).
+While this approach is more complex,
+it offers more security because it uses expiring certificates instead of non-expiring JWKs.
+In this scenario, the RA will need to be configured with a certificate and key signed by the root configured in the CA's X5C provisioner.
+
 To configure an RA <-> CA connection using an X5C provisioner,
 first add an X5C provisioner to the CA.
 (See the [X5C Provisioner](#x5c-x509-certificate) configuration section.)
@@ -2605,18 +2610,18 @@ you'll need to set up your Google Cloud project using the `gcloud` CLI:
 1. Create or define a project to use. In this example, we'll call it `smallstep-cas-test`.
 2. Create the KMS keyring and keys for your root and intermediate certificates:
 
-   ```sh
+   ```shell-session
    # Create key ring
-   gcloud kms keyrings create kr1 --location us-west1
+   $ gcloud kms keyrings create kr1 --location us-west1
    # Create key for Root certificate
-   gcloud kms keys create k1 \
+   $ gcloud kms keys create k1 \
        --location us-west1 \
        --keyring kr1 \
        --purpose asymmetric-signing \
        --default-algorithm ec-sign-p256-sha256 \
        --protection-level software
    # Create key for Intermediate certicate
-   gcloud kms keys create k2 \
+   $ gcloud kms keys create k2 \
        --location us-west1 \
        --keyring kr1 \
        --purpose asymmetric-signing \
@@ -2625,35 +2630,44 @@ you'll need to set up your Google Cloud project using the `gcloud` CLI:
 
    # Put the resource name for version 1 of the new KMS keys into a shell variable.
    # This will be used in the other instructions below.
-   KMS_ROOT_KEY_VERSION=$(gcloud kms keys versions describe 1 --key k1 --keyring kr1 --location us-west1 --format "value(name)")
-   KMS_INTERMEDIATE_KEY_VERSION=$(gcloud kms keys versions describe 1 --key k2 --keyring kr1 --location us-west1 --format "value(name)")
+   $ KMS_ROOT_KEY_VERSION=$(gcloud kms keys versions describe 1 --key k1 --keyring kr1 --location us-west1 --format "value(name)")
+   $ KMS_INTERMEDIATE_KEY_VERSION=$(gcloud kms keys versions describe 1 --key k2 --keyring kr1 --location us-west1 --format "value(name)")
    ```
 
 3. Enable the CA service API. Run:
 
-   ```sh
-   gcloud services enable privateca.googleapis.com
+   ```shell-session
+   $ gcloud services enable privateca.googleapis.com
    ```
 
-4. Configure IAM. Create a service account and set up its policies by running:
+4. Configure API access.
 
-   ```sh
-   # Create service account
-   gcloud iam service-accounts create step-ca-sa \
+   Start by creating a service account for accessing CAS:
+
+   ```shell-session
+   $ gcloud iam service-accounts create step-ca-sa \
        --project smallstep-cas-test \
        --description "Step-CA Service Account" \
        --display-name "Step-CA Service Account"
-   # Add permissions to use the privateca API
-   gcloud projects add-iam-policy-binding smallstep-cas-test \
+   ```
+
+  Now add permissions to use the CAS API:
+
+  ```shell-session
+   $ gcloud projects add-iam-policy-binding smallstep-cas-test \
        --member=serviceAccount:step-ca-sa@smallstep-cas-test.iam.gserviceaccount.com \
        --role=roles/privateca.caManager
-   gcloud projects add-iam-policy-binding smallstep-cas-test \
+   $ gcloud projects add-iam-policy-binding smallstep-cas-test \
        --member=serviceAccount:step-ca-sa@smallstep-cas-test.iam.gserviceaccount.com \
        --role=roles/privateca.certificateRequester
-   # Download the service account keys
-   gcloud iam service-accounts keys create credentials.json \
+  ```
+
+  Finally, download the service account credentials, which you will use to configure the RA:
+
+  ```shell-session
+   $ gcloud iam service-accounts keys create credentials.json \
       --iam-account step-ca-sa@smallstep-cas-test.iam.gserviceaccount.com
-   ```
+  ```
 
   The RA will use the service account you just created, via the keys you exported into `credentials.json`.
 
@@ -2718,7 +2732,7 @@ you'll need to set up your Google Cloud project using the `gcloud` CLI:
 
   The RA will print your CA's root fingerprint upon startup:
 
-  ```sh
+  ```shell-session
   $ step-ca /home/jane/.step/config/ca.json
   2020/09/22 13:17:15 Using root fingerprint '3ef16343cf0952eedbe2b843066bb798fa7a7bceb16aa285e8b0399f661b28b7'
   2020/09/22 13:17:15 Serving HTTPS on :9000 ...
@@ -2726,13 +2740,13 @@ you'll need to set up your Google Cloud project using the `gcloud` CLI:
 
   Save the fingerprint! You will need it to bootstrap new clients into your PKI:
 
-  ```sh
-  step ca bootstrap --ca-url https://ra.example.com --fingerprint 3ef16343cf0952eedbe2b843066bb798fa7a7bceb16aa285e8b0399f661b28b7
+  ```shell-session
+  $ step ca bootstrap --ca-url https://ra.example.com --fingerprint 3ef16343cf0952eedbe2b843066bb798fa7a7bceb16aa285e8b0399f661b28b7
   ```
 
   Finally, we can sign sign a certificate as always:
 
-  ```sh
-  step ca certificate test.example.com test.crt test.key
+  ```shell-session
+  $ step ca certificate test.example.com test.crt test.key
   ```
 
