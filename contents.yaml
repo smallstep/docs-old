@@ -1,3 +1,15 @@
+Platform:
+  - title: Authorities
+    path: platform/authorities
+  - title: Provisioners
+    path: platform/provisioners
+  - title: Inventories
+    path: platform/inventories
+  - title: Templates
+    path: platform/templates
+  - title: Events
+    path: platform/events
+  
 smallstep_ssh:
   - title: Client Quickstart Guide
     path: ssh/client
