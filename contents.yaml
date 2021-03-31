@@ -1,4 +1,4 @@
-Platform:
+platform:
   - title: Authorities
     path: platform/authorities
   - title: Provisioners
@@ -9,7 +9,7 @@ Platform:
     path: platform/templates
   - title: Events
     path: platform/events
-  
+
 smallstep_ssh:
   - title: Client Quickstart Guide
     path: ssh/client
