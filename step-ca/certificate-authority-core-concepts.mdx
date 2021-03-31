@@ -64,7 +64,7 @@ $ step ca certificate --offline foo.smallstep.com foo.crt foo.key
 ## Registration Authority (RA) mode
 
 Sometimes you may wish to run a Registration Authority (RA).
-An RA acts as a front-end to a CA, authenticating certificate requests from its clients before passing them along to an upstream Certificate Auothority that will issue the certificates.
+An RA acts as a front-end to a CA, authenticating certificate requests from its clients before passing them along to an upstream Certificate Authority that will issue the certificates.
 This operational mode centralizes and simplifies CA key management, because a single backing CA can serve several RAs.
 
 In RA mode, `step-ca` currently supports two backing CA types: Another `step-ca` instance ("StepCAS"), or Google CloudCAS.
