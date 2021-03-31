@@ -793,10 +793,9 @@ see the [claims](#claims) section for all the options.
 
 ### ACME
 
-An ACME provisioner allows a client to request a certificate from the server
-using the [ACME Protocol](https://tools.ietf.org/html/rfc8555). The ACME
-provisioner can only request X509 certificates. All authentication of the CSR
-is managed by the ACME protocol.
+An ACME provisioner allows a client to request a certificate from the server using the [ACME Protocol](https://tools.ietf.org/html/rfc8555).
+The ACME provisioner can only request X.509 certificates.
+All authentication of the CSR is managed by the ACME protocol.
 
 #### Example
 
@@ -2638,11 +2637,12 @@ you'll need to set up your Google Cloud project using the `gcloud` CLI:
    gcloud projects add-iam-policy-binding smallstep-cas-test \
        --member=serviceAccount:step-ca-sa@smallstep-cas-test.iam.gserviceaccount.com \
        --role=roles/privateca.certificateRequester
-   # Download the credentials.file
+   # Download the service account keys
    gcloud iam service-accounts keys create credentials.json \
       --iam-account step-ca-sa@smallstep-cas-test.iam.gserviceaccount.com
    ```
 
+  The RA will use the service account you just created, via the keys you exported into `credentials.json`.
 
 5. Initialize your PKI.
 
@@ -2694,13 +2694,17 @@ you'll need to set up your Google Cloud project using the `gcloud` CLI:
   }
   ```
 
+  Note that `"credentialsFile"` isn't the only way you can provide Google Cloud `credentials.json` filename to the RA.
+  You can also use the `GOOGLE_APPLICATION_CREDENTIALS` environment variable.
+
+
 6. Start `step-ca`
 
   `step-ca` will automatically download the root certificate from Google CAS.
   In `ca.json`, you don't need to configure `"root"`,
   and because the intermediate is in Google Cloud, `"crt"` and `"key"` are not needed.
 
-  The CA will print the root fingerprint upon startup:
+  The RA will print your CA's root fingerprint upon startup:
 
   ```sh
   $ step-ca /home/jane/.step/config/ca.json
