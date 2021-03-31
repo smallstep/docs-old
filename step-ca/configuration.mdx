@@ -2503,35 +2503,48 @@ The crucial bit of configuration here is the `"certificateIssuer"` section.
 This connects this RA to the CA using the JWK provisioner named `ra@smallstep.com` on the CA.
 When `step-ca` starts up with this configuration, it will download the encrypted JWK key from the CA automatically.
 The RA will still need the JWK provisioner password, to decrypt the key.
-The JWK password can be passed in via a file when starting the RA:
+The JWK password can be supplied in a `"password"` field in the `"certificateIssuer"` block,
+or it can be passed in via a file when starting the RA:
 
 ```bash
 $ step-ca --issuer-password-file=$(step path)/secrets/issuer_jwk_password.txt $(step path)/config/ca.json
 ```
 
-That's it. Your RA is ready to process ACME requests.
+Your RA is ready to process certificate requests.
 
-#### Adding the issuer's password to `ca.json`
+#### Securing the issuer credentials with a different password
 
-If `--issuer-password-file` isn't to your liking, you can provide an issuer `"password"` in the `"certificateIssuer"` configuration block:
+If you don't want your RA to hold the CA's provisioner password,
+you can create a new key for your RA by decrypting the CA's provisioner key and re-encrypting it with a new password for the RA.
 
-```json
-{
-  "type": "jwk", 
-  "provisioner": "mariano@smallstep.com",
-  "key": "/Users/mariano/.step/secrets/provisioner.enc.key",
-  "password": "super-secret-password"
-}
-```
+1. On the CA, create a new private key that the RA will use:
 
-This works for upstream JWK or X5C provisioners.
+  ```bash
+  $ jq -r '.authority.provisioners[] | select(.type == "JWK") | .encryptedKey' < $(step path)/config/ca.json | step crypto key format --pkcs8 > ra.key.pem
+  ```
+
+  You will be asked for the JWK password to decrypt the provisioner key,
+  and a new password to encrypt a new PEM file for your RA.
+
+2. Transfer `ra.key.pem` to your RA
+
+  On the RA, save the PEM file into `$STEPPATH/secrets` and configure the `"certificateIssuer"` as follows:
+
+  ```json
+  {
+    "type": "jwk", 
+    "provisioner": "jane@smallstep.com",
+    "key": "/home/jane/.step/secrets/ra.key.pem"
+  }
+  ```
+
+As before, use `--issuer-password-file` to provide the encrypted key password when starting up the CA.
 
 #### Using the X5C provisioner
 
-To configure an RA <-> CA pair to use an X5C provisioner,
+To configure an RA <-> CA connection using an X5C provisioner,
 first add an X5C provisioner to the CA.
-
-See the [X5C Provisioner](#x5c-x509-certificate) configuration section for more details.
+(See the [X5C Provisioner](#x5c-x509-certificate) configuration section.)
 
 Then, change the `"certificateIssuer"` object on the RA as follows:
 
@@ -2694,15 +2707,14 @@ you'll need to set up your Google Cloud project using the `gcloud` CLI:
   }
   ```
 
-  Note that `"credentialsFile"` isn't the only way you can provide Google Cloud `credentials.json` filename to the RA.
-  You can also use the `GOOGLE_APPLICATION_CREDENTIALS` environment variable.
-
+  The `"credentialsFile"` field isn't the only option for providing Google Cloud `credentials.json` filename to the RA.
+  You can alternatively set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable.
 
 6. Start `step-ca`
 
   `step-ca` will automatically download the root certificate from Google CAS.
   In `ca.json`, you don't need to configure `"root"`,
-  and because the intermediate is in Google Cloud, `"crt"` and `"key"` are not needed.
+  and because the intermediate is in Google Cloud, `"crt"` and `"key"` are also not needed.
 
   The RA will print your CA's root fingerprint upon startup:
 
