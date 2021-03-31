@@ -2417,7 +2417,7 @@ You'll also need to add a `kms` top-level object that contains your `pkcs11` mod
 
 Sometimes you may wish to run a Registration Authority (RA).
 An RA acts as a front-end to a CA, authenticating certificate requests from its clients
-before passing them along to an upstream Certificate Authority that will issue the certificates.
+before passing them along to an upstream Certificate Authority that trusts the RA and will issue the certificates.
 RAs are often used to distribute certificates across several cloud providers or on-prem environments.
 
 The RA operational mode for `step-ca` centralizes and simplifies key management,
@@ -2425,10 +2425,11 @@ because a single backing CA can serve several RAs.
 
 <Alert severity="info" id="star11">
   <div>
-    <strong>CAS vs. KMS</strong><br />
+    <strong>Certificate Authority Service (CAS) vs. Key Management Service (KMS)</strong><br />
     In an RA setup, the upstream CA is also known as a Certificate Authority Service (CAS).
-    A CAS is a system that implements an API to sign certificate requests.
-    A KMS can sign any data, while a CAS is intended to sign only X.509 certificates.
+    A CAS is a service that implements an API to sign certificate requests from a trusted source.<br />
+    If you've used a KMS before, you may wonder: How is a CAS different from a KMS?
+    A KMS can sign any data, while a CAS is intended to sign <i>only</i> X.509 certificates.
   </div>
 </Alert>
 
@@ -2443,24 +2444,28 @@ or a Google Cloud CAS private CA.
 
 StepCAS allows configuring a `step-ca` server as an RA, with a second, upstream `step-ca` server acting as the main CA.
 
-#### Example: A Simple RA <-> CA Configuration
+StepCAS supports the JWK and X5C provisioners for requests between RAs and the CA.
+The JWK provisioner balances security and simplicity, and it covers the most common use cases.
+The X5C provisioner allows for more complex trust relationships and expiring certificates,
+but it requires setting up ongoing certificate lifecycle management on the RAs.
 
-Let's set up a simple RA <-> CA configuration, with one RA and one CA.
+#### Example: A Simple RA ↔ CA Configuration
+
+Let's set up a simple RA ↔ CA pair, with one RA and one upstream CA.
+
 The CA will be configured with a JWK provisioner,
 and the RA will use that provisioner to make authenticated certificate requests to the CA.
 
-The RA, in turn, can use any `step-ca` provisioners with its clients.
-Configure RA provisioners just as you would configure provisioners for a CA.
+The RA, in turn, can offer its clients certificates using any `step-ca` provisioners.
+In this example, we'll configure an ACME provisioner in the RA.
+Configure additional RA provisioners just as you would configure provisioners for a CA.
 
 #### Setting up the CA
 
 You can set up the CA using the [Getting Started](./getting-started) guide.
-You will need the name and password of the first provisioner that you create during the `step ca init` process.
+You will need the name and password of the first provisioner you created during the `step ca init` process.
 
 #### Setting up the RA
-
-The current implementation supports the JWK and X5C provisioners for communication between RAs and the CA.
-The JWK provisioner is recommended, as it covers the most common use case.
 
 Here's an example configuration file for an RA that uses the JWK provisioner to connect to the CA,
 and that offers an ACME provisioner to its clients:
@@ -2500,8 +2505,9 @@ and that offers an ACME provisioner to its clients:
 ```
 
 The crucial bit of configuration here is the `"certificateIssuer"` section.
-This connects this RA to the CA using the JWK provisioner named `ra@smallstep.com` on the CA.
-When `step-ca` starts up with this configuration, it will download the encrypted JWK key from the CA automatically.
+This section connects this RA to the CA using the JWK provisioner named `ra@smallstep.com` on the CA.
+
+When `step-ca` starts up with this RA configuration, it will download the encrypted JWK key from the CA automatically.
 The RA will still need the JWK provisioner password, to decrypt the key.
 The JWK password can be supplied in a `"password"` field in the `"certificateIssuer"` block,
 or it can be passed in via a file when starting the RA:
@@ -2515,7 +2521,7 @@ Your RA is ready to process certificate requests.
 #### Securing the issuer credentials with a different password
 
 If you don't want your RA to hold the CA's provisioner password,
-you can create a new key for your RA by decrypting the CA's provisioner key and re-encrypting it with a new password for the RA.
+you can create a new key for your RA by decrypting the CA's JWK provisioner key and re-encrypting it with a new password for the RA.
 
 1. On the CA, create a new private key that the RA will use:
 
@@ -2538,7 +2544,7 @@ you can create a new key for your RA by decrypting the CA's provisioner key and 
   }
   ```
 
-Finally, use `--issuer-password-file` to provide the encrypted key password when starting up the CA.
+Finally, use `--issuer-password-file` to provide a password file when starting up the CA.
 
 #### Using the X5C provisioner
 
@@ -2548,7 +2554,7 @@ it offers more security because it uses expiring certificates instead of non-exp
 
 In this scenario, the RA `"certificateIssuer"` block will need to be configured with a certificate and key signed by a CA that the CA's X5C provisioner is configured to trust.
 
-To configure an RA <-> CA connection using an X5C provisioner,
+To configure an RA ↔ CA connection using an X5C provisioner,
 first add an X5C provisioner to the CA.
 (See the [X5C Provisioner](#x5c-x509-certificate) configuration section.)
 
@@ -2565,7 +2571,7 @@ Next, change the `"certificateIssuer"` object in the RA configuration as follows
 
 These files will are read by `step-ca` upon every certificate request made to the RA.
 
-Finally, use `--issuer-password-file` to provide the private key password when starting up the CA.
+Finally, use `--issuer-password-file` to provide a private key password file when starting up the CA.
 
 #### StepCAS Caveats
 
