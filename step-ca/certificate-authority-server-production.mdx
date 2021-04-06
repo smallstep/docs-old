@@ -125,7 +125,7 @@ and we generally don't like software that lets users stumble upon insecure patte
 For posterity, if you've secured your environment and rely on it for secrets:
 
 ```shell
-step-ca --password-file <(echo -n "$STEP_CA_PASSWORD")
+step-ca --password-file <(printenv STEP_CA_PASSWORD) $(step path)/config/ca.json
 ```
 
 is a workaround if you prefer to have your passwords in the environment. 
