@@ -22,6 +22,7 @@ should know about when running `step-ca` as a certificate authority server.
 - [Good Security Practices](#securing-your-pki)
   - [Safeguard Your Root Key](#safeguard-your-root-key)
   - [Use Strong Passwords and Store Them Well](#use-strong-passwords-and-store-them-well)
+  - [Avoid Storing Passwords In Environment Variables](#avoid-storing-passwords-in-environment-variables)
   - [Delete Your Default Provisioner](#delete-your-default-provisioner)
   - [Use Short-Lived Certificates](#use-short-lived-certificates)
   - [Create a Service User to Run `step-ca`](#create-a-service-user-to-run-step-ca)
@@ -67,14 +68,14 @@ See the [Cryptographic Protection](/docs/step-ca/configuration#cryptographic-pro
 
 ### Use Strong Passwords and Store Them Well
 
-When you initialize your PKI (`step ca init`) the root and intermediate
-private keys will be encrypted with the same password.
+When you initialize your PKI (`step ca init`) 
+the root and intermediate private keys will be encrypted with the same password.
 
-Use a password manager to generate random passwords, or let `step ca init`
-generate a strong password for you.
+Use a password manager to generate random passwords, 
+or let `step ca init` generate a strong password for you.
 
-After initializing your CA, we recommend that you immediately change the password
-for the intermediate CA private key:
+After initializing your CA, 
+we recommend that you immediately change the password for the intermediate CA private key:
 
 ```shell
 step crypto change-pass $STEPPATH/secrets/intermediate_ca_key
@@ -91,19 +92,44 @@ You'll use this new intermediate key password to start `step-ca`.
   </div>
 </Alert>
 
-Once you've changed the intermediate private key password, you should never have
-to use the root private key password again. So, then what should you do with it?
+Once you've changed the intermediate private key password, 
+you should never have to use the root private key password again. 
+So, then what should you do with it?
 
 Bury it in a cave high in the mountains.
 
-Or, store it in a [password manager](https://en.wikipedia.org/wiki/List_of_password_managers)
-or secrets manager. There are many to choose from and the choice will depend on the risk & security
-profile of your organization.
+Or, store it in a [password manager](https://en.wikipedia.org/wiki/List_of_password_managers) or secrets manager. 
+There are many to choose from and the choice will depend on the risk & security profile of your organization.
 
-In addition to using a password manager to store all passwords (private key,
-provisioner password, etc.) we recommend using a threshold cryptography algorithm like
+In addition to using a password manager to store all passwords 
+(private key, provisioner password, etc.) we recommend using a threshold cryptography algorithm like
 [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir's_Secret_Sharing)
 to divide the root private key password across a handful of trusted parties.
+
+
+### Avoid Storing Passwords in Environment Variables
+
+`systemd` discourages using the environment for secrets 
+because it doesn't consider it secure and exposes a unit's environment over dbus:
+
+> Note that environment variables are not suitable for passing secrets (such as passwords, key material, …) to service processes. 
+> Environment variables set for a unit are exposed to unprivileged clients via D-Bus IPC, and generally not understood as being data that requires protection. 
+> Moreover, environment variables are propagated down the process tree, 
+> including across security boundaries (such as setuid/setgid executables), 
+> and hence might leak to processes that should not have access to the secret data.
+
+For container, namespace, and/or non-systemd scenarios we could see an argument for the convenience. 
+But only using the option in those cases would need to be drilled into users, 
+and we generally don't like software that lets users stumble upon insecure patterns.
+
+For posterity, if you've secured your environment and rely on it for secrets:
+
+```shell
+step-ca --password-file <(echo -n "$STEP_CA_PASSWORD")
+```
+
+is a workaround if you prefer to have your passwords in the environment. 
+This method is known as [Bash Process Subsitution](https://www.gnu.org/software/bash/manual/html_node/Process-Substitution.html).
 
 ### Delete Your Default Provisioner
 
