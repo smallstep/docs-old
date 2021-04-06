@@ -28,6 +28,7 @@ It's trivial to install the `step-ca` binary on your local machine.
 - [Linux](#linux)
   - [Debian](#debian)   
   - [Arch Linux](#arch-linux)
+  - [Alpine Linux](#alpine-linux)
   - [RHEL/CentOS](#rhelcentos)
 - [Kubernetes](#kubernetes)
 - [Docker](#docker)
@@ -58,8 +59,8 @@ brew install step
     Download and install the Debian package from our [latest release](https://github.com/smallstep/cli/releases/latest):
     
     ```shell
-    wget https://github.com/smallstep/cli/releases/download/v0.15.12/step-cli_0.15.12_amd64.deb
-    sudo dpkg -i step-cli_0.15.12_amd64.deb
+    wget https://github.com/smallstep/cli/releases/download/v0.15.14/step-cli_0.15.14_amd64.deb
+    sudo dpkg -i step-cli_0.15.14_amd64.deb
     ```
 
 2. Install `step-ca`
@@ -67,19 +68,31 @@ brew install step
     Download and install the Debian package from our [latest release](https://github.com/smallstep/certificates/releases/latest):
 
     ```shell
-    wget https://github.com/smallstep/certificates/releases/download/v0.15.8/step-certificates_0.15.8_amd64.deb
-    sudo dpkg -i step-certificates_0.15.8_amd64.deb
+    wget https://github.com/smallstep/certificates/releases/download/v0.15.11/step-ca_0.15.11_amd64.deb
+    sudo dpkg -i step-ca_0.15.11_amd64.deb
     ```
 
 #### Arch Linux
 
-We are using the [Arch User Repository](https://aur.archlinux.org/) to
-distribute `step` and `step-ca` binaries for Arch Linux.
+There are community driven Arch Linux packages 
+(using the [Arch User Repository](https://aur.archlinux.org/)) 
+for `step` and `step-ca`:
 
-- The `step` binary tarball can be found [here](https://aur.archlinux.org/packages/step-cli-bin/).
-- The `step-ca` binary tarball can be found [here](https://aur.archlinux.org/packages/step-ca-bin/).
+- The `step` binary tarball can be found [here](https://archlinux.org/packages/community/x86_64/step-cli/).
+- The `step-ca` binary tarball can be found [here](https://archlinux.org/packages/community/x86_64/step-ca/).
 
 You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
+
+Big shout out to the maintainers of these packages! We appreciate you.
+
+#### Alpine Linux
+
+There are community driven Alpine Linux Packages for `step` and `step-ca`:
+
+- The `step` package can be found [here](https://pkgs.alpinelinux.org/package/edge/testing/x86/step-cli).
+- The `step-ca` package can be found [here](https://pkgs.alpinelinux.org/package/edge/testing/x86/step-certificates).
+
+Big shout out to the maintainers of these packages! We appreciate you.
 
 #### RHEL/CentOS
 
@@ -88,9 +101,9 @@ You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
     Download and install the Linux tarball from our [latest release](https://github.com/smallstep/cli/releases/latest):
 
     ```shell
-    wget -O step.tar.gz https://github.com/smallstep/cli/releases/download/v0.15.12/step_linux_0.15.12_amd64.tar.gz
+    wget -O step.tar.gz https://github.com/smallstep/cli/releases/download/v0.15.14/step_linux_0.15.14_amd64.tar.gz
     tar -xf step.tar.gz
-    sudo cp step_0.15.12/bin/step /usr/bin
+    sudo cp step_0.15.14/bin/step /usr/bin
     ```
 
 2. Install `step-ca`
@@ -98,9 +111,9 @@ You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
     Download and install the Linux tarball from our [latest release](https://github.com/smallstep/certificates/releases/latest):
 
     ```shell
-    wget -O step-ca.tar.gz https://github.com/smallstep/certificates/releases/download/v0.15.8/step-certificates_linux_0.15.8_amd64.tar.gz
+    wget -O step-ca.tar.gz https://github.com/smallstep/certificates/releases/download/v0.15.11/step-ca_linux_0.15.11_amd64.tar.gz
     tar -xf step-ca.tar.gz
-    sudo cp step-certificates_0.15.8/bin/step-ca /usr/bin
+    sudo cp step-ca_0.15.11/bin/step-ca /usr/bin
     ```
 
 See the [`systemctl`][systemctl-setup] setup section for a guide on configuring `step-ca` as a daemon.

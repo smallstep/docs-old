@@ -40,23 +40,35 @@ brew install step
 Download and install the Debian package from our [latest release](https://github.com/smallstep/cli/releases/latest):
 
 ```shell
-wget https://github.com/smallstep/cli/releases/download/v0.15.12/step-cli_0.15.12_amd64.deb
-sudo dpkg -i step-cli_0.15.12_amd64.deb
+wget https://github.com/smallstep/cli/releases/download/v0.15.14/step-cli_0.15.14_amd64.deb
+sudo dpkg -i step-cli_0.15.14_amd64.deb
 ```
 
 #### Arch Linux
 
-We are using the [Arch User Repository](https://aur.archlinux.org/) to
-distribute `step` binaries for Arch Linux.
+There are community driven Arch Linux packages 
+(using the [Arch User Repository](https://aur.archlinux.org/)) 
+for `step` and `step-ca`:
 
-- The `step` binary tarball can be found [here](https://aur.archlinux.org/packages/step-cli-bin/).
-- The `step-ca` binary tarball (for [step certificates](https://github.com/smallstep/certificates) - a sibling repository) can be found [here](https://aur.archlinux.org/packages/step-ca-bin/).
+- The `step` binary tarball can be found [here](https://archlinux.org/packages/community/x86_64/step-cli/).
+- The `step-ca` binary tarball (for [step certificates](https://github.com/smallstep/certificates) - a sibling repository) can be found [here](https://archlinux.org/packages/community/x86_64/step-ca/).
 
 You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
 
+Big shout out to the maintainers of these packages! We appreciate you.
+
+#### Alpine Linux
+
+There are community driven Alpine Linux Packages for `step` and `step-ca`:
+
+- The `step` package can be found [here](https://pkgs.alpinelinux.org/package/edge/testing/x86/step-cli).
+- The `step-ca` package can be found [here](https://pkgs.alpinelinux.org/package/edge/testing/x86/step-certificates).
+
+Big shout out to the maintainers of these packages! We appreciate you.
+
 #### Linux (other)
 
-We have amd64, arm64, and armv7 releases available to download from our [latest
+We have 386, amd64, arm64, armv7, mips, and mips64 releases available to download from our [latest
 release](https://github.com/smallstep/cli/releases/latest).
 
 ### Windows
@@ -77,10 +89,10 @@ Download the Windows binary from our [latest releases](https://github.com/smalls
 Open PowerShell as an Administartor and run the following:
 
 ```shell
-PS C:\Users\Administrator> curl.exe -LO https://github.com/smallstep/cli/releases/download/v0.15.12/step_windows_0.15.12_amd64.zip
-PS C:\Users\Administrator> Expand-Archive -LiteralPath .\step_windows_0.15.12_amd64.zip
+PS C:\Users\Administrator> curl.exe -LO https://github.com/smallstep/cli/releases/download/v0.15.14/step_windows_0.15.14_amd64.zip
+PS C:\Users\Administrator> Expand-Archive -LiteralPath .\step_windows_0.15.14_amd64.zip
 PS C:\Users\Administrator> .\step.exe --version
-Smallstep CLI/0.15.12 (windows/amd64)
+Smallstep CLI/0.15.14 (windows/amd64)
 Release Date: 2021-02-18 22:18 UTC
 ```
 
