@@ -110,8 +110,8 @@ to divide the root private key password across a handful of trusted parties.
 ### Avoid Storing Passwords in Environment Variables
 
 `systemd` discourages using the environment for secrets 
-because it doesn't consider it secure and exposes a unit's environment over dbus 
-(https://www.man7.org/linux/man-pages/man5/systemd.exec.5.html#ENVIRONMENT):
+because it doesn't consider it secure and exposes a unit's environment over dbus. From 
+(systemd.exec(5))[https://www.man7.org/linux/man-pages/man5/systemd.exec.5.html#ENVIRONMENT]:
 
 > Note that environment variables are not suitable for passing secrets (such as passwords, key material, …) to service processes. 
 > Environment variables set for a unit are exposed to unprivileged clients via D-Bus IPC, and generally not understood as being data that requires protection. 
@@ -119,18 +119,17 @@ because it doesn't consider it secure and exposes a unit's environment over dbus
 > including across security boundaries (such as setuid/setgid executables), 
 > and hence might leak to processes that should not have access to the secret data.
 
-For container, namespace, and/or non-systemd scenarios we could see an argument for the convenience. 
-But only using the option in those cases would need to be drilled into users, 
-and we generally don't like software that lets users stumble upon insecure patterns.
+For some isolated environments, we could see an argument for the convenience of an environment variable.
+Even then, there can be subtle issues.
+For example, anyone with access to the Docker daemon can view all of the environment variables of running Docker containers, using `docker inspect`.
 
-For posterity, if you've secured your environment and rely on it for secrets:
+For posterity, however, if you've secured your environment and rely on it for secrets, there is a way to pass a password into `step-ca` from an environment variable in Bash:
 
 ```shell
-step-ca --password-file <(printenv STEP_CA_PASSWORD) $(step path)/config/ca.json
+step-ca --password-file <(echo -n "$STEP_CA_PASSWORD") $(step path)/config/ca.json
 ```
 
-is a workaround if you prefer to have your passwords in the environment. 
-This method is known as [Bash Process Subsitution](https://www.gnu.org/software/bash/manual/html_node/Process-Substitution.html).
+This method is known as [Bash Process Subsitution](https://www.gnu.org/software/bash/manual/html_node/Process-Substitution.html), and on most systems the password will not appear in `ps` output. However, **this approach is not recommended** simply because it's so difficult to ensure security with environment variables.
 
 ### Delete Your Default Provisioner
 
