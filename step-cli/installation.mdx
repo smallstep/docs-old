@@ -33,6 +33,8 @@ Install `step` via [Homebrew](https://brew.sh/):
 brew install step
 ```
 
+To uninstall, run `brew uninstall step` and remove the `$HOME/.step` configuration directory.
+
 ### Linux
 
 #### Debian Linux
@@ -44,25 +46,43 @@ wget https://github.com/smallstep/cli/releases/download/v0.15.14/step-cli_0.15.1
 sudo dpkg -i step-cli_0.15.14_amd64.deb
 ```
 
+To uninstall, run `sudo dpkg -r step-cli` and remove the `$HOME/.step` configuration directory.
+
 #### Arch Linux
 
-There are community driven Arch Linux packages 
-(using the [Arch User Repository](https://aur.archlinux.org/)) 
-for `step` and `step-ca`:
+There is a community-maintained [`step-cli` package](https://archlinux.org/packages/community/x86_64/step-cli/) that uses the [Arch User Repository](https://aur.archlinux.org/).
 
-- The `step` binary tarball can be found [here](https://archlinux.org/packages/community/x86_64/step-cli/).
-- The `step-ca` binary tarball (for [step certificates](https://github.com/smallstep/certificates) - a sibling repository) can be found [here](https://archlinux.org/packages/community/x86_64/step-ca/).
+Use [pacman](https://www.archlinux.org/pacman/) to install `step`:
 
-You can use [pacman](https://www.archlinux.org/pacman/) to install the packages.
+```shell
+pacman -S step-cli
+```
+
+To uninstall, run `pacman -R step-cli` and remove the `$HOME/.step` configuration directory.
 
 Big shout out to the maintainers of these packages! We appreciate you.
 
 #### Alpine Linux
 
-There are community driven Alpine Linux Packages for `step` and `step-ca`:
+<Alert severity="info">
+    <AlertTitle>
+        This package is in a testing repository.
+    </AlertTitle>
+    <div>
+      To install it, you'll need to append <code>http://dl-cdn.alpinelinux.org/alpine/edge/testing</code> to <code>/etc/apk/repositories</code>.
+      Alternatively, see <a href="#linux-other">Linux (other)</a>.
+    </div>
+</Alert>
 
-- The `step` package can be found [here](https://pkgs.alpinelinux.org/package/edge/testing/x86/step-cli).
-- The `step-ca` package can be found [here](https://pkgs.alpinelinux.org/package/edge/testing/x86/step-certificates).
+There is a community-maintained [`step-cli` package](https://pkgs.alpinelinux.org/package/edge/testing/x86/step-cli) Alpine Linux Package.
+
+Use [apk](https://wiki.alpinelinux.org/wiki/Alpine_Linux_package_management) to install `step`:
+
+```
+apk add step-cli
+```
+
+To uninstall, run `apk del step-cli` and remove the `$HOME/.step` configuration directory.
 
 Big shout out to the maintainers of these packages! We appreciate you.
 
@@ -70,6 +90,8 @@ Big shout out to the maintainers of these packages! We appreciate you.
 
 We have 386, amd64, arm64, armv7, mips, and mips64 releases available to download from our [latest
 release](https://github.com/smallstep/cli/releases/latest).
+
+Place the binary in `/usr/bin` for compatibility with the rest of our documentation.
 
 ### Windows
 
@@ -81,6 +103,8 @@ Install `step` via [scoop](https://scoop.sh/):
 scoop bucket add smallstep https://github.com/smallstep/scoop-bucket.git
 scoop install smallstep/step
 ```
+
+To uninstall, run `scoop remove step` and remove the `$HOME/.step` configuration directory.
 
 #### Install manually
 
