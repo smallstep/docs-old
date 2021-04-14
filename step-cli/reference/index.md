@@ -55,7 +55,7 @@ print the version
 
 ## Version
 
-Smallstep CLI/0.15.14 (darwin/amd64)
+Smallstep CLI/refs/heads/max/acme (linux/amd64)
 
 ## Copyright
 

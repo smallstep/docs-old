@@ -34,10 +34,10 @@ And DER encoded keys will be converted to PEM with the following rules:
  * RSA private keys will use the PEM-encoded PKCS#1 format.
  * Ed25519 private keys will use the PEM-encoded PKCS#8 format.
 
-The flags **--pkcs8**, **--pem**, **--der**, and **--ssh** can be use to change
-the previous defaults. For example we can use **--pkcs8** to save a PKCS#1 RSA
-key to the PKCS#8 form. Or we can combine **--pem** and **--pkcs8** to convert
-to PKCS#8 a PEM file.
+The flags **--pkcs8**, **--pem**, **--der**, **--ssh**, and **--jwk** can be use
+to change the previous defaults. For example we can use **--pkcs8** to save a
+PKCS#1 RSA key to the PKCS#8 form. Or we can combine **--pem** and **--pkcs8**
+to convert to PKCS#8 a PEM file.
 
 ## Positional arguments
 
@@ -53,14 +53,17 @@ Convert RSA and ECDSA private keys to PKCS#8 PEM/DER format.
 
 **--pem**
 Uses PEM as the result encoding format. If neither **--pem** nor **--der** nor
-**--ssh** are set it will always switch to the DER format.
+**--ssh** nor **--jwk** are set it will always switch to the DER format.
 
 **--der**
 Uses DER as the result enconfig format. If neither **--pem** nor **--der** nor
-**--ssh** are set it will always switch to the PEM format.
+**--ssh** nor **--jwk** are set it will always switch to the PEM format.
 
 **--ssh**
 Uses OpenSSH as the result encoding format.
+
+**--jwk**
+Uses JSON Web Key as the result encoding format.
 
 **--out**=`value`
 Path to write the reformatted result.
@@ -98,6 +101,11 @@ $ step crypto key format key.der
 Convert a PEM file to OpenSSH:
 ```shell
 $ step crypto key format --ssh key.pem
+```
+
+Convert a PEM file to JWK:
+```shell
+$ step crypto key format --jwk key.pem
 ```
 
 Convert PEM file to DER and write to disk:
