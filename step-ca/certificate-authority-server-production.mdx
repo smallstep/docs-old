@@ -562,9 +562,9 @@ If the certificate is successfully renewed, the `postgresql` service will be rel
 You'll often need to customize your service unit for a given service.
 
 For example, you may need to:
-* Reload or restart additional services
+* Deploy the certificate and key to a service
 
-* Change the location of certficate files for a service
+* Reload or restart additional dependent services
 
 * Combine the certificate and key files into a bundled `.pem` or a PKCS#12 `.p12` file, as needed by some services
 
@@ -589,20 +589,37 @@ WorkingDirectory=/etc/docker/compose/lighttpd
 ExecStartPost=/usr/local/bin/docker-compose restart
 ```
 
-Here's another example of an override for [Grafana](https://grafana.com/grafana/).
+<Alert severity="info">
+  <div>
+    Note: Any <code>ExecStartPost</code> lines in your overrides will run <i>in addition to</i> those in the service template.
+  </div>
+</Alert>
 
-`/etc/systemd/system/cert-renewer@grafana-server.service.d/overrides.conf`:
+Here's a more complex example that calls the [Grafana Data source HTTP API](https://grafana.com/docs/grafana/latest/http_api/data_source/) to refresh a client certificate stored in Grafana's configuration database.
 
-```
+`/etc/systemd/system/cert-renewer@grafana-loki-datasource.service.d/overrides.conf`:
+
+```ini
 [Service]
-Environment=CERT_LOCATION=/etc/grafana/grafana.crt KEY_LOCATION=/etc/grafana/grafana.key
+ExecStartPost=/usr/bin/env bash -c 'jq -n \
+             --rawfile ca_cert $STEPPATH/certs/root_ca.crt \
+             --rawfile client_cert $CERT_LOCATION \
+             --rawfile client_key $KEY_LOCATION \
+             -f /etc/systemd/system/cert-renewer@grafana-loki-datasource.service.d/datasource.jq \
+      | curl -s -X PUT \
+      -H @/etc/systemd/system/cert-renewer@grafana-loki-datasource.service.d/api_headers \
+      -d @- \
+      --cacert $STEPPATH/certs/root_ca.crt  \
+      https://grafana:3000/api/datasources/1 > /dev/null'
 
-; Alert a health check service that our certificate has successfully been renewed.
-ExecStartPost=curl -m 10 --retry 5 https://hc-ping.com/xxxxxx
+ExecStartPost=curl -s -m 10 --retry 5 https://hc-ping.com/a66...fbba2
 ```
 
-When the certificate is successfully renewed, the service template will reload or restart `grafana-server.service`,
-and the override configuration will ping a health check service that expects to hear from this unit each day.
+When the certificate is successfully renewed:
+
+1. The `ExecStartPost` in the service template will attempt to reload or restart `grafana-loki-datasource.service`—which will do nothing, because no service with that name exists.
+2. The `ExecStartPost` in the override configuration will construct JSON and pass it to curl, updating the certificate and key in Grafana.
+3. If all goes well, the final `ExecStartPost` in the override configuration will ping a health check service at [Healthchecks](https://healthchecks.io/) that expects to hear from this unit daily.
 
 #### Enabling `systemd` renewal timers
 
@@ -650,7 +667,7 @@ that can occur when many virtual machines that were provisioned together try to 
 With this template in place,
 let's start timers for our `postgresql` and `grafana-server` renewer services:
 
-```shell-session
+```shell-session nocopy
 $ systemctl enable --now cert-renewer@postgresql.timer
 Created symlink /etc/systemd/system/multi-user.target.wants/cert-renewer@postgresql.service → /etc/systemd/system/cert-renewer@.service.
 $ systemctl enable --now cert-renewer@grafana-server.timer
