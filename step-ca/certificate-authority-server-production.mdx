@@ -575,7 +575,7 @@ The overrides live in the drop-in configuration directory for the service being 
 
 Here's an example override for a [Lighttpd](https://www.lighttpd.net/) service that uses Docker Compose and is not managed by systemd:
 
-`/etc/systemd/system/cert-renewer@lighttpd-docker.service.d/overrides.conf`:
+`/etc/systemd/system/cert-renewer@lighttpd-docker.service.d/override.conf`:
 
 ```ini
 [Service]
@@ -591,13 +591,13 @@ ExecStartPost=/usr/local/bin/docker-compose restart
 
 <Alert severity="info">
   <div>
-    Note: Any <code>ExecStartPost</code> lines in your overrides will run <i>in addition to</i> those in the service template.
+    Note: Any <code>ExecStartPost</code> lines in your <code>override.conf</code> will run <i>in addition to</i> those in the service template.
   </div>
 </Alert>
 
 Here's a more complex example that calls the [Grafana Data source HTTP API](https://grafana.com/docs/grafana/latest/http_api/data_source/) to refresh a client certificate stored in Grafana's configuration database.
 
-`/etc/systemd/system/cert-renewer@grafana-loki-datasource.service.d/overrides.conf`:
+`/etc/systemd/system/cert-renewer@grafana-loki-datasource.service.d/override.conf`:
 
 ```ini
 [Service]
