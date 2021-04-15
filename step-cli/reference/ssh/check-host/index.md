@@ -14,15 +14,15 @@ menu:
 ```raw
 step ssh check-host <hostname>
 [--ca-url=<uri>] [--root=<file>]
-[--offline] [--ca-config=<path>]
+[--offline] [--ca-config=<path>] [--verbose,-v]
 ```
 
 ## Description
 
 **step ssh check-host** checks if a certificate has been issued for a host.
 
-This command returns a zero exit status then the server exists, it will return 1
-otherwise.
+This command returns a zero exit status if the host has a certificate.
+Otherwise, it returns 1.
 
 ## Positional arguments
 
@@ -46,6 +46,9 @@ but can accept a different configuration file using **--ca-config** flag.
 **--ca-config**=`path`
 The `path` to the certificate authority configuration file. Defaults to
 $STEPPATH/config/ca.json
+
+**--verbose**, **-v**
+Return "true" or "false" in the terminal.
 
 ## Examples
 
