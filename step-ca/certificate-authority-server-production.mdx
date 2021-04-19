@@ -541,7 +541,7 @@ ExecStart=/usr/bin/step ca renew --force $CERT_LOCATION $KEY_LOCATION
 
 ; Try to reload or restart the systemd service that relies on this cert-renewer
 ; If the relying service doesn't exist, forge ahead.
-ExecStartPost=/usr/bin/env bash -c "if ! systemctl --quiet is-enabled %i.service ; then exit 0; fi; systemctl try-reload-or-restart %i"
+ExecStartPost=-systemctl try-reload-or-restart %i
 
 [Install]
 WantedBy=multi-user.target
@@ -591,7 +591,7 @@ ExecStartPost=/usr/local/bin/docker-compose restart
 
 <Alert severity="info">
   <div>
-    Note: Any <code>ExecStartPost</code> lines in your <code>override.conf</code> will run <i>in addition to</i> those in the service template.
+    Service template overrides are subtle. Any <code>ExecStartPost</code> lines in your <code>override.conf</code> will run <i>in addition to</i> those in the service template. But, adding an empty <code>ExecStartPost=</code> override will disable the template's <code>ExecStartPost</code> line(s).
   </div>
 </Alert>
 
