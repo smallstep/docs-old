@@ -28,7 +28,7 @@ should know about when running `step-ca` as a certificate authority server.
   - [Create a Service User to Run `step-ca`](#create-a-service-user-to-run-step-ca)
 - [Running `step-ca` as a Daemon](#running-step-ca-as-a-daemon)
 - [High Availability](#high-availability)
-- [Load Balancing `step-ca`](#load-balancing-step-ca)
+- [Load balancing or proxying `step-ca` traffic](#load-balancing-or-proxying-step-ca-traffic)
 - [Automate X.509 Certificate Lifecycle Management](#automate-x509-certificate-lifecycle-management)
 - [X.509 Certificate Revocation](#x509-certificate-revocation)
 - [Sane Cryptographic Defaults](#sane-cryptographic-defaults)
@@ -356,29 +356,29 @@ A few things to consider / implement when running multiple instances of `step-ca
 
 [db-ref]: /docs/step-ca/configuration#databases
 
-## Load Balancing `step-ca`
+## Load balancing or proxying `step-ca` traffic
 
-If you need to place a load balancer in front of the CA, we recommend using network (TCP)
-load balancing, or TLS passthrough.
+If you need to place a load balancer or reverse proxy downstream from the CA, we recommend using layer 4 (TCP)
+load balancing or proxying (aka "TLS passthrough").
 
-### What about TLS offloading?
+Layer 7 proxying is _not recommended_, becase the `step` toolchain is built around TLS:
+- `step` expects to be able to establish a TLS connection directly with `step-ca` using the CA's root certificate.
+- Certificate renewal requires authenticated encryption (mutual TLS).
+  `step-ca` authenticates the client using the expiring certificate, in order to issue a new one.
+  This requires a direct, end-to-end TLS connection between `step` and `step-ca`.
+- By design, `step-ca` does not have an option to run in HTTP only.
+  Philosophically, we value perimeterless security and we believe people should use authenticated encryption (e.g. mutual TLS) everywhere.
+  Making mTLS easy, and helping people get away from the "perimeter security" anti-pattern, are motivating goals behind the project.
 
-TLS offloading is not recommended. The `step` toolchain is built around TLS. `step` expects to be able
-to establish a TLS connection directly with `step-ca` using the CA's root certificate. Additionally,
-certificate renewal requires authenticated encryption (mutual TLS). `step-ca` authenticates the
-client using the current certificate, in order to issue a new one. This requires a direct,
-end-to-end TLS connection between `step` and `step-ca`.
+  That said, lots of folks have legacy issues to contend with, some of these decisions are out of their control, and every threat model is different.
+  See [certificates#246](https://github.com/smallstep/certificates/issues/246) for more details.
 
-### Can I run HTTP internally?
+### Further Reading
 
-By design, `step-ca` does not have an option to run in HTTP only. Philosophically, we value perimeterless
-security and we believe people should use authenticated encryption (e.g. mutual TLS) everywhere.
-Making mTLS easy, and helping people get away from the "perimeter security" anti-pattern,
-are motivating goals behind the project.
-
-That said, lots of folks have legacy issues to contend with, some of these decisions are out of their
-control, and every threat model is different. See
-[certificates#246](https://github.com/smallstep/certificates/issues/246) for more details.
+- Nginx has a [stream module](https://nginx.org/en/docs/stream/ngx_stream_core_module.html) that allows it to pass TLS traffic directly to `step-ca`.
+  But it comes with a price: Unlike typical reverse proxy configurations, source IPs are not visible to `step-ca` (there is no `X-Forwarded-For` header), and traffic is also not logged to the nginx access log.
+  See [this blog post](https://gerco.dev/NGINX-Reverse-Proxy-with-TLS-Passthrough/) for an example of TLS passthrough.
+- Caddy doesn't natively support TLS passthrough, but there is an experimental [`caddy-l4`](https://github.com/mholt/caddy-l4) module that can do it.
 
 ## Automate X.509 Certificate Lifecycle Management
 
