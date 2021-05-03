@@ -99,7 +99,14 @@ Smallstep needs to see the right attributes when you sync your directory with us
        * Match objects using this attribute: Yes
        * Matching precedence: 1
 	   * Apply this mapping: Always
-	   * OK
+	   * Ok
+    3. Add an `active` attribute.
+       * Mapping Type: Expression
+       * Expression: `Not([IsSoftDeleted])`
+       * Target attribute: `active`
+       * Match objects using this attribute: No
+       * Apply this mapping: Always
+       * Ok
 
 Your mappings should look like this when you're finished:
 
