@@ -94,7 +94,7 @@ Smallstep needs to see the right attributes when you sync your directory with us
     1. Delete all attribute mappings except for `userPrincipalName`, `displayName`, `mail`, `givenName`, and `surname`
 	2. Edit the `userPrincipalName` attribute.
        * Mapping Type: Expression
-       * Expression: `Item(Split([userPrincipalName], "@"), 1)`
+       * Expression: `ToLower(Replace([userPrincipalName], , "(?<Suffix>@(.)*)", "Suffix", "", , ))`
        * Target Attributes: `userName`
        * Match objects using this attribute: Yes
        * Matching precedence: 1
