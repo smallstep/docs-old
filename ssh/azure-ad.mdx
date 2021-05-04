@@ -92,18 +92,34 @@ Smallstep needs to see the right attributes when you sync your directory with us
 2.  Choose **Provision Azure Active Directory Users**
 3.  Under the **Attributes Mappings** section, perform the following steps:
     1. Delete all attribute mappings except for `userPrincipalName`, `displayName`, `mail`, `givenName`, and `surname`
-	2. Edit the `userPrincipalName` attribute.
+    2. Edit the `userPrincipalName` attribute.
        * Mapping Type: Expression
-       * Expression: `Item(Split([userPrincipalName], "@"), 1)`
+       * Expression: `ToLower(Replace([userPrincipalName], , "(?<Suffix>@(.)*)", "Suffix", "", , ))`
        * Target Attributes: `userName`
        * Match objects using this attribute: Yes
        * Matching precedence: 1
-	   * Apply this mapping: Always
-	   * OK
+       * Apply this mapping: Always
+	   * Ok
+    3. Add an `active` attribute.
+       * Mapping Type: Expression
+       * Expression: `Not([IsSoftDeleted])`
+       * Target attribute: `active`
+       * Match objects using this attribute: No
+       * Apply this mapping: Always
+       * Ok
 
 Your mappings should look like this when you're finished:
 
 ![](/static/graphics/quickstart/aad-attribute-mapping.png)
+
+> **Do you have dots in your Azure UPNs?**
+>
+> Linux usernames with `.` in them are not POSIX-compliant,
+> though in practice dotted usernames work fine on many systems.
+> If your UPNs contain dots,
+> you can configure the `userName` mapping to remove them.
+> Just use the following expression for your `userName` attribute:
+> `ToLower(Replace(Replace([userPrincipalName], , "(?<Suffix>@(.)*)", "Suffix", "", , ), ".", , ,"", , ))`
 
 ##### Turn on Provisioning
 
