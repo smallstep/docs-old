@@ -42,8 +42,8 @@ To uninstall, run `brew uninstall step` and remove the `$HOME/.step` configurati
 Download and install the Debian package from our [latest release](https://github.com/smallstep/cli/releases/latest):
 
 ```shell
-wget https://github.com/smallstep/cli/releases/download/v0.15.14/step-cli_0.15.14_amd64.deb
-sudo dpkg -i step-cli_0.15.14_amd64.deb
+wget https://github.com/smallstep/cli/releases/download/v0.15.16/step-cli_0.15.16_amd64.deb
+sudo dpkg -i step-cli_0.15.16_amd64.deb
 ```
 
 To uninstall, run `sudo dpkg -r step-cli` and remove the `$HOME/.step` configuration directory.
@@ -110,17 +110,17 @@ To uninstall, run `scoop remove step` and remove the `$HOME/.step` configuration
 
 Download the Windows binary from our [latest releases](https://github.com/smallstep/cli/releases/latest) page and install it using PowerShell.
 
-Open PowerShell as an Administartor and run the following:
+Open PowerShell and run the following:
 
 ```shell
-PS C:\Users\Administrator> curl.exe -LO https://github.com/smallstep/cli/releases/download/v0.15.14/step_windows_0.15.14_amd64.zip
-PS C:\Users\Administrator> Expand-Archive -LiteralPath .\step_windows_0.15.14_amd64.zip
-PS C:\Users\Administrator> .\step.exe --version
-Smallstep CLI/0.15.14 (windows/amd64)
-Release Date: 2021-02-18 22:18 UTC
+PS C:\Users\Smallstep> curl.exe -LO https://github.com/smallstep/cli/releases/download/v0.15.16/step_windows_0.15.16_amd64.zip
+PS C:\Users\Smallstep> Expand-Archive -LiteralPath .\step_windows_0.15.16_amd64.zip
+PS C:\Users\Smallstep> .\step.exe --version
+Smallstep CLI/0.15.16 (windows/amd64)
+Release Date: 2021-04-15T22:33:22Z
 ```
 
-Move the `step.exe` binary wherever you'd like it to be in your path.
+Finally, move the `step.exe` binary wherever you'd like it to into a location in your user's `PATH`.
 
 ### Testing your installation
 
