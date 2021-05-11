@@ -113,11 +113,9 @@ Download the Windows binary from our [latest releases](https://github.com/smalls
 Open PowerShell and run the following:
 
 ```shell
-PS C:\Users\Smallstep> curl.exe -LO https://github.com/smallstep/cli/releases/download/v0.15.16/step_windows_0.15.16_amd64.zip
-PS C:\Users\Smallstep> Expand-Archive -LiteralPath .\step_windows_0.15.16_amd64.zip
-PS C:\Users\Smallstep> .\step.exe --version
-Smallstep CLI/0.15.16 (windows/amd64)
-Release Date: 2021-04-15T22:33:22Z
+curl.exe -LO https://github.com/smallstep/cli/releases/download/v0.15.16/step_windows_0.15.16_amd64.zip
+Expand-Archive -LiteralPath .\step_windows_0.15.16_amd64.zip -DestinationPath .
+step_0.15.16\bin\step.exe version
 ```
 
 Finally, move the `step.exe` binary wherever you'd like it to into a location in your user's `PATH`.
