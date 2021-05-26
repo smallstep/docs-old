@@ -18,6 +18,7 @@ import Code from 'docs/Code';
 
 * `STEPPATH` The path where `step` stores its [configuration file](#configuration-file). This directory also holds `step-ca` state created with `step ca init`, including CA configuration, keys, certificates, and templates. Defaults to `$HOME/.step`.
 * `STEPDEBUG` When set to `1`, `step` will provide extra diagnostic information for debugging. This variable can also be used with `step-ca`.
+* `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY` Configure proxies for outbound HTTPS traffic. See [net/http.ProxyFromEnvironment](https://golang.org/pkg/net/http/#ProxyFromEnvironment) documentation for details. Note that the system trust store will be used for proxy TLS handshakes.
 
 ### Passing flags as environment variables
 
