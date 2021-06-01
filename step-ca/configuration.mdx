@@ -685,7 +685,7 @@ Example `ca.json` provisioner configuration for a Google provisioner:
 
 - **clientID**: the client id provided by the identity provider used to initialize the authentication flow.
 
-- **clientSecret**: the shared secret provided by the identity provider; used to get the id token during the OAuth flow. Some identity providers may use an empty string as a secret. In the context of `step-ca`, the client "secret" is not actually a secret and is available via the CA's `/provisioners` configuration endpoint, because every `step` clientd needs to use it locally.
+- **clientSecret**: the shared secret provided by the identity provider; used to get the id token during the OAuth flow. Some identity providers may use an empty string as a secret. In the context of `step-ca`, the client "secret" is not actually a secret and is available via the CA's `/provisioners` configuration endpoint, because every `step` client needs to use it locally.
 
 - **configurationEndpoint**: is the HTTP address used by the CA to get the OpenID Connect configuration and public keys used to validate the tokens.
 
@@ -2767,4 +2767,3 @@ you'll need to set up your Google Cloud project using the `gcloud` CLI:
   ```shell-session
   $ step ca certificate test.example.com test.crt test.key
   ```
-
