@@ -198,8 +198,12 @@ Note: _This section requires a Linux OS running `systemd` version 229 or greater
   </CodeBlock>
 
   Make sure your CA password is located in `/etc/step-ca/password.txt`,
-  so that it can be read upon server startup. If you've initialized the CA
-  but have never run it, you may also need to create an empty `/etc/step-ca/db` directory:
+  so that it can be read upon server startup.
+
+  You'll also need to edit the file `/etc/step-ca/config/defaults.json` to reflect the new path.
+
+  If you've initialized the CA but have never run it,
+  you may also need to create an empty `/etc/step-ca/db` directory:
 
   <CodeBlock language="shell-session" copytext="sudo mkdir -p /etc/step-ca/db">
   {`$ sudo mkdir -p /etc/step-ca/db`}
