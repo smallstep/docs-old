@@ -38,6 +38,7 @@ If you run into any issues please let us know [in GitHub Discussions][gh-discuss
 * [ACME and `step-ca`](#acme-and-step-ca-recap)
 * [Certbot](#certbot)
 * [acme.sh](#acmesh)
+* [win-acme](#win-acme)
 * [Caddy v2](#caddy-v2)
 * [NGINX](#nginx)
 * [Apache](#apache)
@@ -157,6 +158,17 @@ Renewals are slightly easier since `acme.sh` remembers to use the right root cer
 ```
 0 */8 * * * root "/home/<user>/.acme.sh"/acme.sh --cron --home "/home/<user>/.acme.sh" --force > /dev/null
 ```
+
+### win-acme
+
+[win-acme][] (`wacs.exe`) is a popular ACME client for Windows.
+
+To use `win-acme` with `step-ca`, you'll need to do the following:
+- Add your root CA certificate (`root_ca.crt`) to the Windows trust store.
+- Change the ACMEv2 endpoint used by `win-acme` (in the `settings.json` file that comes with the program) to point to your CA's ACME provisioner (eg. `https://ca.internal/acme/acme/`). Or pass the `--baseuri` flag with your ACME provisioner's endpoint.
+- We recommend using the `tls-alpn-01` challenge type to prove ownership.
+
+[win-acme]:https://www.win-acme.com/
 
 ### Caddy v2
 
