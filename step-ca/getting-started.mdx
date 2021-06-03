@@ -149,7 +149,7 @@ import (
 )
 func HiHandler(w http.ResponseWriter, req *http.Request) {
     w.Header().Set("Content-Type", "text/plain")
-    w.Write([]byte("Hello, world!\\n"))
+    w.Write([]byte("Hello, world!\n"))
 }
 func main() {
     http.HandleFunc("/hi", HiHandler)
