@@ -67,6 +67,7 @@ We will deploy the RA as a VM instance that issues X.509 Certificates for intern
 
    ```shell
    gcloud privateca subordinates create example-intermediate-ca \
+       --pool example-ca-pool \
        --location us-west1 \
        --issuer example-root-ca \
        --issuer-location us-west1 \
