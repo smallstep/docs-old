@@ -65,7 +65,7 @@ all done!
 Your PKI is ready to go.
 ```
 
-**Make a note of the root fingerprint!** You'll need it to connect to your CA from other environments or hosts.
+**Make a note of the root fingerprint!** You'll need it to establish trust with your CA from other environments or hosts.
 
 ## Run your certificate authority
 
@@ -81,25 +81,35 @@ Please enter the password to decrypt /Users/bob/.step/secrets/intermediate_ca_ke
 
 ### Accessing your Certificate Authority
 
-#### Accessing `step-ca` locally
+#### Accessing your CA locally
 
 You can use `step ca` and `step ssh` command groups to interact with the CA.
 
 See [Basic CA Operations](/docs/step-ca/basic-certificate-authority-operations) for an overview of common operations.
 
-#### Accessing `step-ca` remotely
+#### Accessing your CA remotely
+
+To access your CA remotely, install and use the [`step`](/docs/step-cli/) command on clients.
+Or you can [use any ACME client to get certificates](/docs/tutorials/acme-protocol-acme-clients).
+
+Because your CA root certificate is a self-signed certificate, it is not automatically trusted by clients.
+Any new `step` client will need to establish a trust relationship with your CA.
+You can do this by supplying your CA fingerprint to `step ca bootstrap`.
+Your CA fingerprint is a cryptographic signature identifying your root CA certificate.
 
 To configure `step` to access your CA from a new machine, run:
 
 ```shell-session
-$ step ca bootstrap --ca-url [CA URL] --fingerprint [root certificate fingerprint]
+$ step ca bootstrap --ca-url [CA URL] --fingerprint [CA fingerprint]
+The root certificate has been saved in /home/alice/.step/certs/root_ca.crt.
+Your configuration has been saved in /home/alice/.step/config/defaults.json.
 ```
 
-This command will download the root CA certificate and write CA connection details to `$HOME/.step/config/defaults.json`.
+This command will download the root CA certificate and write CA connection details to `$HOME/.step/config/defaults.json`. The `step` command will now trust your CA. See [Basic CA Operations](/docs/step-ca/basic-certificate-authority-operations) for an overview of common operations.
 
 <Alert severity="info">
     <AlertTitle>
-      Don't know your root certificate fingerprint?
+      Don't know your CA fingerprint?
     </AlertTitle>
     <div>
 		You can get it by running the following on your CA:
@@ -108,6 +118,18 @@ This command will download the root CA certificate and write CA connection detai
 		</CodeBlock>
 	</div>
 </Alert>
+
+You may also wish to establish system-wide trust of your CA, so your certificates will be trusted by `curl` and other programs. Use the [`step certificate install`](/docs/step-cli/reference/certificate/install) command to install your root CA certificate into your system's trust store:
+
+```shell-session
+$ step certificate install $(step path)/certs/root_ca.crt
+Certificate /home/alice/.step/certs/root_ca.crt has been installed.
+X.509v3 Root CA Certificate (ECDSA P-256) [Serial: 2282...6360]
+  Subject:     Example Inc. Root CA
+  Issuer:      Example Inc. Root CA
+  Valid from:  2021-05-11T21:40:19Z
+          to:  2031-05-09T21:40:19Z
+```
 
 #### Using the Golang wrapper
 
