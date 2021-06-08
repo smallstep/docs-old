@@ -42,7 +42,7 @@ We will deploy the RA as a VM instance that issues X.509 Certificates for intern
   Run:
 
    ```shell
-   gcloud beta privateca roots create example-root-ca \
+   gcloud privateca roots create example-root-ca \
        --location us-west1 \
        --subject "CN=Example Root CA, O=Example LLC" \
        --key-algorithm ec-p256-sha256 \
@@ -51,7 +51,7 @@ We will deploy the RA as a VM instance that issues X.509 Certificates for intern
 
   <Alert severity="info">
     <div> 
-      See <Code>gcloud beta privateca roots create --help</Code> for more options.
+      See <Code>gcloud privateca roots create --help</Code> for more options.
       You can customize values for <Code>KeyUsage</Code>, <Code>MaxPathLen</Code>,
       <Code>KeyAlgorithm</Code>, and more.
     </div>
@@ -64,7 +64,7 @@ We will deploy the RA as a VM instance that issues X.509 Certificates for intern
   Run:
 
    ```shell
-   gcloud beta privateca subordinates create example-intermediate-ca \
+   gcloud privateca subordinates create example-intermediate-ca \
        --location us-west1 \
        --issuer example-root-ca \
        --issuer-location us-west1 \
@@ -75,7 +75,7 @@ We will deploy the RA as a VM instance that issues X.509 Certificates for intern
 
   <Alert severity="info">
     <div> 
-      See <Code>gcloud beta privateca roots create --help</Code> for more options.
+      See <Code>gcloud privateca roots create --help</Code> for more options.
       You can customize values for  <Code>KeyUsage</Code>, <Code>MaxPathLen</Code>,
       <Code>KeyAlgorithm</Code>, and more.
     </div>
@@ -120,7 +120,7 @@ and hit the `Launch` button.
 
         Get this value from the command line:
         ```shell
-        gcloud beta privateca subordinates describe example-intermediate-ca --location us-west1 --format='get(name)'
+        gcloud privateca subordinates describe example-intermediate-ca --location us-west1 --format='get(name)'
         ```
 
 3. Optional fields in the Launcher UI.
@@ -174,7 +174,7 @@ new ACME RA for CAS, but any popular ACME client should work.
 3. Download the root certificate.
 
   ```shell
-  gcloud beta privateca roots describe example-root-ca --location us-west1 --format='get(pemCaCertificates)' > /tmp/root_ca.crt
+  gcloud privateca roots describe example-root-ca --location us-west1 --format='get(pemCaCertificates)' > /tmp/root_ca.crt
   ```
 
 4. Create a new certificate using the ACME RA for CAS.
