@@ -37,12 +37,14 @@ We will deploy the RA as a VM instance that issues X.509 Certificates for intern
   $ gcloud services enable privateca.googleapis.com
   ```
 
-#### 2. Create a Root CA.
+#### 2. Create a CA Pool and a Root CA.
 
   Run:
 
    ```shell
+   gcloud privateca pools create example-ca-pool
    gcloud privateca roots create example-root-ca \
+       --pool example-ca-pool \
        --location us-west1 \
        --subject "CN=Example Root CA, O=Example LLC" \
        --key-algorithm ec-p256-sha256 \
