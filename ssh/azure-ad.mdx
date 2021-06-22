@@ -9,7 +9,7 @@ description: SSH Azure Quickstart | Smallstep Documentation
 You will need:
 
 * An account on the smallstep platform. Need one? [Register here](https://info.smallstep.com/signup/)
-* An Azure Premium edition account (P1 or P2)
+* An Azure Premium edition account (P1 or higher)
 * Global administrator access to the account
 
 ### Features
@@ -62,7 +62,11 @@ When creating your groups, give them names and accept the defaults on all other 
     and you'll be prompted to add the Smallstep SSH enterprise application to your tenant.
 
     ![Azure consent screenshot](/static/graphics/quickstart/azure-consent.png)
-6.  Accept the application for your tenant, and finish the sign-on flow.
+6.  Choose **Consent on behalf of your organization.**
+7.  Accept the application for your tenant, and finish the sign-on flow.
+
+> 🤦‍♂️ If you encounter "The username may be incorrect", you'll need to use a different account to accept the application into your tenant.
+> Specifically, you cannot use a Microsoft Account or a Guest account; the account must be an Azure AD account.
 
 #### Assign groups to your application
 
