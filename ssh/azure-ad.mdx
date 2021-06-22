@@ -24,8 +24,8 @@ The following provisioning features are supported:
 ## Overview
 1. Create Groups in Azure Active Directory
 2. Tell us your directory's Tenant ID
-3. Add the Smallstep SSH Azure enterprise application
-4. Configure SCIM credentials in Azure and enable user provisioning
+3. Add the Smallstep SSH Azure Enterprise Application to your tenant
+4. Enable user provisioning (SCIM) in Azure
 5. Check logs to confirm users and groups are syncing to Smallstep SSH
 
 ## Step By Step Instructions
@@ -53,10 +53,16 @@ When creating your groups, give them names and accept the defaults on all other 
 
 #### Sign in to Smallstep SSH
 
-Run `step ssh login` locally.
-Your browser will open with an Azure AD single sign-on flow.
-You'll be prompted to add the Smallstep SSH enterprise application to your tenant.
-Approve the application for your tenant and finish the sign-on flow.
+1.  Sign in to Smallstep at `https://smallstep.com/app/[Team ID]`
+2.  Follow the Getting Started workflow.
+3.  Choose the **Users** tab, and choose **Azure AD** as your identity provider.
+4.  Enter your **Tenant ID** and **Whitelisted Domains**, and **Save**.
+5.  Now run `step ssh login your@email`.
+    Your browser will open to an Azure AD single sign-on flow,
+    and you'll be prompted to add the Smallstep SSH enterprise application to your tenant.
+
+    ![Azure consent screenshot](/static/graphics/quickstart/azure-consent.png)
+6.  Accept the application for your tenant, and finish the sign-on flow.
 
 #### Assign groups to your application
 
@@ -73,13 +79,12 @@ Your Users and Groups list should now look something like this:
 
 ![](/static/graphics/quickstart/aad-group-example.png)
 
-### Step 4. Configure SCIM credentials in Azure and enable user provisioning
+### Step 4. Enable user provisioning (SCIM) in Azure
 
 1.  Choose **Provisioning** on the left and choose **Get Started**.
 2.  Set the provisioning mode to **Automatic**.
-3.  Under "Manage provisioning," go to **Update credentials**.
 4.  Expand **Admin Credentials:**
-    * Supply the SCIM **Tenant URL** and **Secret Token** from your activation email.
+    * Supply the SCIM **Tenant URL** and **Secret Token** from the Smallstep dashboard.
     * Choose **Test Connection** and make sure that it works.
 	* Save.
 
@@ -95,14 +100,13 @@ Your Users and Groups list should now look something like this:
 ##### Turn on Provisioning
 
 1.  Save your settings and return to the **Provisioning** panel.
-2.  Change **Provisioning Status** to On.
-3.  Choose **Save**
+2.  Choose **Start Provisioning**.
 
 > 🤦‍♂️ There's a quirk in Microsoft's UI here, and you may see an error when saving after turning provisioning on. If so, wait 60 seconds and try Save again.
 
 ### Step 4. Confirm the directory connection
 
-Sign in at `https://smallstep.com/app/[Team ID]`
+Return to the Smallstep dashboard.
 
 * Navigate to the LOGS menu. You should see a list of success messages assocated with `SCIM-SYNC` catagory items.
 
