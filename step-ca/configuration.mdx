@@ -98,6 +98,10 @@ CA's keys.
   "logger": {
   	"format": "text"
   },
+  "ssh": {
+      "hostKey": "/examples/pki/secrets/secrets.host.key",
+      "userKey": "/examples/pki/secrets/secrets.user.key"
+  },
   "db": {
     "type": "badger",
     "dataSource": "./.step/db",
@@ -223,6 +227,13 @@ CA's keys.
 - **dnsNames**: comma separated list of DNS name(s) for the CA.
 
 - **logger**: the default logging format for the CA is _text_. The other option is _json_.
+
+- **ssh**: enables the provisioning of SSH certificates by the CA. Add this section to an existing `ca.json` to enable SSH for an existing CA. SSH keys can be created by running
+  `step crypto keypair host.pub host.key` and `step crypto keypair user.pub user.key`.
+
+  - **userKey**: the signing key for user SSH certificates.
+
+  - **hostKey**: the signing key for host SSH certificates.
 
 - **db**: data persistence layer. See [database documentation](#databases) for more info.
 
