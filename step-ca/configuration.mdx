@@ -1595,7 +1595,7 @@ of `SANs` passed from the CLI.  If no `SANs` are specified, the
 `.Subject.CommonName` will be used as a default `SAN` (e.g.
 `jane@smallstep.com` in our example). If you add more `SANs` using the
 flag `--san`, `step-ca` will auto-assign the correct SAN `type` (`dns`, `ip`,
-uri`, or `email`).
+`uri`, or `email`).
 
 - `{{- if typeIs "*rsa.PublicKey" .Insecure.CR.PublicKey }}`: defines a
 condition based on the key type in the certificate request. `typeIs`
@@ -2428,7 +2428,7 @@ One you've created your PKI on the HSM using `step-pkcs11-init`, you'll need to 
 
 Start with a standard CA configuration, created using `step ca init` or `step ca init --ssh`.
 
-Now open up ``.step/config/ca.json` in an editor.
+Now open up `.step/config/ca.json` in an editor.
 You'll want the top of the file to reference the HSM key paths provided by the `step-pkcs11-init` utility.
 
 For this, you'll need to change the `key` and `ssh` values to match the `pkcs11:` URIs above. These are the values you need to change:
