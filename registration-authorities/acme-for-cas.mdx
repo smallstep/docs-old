@@ -42,7 +42,7 @@ We will deploy the RA as a VM instance that issues X.509 Certificates for intern
   Run:
 
    ```shell
-   gcloud privateca pools create kevin-ca-pool --location us-west1
+   gcloud privateca pools create example-ca-pool --location us-west1
   ```
 
 #### 3. Create and Enable a Root CA
@@ -50,10 +50,10 @@ We will deploy the RA as a VM instance that issues X.509 Certificates for intern
 To create, run:
 
   ```shell
-   gcloud privateca roots create kevin-root-ca \
-       --pool kevin-ca-pool \
+   gcloud privateca roots create example-root-ca \
+       --pool example-ca-pool \
        --location us-west1 \
-       --subject "CN=Kevin Root CA, O=Kevin LLC" \
+       --subject "CN=Example Root CA, O=Example LLC" \
        --key-algorithm ec-p256-sha256
    ```
 
@@ -70,8 +70,8 @@ To create, run:
 To enable CA, run:
 
   ```
-    gcloud privateca roots enable kevin-root-ca \
-      ---pool kevin-ca-pool \
+    gcloud privateca roots enable example-root-ca \
+      ---pool example-ca-pool \
       --location us-west1 
   ```
 
@@ -80,21 +80,21 @@ To enable CA, run:
   To create, run:
 
    ```shell
-   gcloud privateca subordinates create kevin-intermediate-ca \
-       --pool kevin-ca-pool \
+   gcloud privateca subordinates create example-intermediate-ca \
+       --pool example-ca-pool \
        --location us-west1 \
-       --issuer-ca kevin-root-ca \
-       --issuer-pool kevin-ca-pool \
+       --issuer-ca example-root-ca \
+       --issuer-pool example-ca-pool \
        --issuer-location us-west1 \
-       --subject "CN=Kevin Intermediate CA, O=Kevin LLC" \
+       --subject "CN=Example Intermediate CA, O=Example LLC" \
        --key-algorithm ec-p256-sha256
    ```
 
   To enable, run:
 
    ```shell
-   gcloud privateca subordinates enable kevin-intermediate-ca \
-       --pool kevin-ca-pool \
+   gcloud privateca subordinates enable example-intermediate-ca \
+       --pool example-ca-pool \
        --location us-west1
    ```
 
@@ -136,7 +136,7 @@ and hit the `Launch` button.
 
         Get this value from the command line:
         ```shell
-        gcloud privateca subordinates describe kevin-intermediate-1 --pool kevin-pool-1 --location us-west1 --format='get(name)'
+        gcloud privateca subordinates describe example-intermediate-1 --pool example-pool-1 --location us-west1 --format='get(name)'
         ```
 
 3. Optional fields in the Launcher UI.
@@ -190,7 +190,7 @@ new ACME RA for CAS, but any popular ACME client should work.
 3. Download the root certificate.
 
   ```shell
-  gcloud privateca roots describe kevin-ca-1 --pool kevin-pool-1 --location us-west1 --format='get(pemCaCertificates)' > /tmp/root_ca.crt
+  gcloud privateca roots describe example-ca-1 --pool example-pool-1 --location us-west1 --format='get(pemCaCertificates)' > /tmp/root_ca.crt
   ```
 
 4. Create a new certificate using the ACME RA for CAS.
