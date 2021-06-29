@@ -1,0 +1,31 @@
+gcloud privateca pools create kevin-pool-1 \
+--project smallstep-cas-test --location us-west1
+​
+gcloud privateca roots create kevin-ca-1 \
+--project smallstep-cas-test --location us-west1 \
+--pool kevin-pool-1 \
+--key-algorithm "ec-p256-sha256" \
+--subject "CN=kevin CA, O=Test LLC"
+​
+gcloud privateca roots enable kevin-ca-1 \
+--project smallstep-cas-test --location us-west1 \
+--pool kevin-pool-1
+​
+gcloud privateca subordinates create kevin-intermediate-1 \
+--project smallstep-cas-test --location us-west1 \
+--pool kevin-pool-1 \
+--issuer-ca kevin-ca-1 --issuer-location us-west1 --issuer-pool kevin-pool-1 \
+--key-algorithm "ec-p256-sha256" \
+--subject "CN=Intermediate TLS CA, O=Test LLC"
+​
+gcloud privateca subordinates enable kevin-intermediate-1 \
+--project smallstep-cas-test --location us-west1 \
+--pool kevin-pool-1
+​
+gcloud privateca subordinates describe anotherkevintest-intermediate-ca \
+--project smallstep-cas-test --location us-west1 \
+--pool anotherkevintest-ca-pool --format json | jq -r '.pemCaCertificates[0]' | step certificate inspect
+​
+gcloud privateca roots describe anotherkevintest-intermediate-ca \
+--project smallstep-cas-test --location us-west1 \
+--pool anotherkevintest-ca-pool --format json | jq -r '.pemCaCertificates[0]' | step certificate inspect

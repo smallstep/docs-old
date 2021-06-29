@@ -54,7 +54,8 @@ To create, run:
        --pool example-ca-pool \
        --location us-west1 \
        --subject "CN=Example Root CA, O=Example LLC" \
-       --key-algorithm ec-p256-sha256
+       --key-algorithm ec-p256-sha256 \
+       --max-chain-length 1
    ```
 
   <Alert severity="info">
@@ -71,7 +72,7 @@ To enable CA, run:
 
   ```
     gcloud privateca roots enable example-root-ca \
-      ---pool example-ca-pool \
+      --pool example-ca-pool \
       --location us-west1 
   ```
 
@@ -87,7 +88,8 @@ To enable CA, run:
        --issuer-pool example-ca-pool \
        --issuer-location us-west1 \
        --subject "CN=Example Intermediate CA, O=Example LLC" \
-       --key-algorithm ec-p256-sha256
+       --key-algorithm ec-p256-sha256 \
+       --max-chain-length 1 
    ```
 
   To enable, run:
@@ -98,8 +100,29 @@ To enable CA, run:
        --location us-west1
    ```
 
+#### 5. (Optional) Test Root and Intermediate CA
 
-#### 5. Configure a service account with necessary role bindings to request and manage X.509 Certificates using CAS. 
+To inspect the root and intermediate CA, you need to have the following dependencies installed:
+* [step](https://smallstep.com/cli/)
+* [jq](https://stedolan.github.io/jq/) 
+
+Run:
+
+```shell
+gcloud privateca roots describe example-root-ca \
+--project smallstep-cas-test --location us-west1 \
+--pool example-ca-pool --format json | jq -r '.pemCaCertificates[0]' | step certificate inspect
+```
+
+Run:
+
+```shell
+gcloud privateca subordinates describe example-intermediate-ca \
+--project smallstep-cas-test --location us-west1 \
+--pool example-ca-pool --format json | jq -r '.pemCaCertificates[0]' | step certificate inspect
+```
+
+#### 6. Configure a service account with necessary role bindings to request and manage X.509 Certificates using CAS. 
 
   Run:
 
@@ -117,7 +140,7 @@ To enable CA, run:
       --role=roles/privateca.certificateRequester
   ```
 
-#### 6. Launch a "Smallstep ACME Registration Authority for CAS" deployment
+#### 7. Launch a "Smallstep ACME Registration Authority for CAS" deployment
 
 1. Select "Smallstep ACME Registration Authority for CAS" from GCP marketplace
 and hit the `Launch` button.
@@ -160,7 +183,7 @@ and hit the `Launch` button.
 
   ![](/static/images/cas-deploy.png)
 
-#### 7. Let's test out our deployment!
+#### 8. Let's test out our deployment!
 
 In this example we'll use [certbot](https://certbot.eff.org/) to test our 
 new ACME RA for CAS, but any popular ACME client should work.
