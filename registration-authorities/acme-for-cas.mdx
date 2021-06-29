@@ -113,7 +113,7 @@ To enable CA, run:
       --member=serviceAccount:step-cas-sa@$PROJECT_ID.iam.gserviceaccount.com \
       --role=roles/privateca.certificateManager
   gcloud projects add-iam-policy-binding $PROJECT_ID \
-      --member=serviceAccount: step-cas-sa@$PROJECT_ID.iam.gserviceaccount.com \
+      --member=serviceAccount:step-cas-sa@$PROJECT_ID.iam.gserviceaccount.com \
       --role=roles/privateca.certificateRequester
   ```
 
@@ -203,7 +203,7 @@ new ACME RA for CAS, but any popular ACME client should work.
   $ export PROJECT_ID=$(curl http://metadata.google.internal/computeMetadata/v1/project/project-id --silent --fail -H "Metadata-Flavor: Google")
 
   # Get a certificate!
-  $ sudo REQUESTS_CA_BUNDLE=/tmp/root_ca.crt certbot certonly -n --standalone -d $HOST --server https://acme-registration-authority-for-gcp-c-1-vm.c.smallstep-public.internal/acme/acme/directory --agree-tos --email tester@smallstep.com
+  $ sudo REQUESTS_CA_BUNDLE=/tmp/root_ca.crt certbot certonly -n --standalone -d $HOST --server https://acme-registration-authority-for-gcp-c-1-vm.c.$PROJECT_ID.internal/acme/acme/directory --agree-tos --email tester@smallstep.com
   ```
 
   Hooray!
