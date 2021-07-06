@@ -18,7 +18,8 @@ step certificate create <subject> <crt-file> <key-file>
 [--password-file=<path>] [--ca=<issuer-cert>]
 [--ca-key=<issuer-key>] [--ca-password-file=<path>]
 [--san=<SAN>] [--bundle] [--key=<path>]
-[--kty=<type>] [--curve=<curve>] [--size=<size>] [--no-password]
+[--kty=<type>] [--curve=<curve>] [--size=<size>]
+[--no-password] [--insecure]
 ```
 
 ## Description

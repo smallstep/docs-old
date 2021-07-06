@@ -14,7 +14,7 @@ menu:
 ```raw
 step crypto keypair <pub_file> <priv_file>
 [--kty=<key-type>] [--curve=<curve>] [--size=<size>]
-[--password-file=<file>] [--no-password]
+[--password-file=<file>] [--no-password] [--insecure]
 ```
 
 ## Description

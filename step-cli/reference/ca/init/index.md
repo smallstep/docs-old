@@ -68,7 +68,7 @@ The registration authority issuer `name` to use.
 
 If CloudCAS is used, this flag should be the resource name of the
 intermediate certificate to use. This has the format
-'projects/\*/locations/\*/certificateAuthorities/\*'.
+'projects/\*/locations/\*/caPools/\*/certificateAuthorities/\*'.
 
 **--credentials-file**=`file`
 The registration authority credentials `file` to use.
