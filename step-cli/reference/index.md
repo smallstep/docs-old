@@ -57,7 +57,7 @@ print the version
 
 ## Version
 
-Smallstep CLI/0.16.0 (linux/amd64)
+Smallstep CLI/0.16.0-1-g4ff5916 (darwin/amd64)
 
 ## Copyright
 
