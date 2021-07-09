@@ -13,15 +13,15 @@ menu:
 
 ```raw
 step ssh renew <ssh-cert> <ssh-key>
-[--out=<file>] [--issuer=<name>] [--password-file=<path>]
-[--force] [--ca-url=<uri>] [--root=<path>]
-[--offline] [--ca-config=<path>]
+[--out=<file>] [--issuer=<name>] [--password-file=<file>]
+[--force] [--ca-url=<uri>] [--root=<file>]
+[--offline] [--ca-config=<file>]
 ```
 
 ## Description
 
 **step ssh renew** command renews an SSH Cerfificate
-using [step certificates](https://github.com/smallstep/certificates). 
+using [step certificates](https://github.com/smallstep/certificates).
 It writes the new certificate to disk - either overwriting `ssh-cert` or
 using a new file when the **--out**=`file` flag is used.
 
@@ -37,7 +37,7 @@ The ssh certificate private key.
 
 
 **--out**=`file`, **--output-file**=`file`
-The new certificate `file` path. Defaults to overwriting the `ssh-cert` positional argument
+The new certificate `file`. Defaults to overwriting the `ssh-cert` positional argument
 
 **--provisioner**=`name`, **--issuer**=`name`
 The provisioner `name` to use.
@@ -60,15 +60,15 @@ Creates a certificate without contacting the certificate authority. Offline mode
 uses the configuration, certificates, and keys created with **step ca init**,
 but can accept a different configuration file using **--ca-config** flag.
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **--sshpop-cert**=`chain`
 Certificate (`chain`) in PEM format to store in the 'sshpop' header of a JWT.
 
-**--sshpop-key**=`path`
-Private key `path`, used to sign a JWT, corresponding to the certificate that will
+**--sshpop-key**=`file`
+Private key `file`, used to sign a JWT, corresponding to the certificate that will
 be stored in the 'sshpop' header.
 
 ## Examples

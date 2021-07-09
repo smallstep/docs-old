@@ -15,9 +15,9 @@ menu:
 step ssh login <identity>
 [--token=<token>] [--provisioner=<name>] [--provisioner-password-file=<file>]
 [--not-before=<time|duration>] [--not-after=<time|duration>]
-[--set=<key=value>] [--set-file=<path>]
+[--set=<key=value>] [--set-file=<file>]
 [--force] [--ca-url=<uri>] [--root=<file>]
-[--offline] [--ca-config=<path>]
+[--offline] [--ca-config=<file>]
 ```
 
 ## Description
@@ -74,8 +74,8 @@ as "300ms", "-1.5h" or "2h45m". Valid time units are "ns", "us" (or "µs"), "ms"
 **--set**=`key=value`
 The `key=value` pair with template data variables to send to the CA. Use the **--set** flag multiple times to add multiple variables.
 
-**--set-file**=`path`
-The `path` of a JSON file with the template data to send to the CA.
+**--set-file**=`file`
+The JSON `file` with the template data to send to the CA.
 
 **--ca-url**=`URI`
 `URI` of the targeted Step Certificate Authority.
@@ -88,8 +88,8 @@ Creates a certificate without contacting the certificate authority. Offline mode
 uses the configuration, certificates, and keys created with **step ca init**,
 but can accept a different configuration file using **--ca-config** flag.
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **-f**, **--force**

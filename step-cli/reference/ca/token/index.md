@@ -13,15 +13,15 @@ menu:
 
 ```raw
 step ca token <subject>
-[--kid=<kid>] [--issuer=<name>] [--ca-url=<uri>] [--root=<path>]
+[--kid=<kid>] [--issuer=<name>] [--ca-url=<uri>] [--root=<file>]
 [--cert-not-before=<time|duration>] [--cert-not-after=<time|duration>]
 [--not-before=<time|duration>] [--not-after=<time|duration>]
-[--password-file=<path>] [--output-file=<path>] [--key=<path>]
+[--password-file=<file>] [--output-file=<file>] [--key=<file>]
 [--san=<SAN>] [--offline] [--revoke]
-[--x5c-cert=<path>] [--x5c-key=<path>]
-[--sshpop-cert=<path>] [--sshpop-key=<path>]
+[--x5c-cert=<file>] [--x5c-key=<file>]
+[--sshpop-cert=<file>] [--sshpop-key=<file>]
 [--ssh] [--host] [--principal=<string>]
-[--k8ssa-token-path=<path>
+[--k8ssa-token-path=<file>
 ```
 
 ## Description
@@ -75,8 +75,8 @@ Create a host certificate instead of a user certificate.
 **--ca-url**=`URI`
 `URI` of the targeted Step Certificate Authority.
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **-f**, **--force**
@@ -114,19 +114,19 @@ generating key.
 **--x5c-cert**=`chain`
 Certificate (`chain`) in PEM format to store in the 'x5c' header of a JWT.
 
-**--x5c-key**=`path`
-Private key `path`, used to sign a JWT, corresponding to the certificate that will
+**--x5c-key**=`file`
+Private key `file`, used to sign a JWT, corresponding to the certificate that will
 be stored in the 'x5c' header.
 
 **--sshpop-cert**=`chain`
 Certificate (`chain`) in PEM format to store in the 'sshpop' header of a JWT.
 
-**--sshpop-key**=`path`
-Private key `path`, used to sign a JWT, corresponding to the certificate that will
+**--sshpop-key**=`file`
+Private key `file`, used to sign a JWT, corresponding to the certificate that will
 be stored in the 'sshpop' header.
 
-**--key**=`path`
-The private key `path` used to sign the JWT. This is usually downloaded from
+**--key**=`file`
+The private key `file` used to sign the JWT. This is usually downloaded from
 the certificate authority.
 
 **--output-file**=`file`

@@ -12,7 +12,7 @@ menu:
 ## Usage
 
 ```raw
-step crypto otp verify [--secret=<path>]
+step crypto otp verify [--secret=<file>]
 [--period=<seconds>] [--skew=<num>] [--length=<size>]
 [--alg=<alg>] [*-time=<time|duration>]
 ```
@@ -24,8 +24,8 @@ step crypto otp verify [--secret=<path>]
 ## Options
 
 
-**--secret**=`value`
-Path to file containing TOTP secret.
+**--secret**=`file`
+The `file` containing TOTP secret.
 
 **--period**=`value`
 Number of seconds a TOTP hash is valid. Defaults to 30

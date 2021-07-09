@@ -12,7 +12,7 @@ menu:
 ## Usage
 
 ```raw
-step certificate format <crt_file> [--out=<path>]
+step certificate format <crt_file> [--out=<file>]
 ```
 
 ## Description

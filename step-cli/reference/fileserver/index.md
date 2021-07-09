@@ -13,7 +13,7 @@ menu:
 
 ```raw
 step fileserver <dir>
-[--address=<address>] [--cert=<path>] [--key=<path>] [--roots=<path>]
+[--address=<address>] [--cert=<file>] [--key=<file>] [--roots=<file>]
 ```
 
 ## Description
@@ -34,14 +34,14 @@ The directory used as root for the HTTP file server.
 **--address**=`address`
 The TCP `address` to listen on (e.g. ":8443").
 
-**--cert**=`path`
-The `path` to the TLS certificate to use.
+**--cert**=`file`
+The `file` containing the TLS certificate to use.
 
-**--key**=`path`
-The `path` to the key corresponding to the certificate.
+**--key**=`file`
+The `file` containing the key corresponding to the certificate.
 
-**--roots**=`path`
-The `path` of the root certificates that will be used to verify the client certificates.
+**--roots**=`file`
+The `file` containing the root certificate(s) that will be used to verify the client certificates.
 
 ## Examples
 
@@ -60,7 +60,7 @@ $ step fileserver --address 127.0.0.1:8443 \
 
 Start an HTTPS file server on a random port and require client certificates.
 ```shell
-$ step fileserver --cert localhost.crt --key localhost.key \ 
+$ step fileserver --cert localhost.crt --key localhost.key \
   --roots $(step path)/certs/root_ca.crt /path/to/web-root
 ```
 

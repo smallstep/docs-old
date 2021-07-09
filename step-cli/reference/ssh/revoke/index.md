@@ -14,11 +14,11 @@ menu:
 ```raw
 step ssh revoke <serial-number>
 [--token=<token>]  [--issuer=<name>]
-[--set=<key=value>] [--set-file=<path>]
-[--ca-url=<uri>] [--root=<path>]
-[--ca-config=<path>] [--password-file=<path>] [--offline]
+[--set=<key=value>] [--set-file=<file>]
+[--ca-url=<uri>] [--root=<file>]
+[--ca-config=<file>] [--password-file=<file>] [--offline]
 [--reason=<string>] [--reasonCode=<code>]
-[--sshpop-cert=<path>] [--sshpop-key=<key>]
+[--sshpop-cert=<file>] [--sshpop-key=<key>]
 ```
 
 ## Description
@@ -48,8 +48,8 @@ The provisioner `name` to use.
 **--set**=`key=value`
 The `key=value` pair with template data variables to send to the CA. Use the **--set** flag multiple times to add multiple variables.
 
-**--set-file**=`path`
-The `path` of a JSON file with the template data to send to the CA.
+**--set-file**=`file`
+The JSON `file` with the template data to send to the CA.
 
 **--ca-url**=`URI`
 `URI` of the targeted Step Certificate Authority.
@@ -62,15 +62,15 @@ Creates a certificate without contacting the certificate authority. Offline mode
 uses the configuration, certificates, and keys created with **step ca init**,
 but can accept a different configuration file using **--ca-config** flag.
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **--sshpop-cert**=`chain`
 Certificate (`chain`) in PEM format to store in the 'sshpop' header of a JWT.
 
-**--sshpop-key**=`path`
-Private key `path`, used to sign a JWT, corresponding to the certificate that will
+**--sshpop-key**=`file`
+Private key `file`, used to sign a JWT, corresponding to the certificate that will
 be stored in the 'sshpop' header.
 
 **--reason**=`string`

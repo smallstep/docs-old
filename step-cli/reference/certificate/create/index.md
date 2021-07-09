@@ -13,11 +13,11 @@ menu:
 
 ```raw
 step certificate create <subject> <crt-file> <key-file>
-[--csr] [--profile=<profile>] [--template=<path>]
+[--csr] [--profile=<profile>] [--template=<file>]
 [--not-before=<duration>] [--not-after=<duration>]
-[--password-file=<path>] [--ca=<issuer-cert>]
-[--ca-key=<issuer-key>] [--ca-password-file=<path>]
-[--san=<SAN>] [--bundle] [--key=<path>]
+[--password-file=<file>] [--ca=<issuer-cert>]
+[--ca-key=<issuer-key>] [--ca-password-file=<file>]
+[--san=<SAN>] [--bundle] [--key=<file>]
 [--kty=<type>] [--curve=<curve>] [--size=<size>]
 [--no-password] [--insecure]
 ```
@@ -65,11 +65,11 @@ The certificate profile sets various certificate details such as
   This profile requires the **--subtle** flag because the use of self-signed leaf
   certificates is discouraged unless absolutely necessary.
 
-**--template**=`path`
-The certificate template `path`, a JSON representation of the certificate to create.
+**--template**=`file`
+The certificate template `file`, a JSON representation of the certificate to create.
 
-**--password-file**=`path`
-The `path` to the file containing the password to
+**--password-file**=`file`
+The `file` to the file containing the password to
 encrypt the new private key or decrypt the user submitted private key.
 
 **--ca**=`value`
@@ -78,12 +78,12 @@ The certificate authority used to issue the new certificate (PEM file).
 **--ca-key**=`value`
 The certificate authority private key used to sign the new certificate (PEM file).
 
-**--ca-password-file**=`path`
-The `path` to the file containing the password to
+**--ca-password-file**=`file`
+The `file` to the file containing the password to
 decrypt the CA private key.
 
-**--key**=`path`
-The `path` of the private key to use instead of creating a new one (PEM file).
+**--key**=`file`
+The `file` of the private key to use instead of creating a new one (PEM file).
 
 **--no-password**
 Do not ask for a password to encrypt the private key.

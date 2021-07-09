@@ -13,8 +13,8 @@ menu:
 
 ```raw
 step certificate sign <csr_file> <crt_file> <key_file>
-[--profile=<profile>] [--template=<path>]
-[--password-file=<path>] [--path-len=<maximum>]
+[--profile=<profile>] [--template=<file>]
+[--password-file=<file>] [--path-len=<maximum>]
 [--not-before=<time|duration>] [--not-after=<time|duration>]
 [--bundle]
 ```
@@ -51,8 +51,8 @@ The certificate profile sets various certificate details such as
 
 - **csr**: Signs a x.509 certificate without modifying the CSR.
 
-**--template**=`path`
-The certificate template `path`, a JSON representation of the certificate to create.
+**--template**=`file`
+The certificate template `file`, a JSON representation of the certificate to create.
 
 **--password-file**=`file`
 The path to the `file` containing the password to encrypt or decrypt the private key.

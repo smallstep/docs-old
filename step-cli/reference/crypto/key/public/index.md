@@ -7,18 +7,19 @@ menu:
 ---
 
 ## Name
-**step crypto key public** -- print the public key from a private key
+**step crypto key public** -- print the public key from a private key or certificate
 
 ## Usage
 
 ```raw
-step crypto key public <key-file> [--out=<path>]
+step crypto key public <key-file> [--out=<file>]
+[--password-file=<file>]
 ```
 
 ## Description
 
-**step crypto key public** prints or writes in a PEM format
-the public key corresponding to the given `key-file`.
+**step crypto key public** outputs the public key, in PEM format, corresponding to
+the input `file`.
 
 ## Positional arguments
 
@@ -28,8 +29,11 @@ Path to a private key.
 ## Options
 
 
-**--out**=`value`
-Path to write the public key.
+**--out**=`file`
+The `file` to write the public key.
+
+**--password-file**=`file`
+The path to the `file` containing the password to encrypt or decrypt the private key.
 
 **-f**, **--force**
 Force the overwrite of files without asking.
@@ -39,6 +43,11 @@ Force the overwrite of files without asking.
 Print the corresponding public key:
 ```shell
 $ step crypto key public priv.pem
+```
+
+Print the public key of an x509 certificate:
+```shell
+$ step crypto key public foo.crt
 ```
 
 Write the corresponding public key to a file:

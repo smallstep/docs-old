@@ -14,7 +14,7 @@ menu:
 ```raw
 step ssh check-host <hostname>
 [--ca-url=<uri>] [--root=<file>]
-[--offline] [--ca-config=<path>] [--verbose,-v]
+[--offline] [--ca-config=<file>] [--verbose,-v]
 ```
 
 ## Description
@@ -43,8 +43,8 @@ Creates a certificate without contacting the certificate authority. Offline mode
 uses the configuration, certificates, and keys created with **step ca init**,
 but can accept a different configuration file using **--ca-config** flag.
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **--verbose**, **-v**

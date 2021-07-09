@@ -11,6 +11,7 @@ menu:
       - inspect
       - fingerprint
       - lint
+      - needs-renewal
       - sign
       - verify
       - key
@@ -110,6 +111,7 @@ $ step certificate uninstall root-ca.crt
 | **[inspect](inspect/)** | print certificate or CSR details in human readable format |
 | **[fingerprint](fingerprint/)** | print the fingerprint of a certificate |
 | **[lint](lint/)** | lint certificate details |
+| **[needs-renewal](needs-renewal/)** | Check if a certificate needs to be renewed |
 | **[sign](sign/)** | sign a certificate signing request (CSR) |
 | **[verify](verify/)** | verify a certificate |
 | **[key](key/)** | print public key embedded in a certificate |

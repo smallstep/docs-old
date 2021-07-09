@@ -13,12 +13,12 @@ menu:
 
 ```raw
 step ssh certificate <key-id> <key-file>
-[--host] [--host-id] [--sign] [--principal=<string>] [--password-file=<path>]
-[--provisioner-password-file=<path>] [--add-user]
+[--host] [--host-id] [--sign] [--principal=<string>] [--password-file=<file>]
+[--provisioner-password-file=<file>] [--add-user]
 [--not-before=<time|duration>] [--not-after=<time|duration>]
 [--token=<token>] [--issuer=<name>] [--ca-url=<uri>]
-[--root=<path>] [--no-password] [--insecure] [--force]
-[--x5c-cert=<path>] [--x5c-key=<path>] [--k8ssa-token-path=<path>]
+[--root=<file>] [--no-password] [--insecure] [--force]
+[--x5c-cert=<file>] [--x5c-key=<file>] [--k8ssa-token-path=<file>]
 ```
 
 ## Description
@@ -71,8 +71,8 @@ key path when we are just signing it.
 ## Options
 
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **--ca-url**=`URI`
@@ -120,8 +120,8 @@ certificate.
 **--set**=`key=value`
 The `key=value` pair with template data variables to send to the CA. Use the **--set** flag multiple times to add multiple variables.
 
-**--set-file**=`path`
-The `path` of a JSON file with the template data to send to the CA.
+**--set-file**=`file`
+The JSON `file` with the template data to send to the CA.
 
 **--add-user**
 Create a user provisioner certificate used to create a new user.
@@ -157,8 +157,8 @@ Sign the public key passed as an argument instead of creating one.
 **--x5c-cert**=`chain`
 Certificate (`chain`) in PEM format to store in the 'x5c' header of a JWT.
 
-**--x5c-key**=`path`
-Private key `path`, used to sign a JWT, corresponding to the certificate that will
+**--x5c-key**=`file`
+Private key `file`, used to sign a JWT, corresponding to the certificate that will
 be stored in the 'x5c' header.
 
 **--k8ssa-token-path**=`file`

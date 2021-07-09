@@ -7,7 +7,7 @@ menu:
 ---
 
 ## Name
-**step ca provisioner add** -- add one or more provisioners the CA configuration
+**step ca provisioner add** -- add one or more provisioners to the CA configuration
 
 ## Usage
 
@@ -30,7 +30,7 @@ step ca provisioner add <name> --type=[AWS|Azure|GCP]
 [--ca-config=<file>] [--aws-account=<id>]
 [--gcp-service-account=<name>] [--gcp-project=<name>]
 [--azure-tenant=<id>] [--azure-resource-group=<name>]
-[--instance-age=<duration>] [--iid-roots=<path>]
+[--instance-age=<duration>] [--iid-roots=<file>]
 [--disable-custom-sans] [--disable-trust-on-first-use]
 
 step ca provisioner add <name> --type=ACME --ca-config=<file>
@@ -56,8 +56,8 @@ List of private (or public) keys in JWK or PEM format.
 ## Options
 
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **--type**=`type`
@@ -139,8 +139,8 @@ A `duration` is sequence of decimal numbers, each with optional fraction and a
 unit suffix, such as "300ms", "-1.5h" or "2h45m". Valid time units are "ns",
 "us" (or "µs"), "ms", "s", "m", "h".
 
-**--iid-roots**=`path`
-The `path` to the file containing the certificates used to validate the
+**--iid-roots**=`file`
+The `file` containing the certificates used to validate the
 instance identity documents in AWS.
 
 **--disable-custom-sans**

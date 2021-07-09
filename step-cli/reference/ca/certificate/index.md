@@ -15,11 +15,11 @@ menu:
 step ca certificate <subject> <crt-file> <key-file>
 [--token=<token>]  [--issuer=<name>] [--ca-url=<uri>] [--root=<file>]
 [--not-before=<time|duration>] [--not-after=<time|duration>]
-[--san=<SAN>] [--set=<key=value>] [--set-file=<path>]
-[--acme=<path>] [--standalone] [--webroot=<path>]
+[--san=<SAN>] [--set=<key=value>] [--set-file=<file>]
+[--acme=<file>] [--standalone] [--webroot=<file>]
 [--contact=<email>] [--http-listen=<address>] [--bundle]
 [--kty=<type>] [--curve=<curve>] [--size=<size>] [--console]
-[--x5c-cert=<path>] [--x5c-key=<path>] [--k8ssa-token-path=<file>
+[--x5c-cert=<file>] [--x5c-key=<file>] [--k8ssa-token-path=<file>]
 ```
 
 ## Description
@@ -50,11 +50,11 @@ multiple SANs. The '--san' flag and the '--token' flag are mutually exclusive.
 **--set**=`key=value`
 The `key=value` pair with template data variables to send to the CA. Use the **--set** flag multiple times to add multiple variables.
 
-**--set-file**=`path`
-The `path` of a JSON file with the template data to send to the CA.
+**--set-file**=`file`
+The JSON `file` with the template data to send to the CA.
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **--ca-url**=`URI`
@@ -133,8 +133,8 @@ Complete the flow while remaining inside the terminal
 **--x5c-cert**=`chain`
 Certificate (`chain`) in PEM format to store in the 'x5c' header of a JWT.
 
-**--x5c-key**=`path`
-Private key `path`, used to sign a JWT, corresponding to the certificate that will
+**--x5c-key**=`file`
+Private key `file`, used to sign a JWT, corresponding to the certificate that will
 be stored in the 'x5c' header.
 
 **--acme**=`url`
@@ -148,8 +148,8 @@ Standalone is a mode in which the step process will run a server that will
 will respond to ACME challenge validation requests. Standalone is the default
 mode for serving challenge validation requests.
 
-**--webroot**=`path`
-Specify a `path` to use as a 'web root' for validation in the ACME protocol.
+**--webroot**=`file`
+Specify a `file` to use as a 'web root' for validation in the ACME protocol.
 Webroot is a mode in which the step process will write a challenge file to a
 location being served by an existing fileserver in order to respond to ACME
 challenge validation requests.

@@ -13,7 +13,7 @@ menu:
 
 ```raw
 step crypto jws verify
-[--alg=<algorithm>] [--key=<path>] [--jwks=<jwks>] [--kid=<kid>]
+[--alg=<algorithm>] [--key=<file>] [--jwks=<jwks>] [--kid=<kid>]
 ```
 
 ## Description
@@ -46,8 +46,8 @@ algorithm for use with the key, then the **--alg** flag is required to prevent
 algorithm downgrade attacks. To disable this protection you can pass the
 **--insecure** flag and omit the **--alg** flag.
 
-**--key**=`path`
-The `path` to the key with which to verify the JWS.
+**--key**=`file`
+The `file` containing the key with which to verify the JWS.
 The contents of the file can be a public or private JWK (or a JWK
 encrypted as a JWE payload) or a public or private PEM (or a private key
 encrypted using the modes described on RFC 1423 or with PBES2+PBKDF2 described

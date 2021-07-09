@@ -13,7 +13,7 @@ menu:
 
 ```raw
 step crypto jwe decrypt
-[--key=<path>] [--jwks=<jwks>] [--kid=<kid>]
+[--key=<file>] [--jwks=<jwks>] [--kid=<kid>]
 ```
 
 ## Description
@@ -27,8 +27,8 @@ For examples, see **step help crypto jwe**.
 ## Options
 
 
-**--key**=`path`
-The `path` to the JWE recipient's private key. The argument should be the name of a file
+**--key**=`file`
+The argument should be the name of a `file`
 containing a private JWK (or a JWK encrypted as a JWE payload) or a PEM encoded
 private key (or a private key encrypted using the modes described on RFC 1423 or
 with PBES2+PBKDF2 described in RFC 2898).

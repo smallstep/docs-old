@@ -60,6 +60,9 @@ authenticity of the remote server.
 
 - **directory**: Relative or full path to a directory. Every PEM encoded certificate from each file in the directory will be used for path validation.
 
+**--servername**=`value`
+TLS Server Name Indication that should be sent to request a specific certificate from the server.
+
 **--bundle**
 Print all certificates in the order in which they appear in the bundle.
 If the output format is 'json' then output a list of certificates, even if
@@ -72,9 +75,6 @@ Print the certificate or CSR details in shorter and more friendly format.
 **--insecure**
 Use an insecure client to retrieve a remote peer certificate. Useful for
 debugging invalid certificates remotely.
-
-**--servername**=`value`
-TLS Server Name Indication that should be sent to request a specific certificate from the server.
 
 ## Exit codes
 

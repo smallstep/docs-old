@@ -8,6 +8,7 @@ menu:
       - version
       - base64
       - ca
+      - beta
       - certificate
       - crypto
       - fileserver
@@ -46,6 +47,7 @@ print the version
 | **[version](version/)** | display the current version of the cli |
 | **[base64](base64/)** | encodes and decodes using base64 representation |
 | **[ca](ca/)** | initialize and manage a certificate authority |
+| **[beta](beta/)** | commands that are being tested; these APIs are likely to change |
 | **[certificate](certificate/)** | create, revoke, validate, bundle, and otherwise manage certificates |
 | **[crypto](crypto/)** | useful cryptographic plumbing |
 | **[oauth](oauth/)** | authorization and single sign-on using OAuth & OIDC |
@@ -55,7 +57,7 @@ print the version
 
 ## Version
 
-Smallstep CLI/0.15.17 (linux/amd64)
+Smallstep CLI/0.16.0 (linux/amd64)
 
 ## Copyright
 

@@ -12,7 +12,7 @@ menu:
 ## Usage
 
 ```raw
-step crypto key format <key-file> [--out=<path>]
+step crypto key format <key-file> [--out=<file>]
 ```
 
 ## Description

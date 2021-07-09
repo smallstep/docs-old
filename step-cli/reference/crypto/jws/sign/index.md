@@ -14,9 +14,9 @@ menu:
 ```raw
 step crypto jws sign [- | <filename>]
 [--alg=<algorithm>] [--jku=<jwk-url>] [--jwk] [--typ=<type>]
-[--cty=<content-type>] [--key=<path>] [--jwks=<jwks>] [--kid=<kid>]
-[--password-file=<path>] [--x5c-cert=<path>] [--x5c-key=<path>]
-[--x5t-cert=<path>] [--x5t-key=<path>]
+[--cty=<content-type>] [--key=<file>] [--jwks=<jwks>] [--kid=<kid>]
+[--password-file=<file>] [--x5c-cert=<file>] [--x5c-key=<file>]
+[--x5t-cert=<file>] [--x5t-key=<file>]
 ```
 
 ## Description
@@ -109,8 +109,8 @@ used by applications when the kind of object is already known. This parameter
 is ignored by JWS implementations; any processing of this parameter is
 performed by the JWS application. Use of `content-type` is optional.
 
-**--key**=`path`, **--x5c-key**=`path`, **--x5t-key**=`path`
-The `path` to the key with which to sign the JWS.
+**--key**=`file`, **--x5c-key**=`file`, **--x5t-key**=`file`
+The `file` containing the key with which to sign the JWS.
 JWSs can be signed using a private JWK (or a JWK encrypted as a JWE payload) or
 a PEM encoded private key (or a private key encrypted using the modes described
 on RFC 1423 or with PBES2+PBKDF2 described in RFC 2898).
@@ -133,6 +133,6 @@ The path to the `file` containing the password to encrypt or decrypt the private
 **--x5c-cert**=`chain`
 Certificate (`chain`) in PEM format to store in the 'x5c' header of a JWT.
 
-**--x5t-cert**=`path`
-Certificate `path` in PEM format to use for the 'x5t' header of a JWS or JWT
+**--x5t-cert**=`file`
+Certificate `file` in PEM format to use for the 'x5t' header of a JWS or JWT
 

@@ -13,8 +13,8 @@ menu:
 
 ```raw
 step ca revoke <serial-number>
-[--cert=<path>] [--key=<path>] [--token=<ott>]
-[--ca-url=<uri>] [--root=<path>] [--reason=<string>]
+[--cert=<file>] [--key=<file>] [--token=<ott>]
+[--ca-url=<uri>] [--root=<file>] [--reason=<string>]
 [--reasonCode=<code>] [-offline]
 ```
 
@@ -52,11 +52,11 @@ revocation over mTLS.
 ## Options
 
 
-**--cert**=`cert`
-The path to the `cert` that should be revoked.
+**--cert**=`file`
+The `file` containing the cert that should be revoked.
 
-**--key**=`path`
-The `path` to the key corresponding to the cert that should be revoked.
+**--key**=`file`
+The `file` containing the key corresponding to the cert that should be revoked.
 
 **--reason**=`string`
 The `string` representing the reason for which the cert is being revoked.
@@ -103,8 +103,8 @@ Note: This is specific to the CertificateHold reason and is only used in DeltaCR
 attribute certificate have been compromised (reasonCode=10).
 
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **--ca-url**=`URI`

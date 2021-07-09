@@ -13,10 +13,10 @@ menu:
 
 ```raw
 step ssh config
-[--team=<name>] [--host] [--set=<key=value>] [--set-file=<path>]
+[--team=<name>] [--host] [--set=<key=value>] [--set-file=<file>]
 [--dry-run] [--roots] [--federation]
 [--force] [--ca-url=<uri>] [--root=<file>]
-[--offline] [--ca-config=<path>] [--team-url=<url>]
+[--offline] [--ca-config=<file>] [--team-url=<url>]
 ```
 
 ## Description
@@ -51,8 +51,8 @@ user or host certificates
 The `key=value` used as a variable in the templates. Use the flag multiple
 times to set multiple variables.
 
-**--set-file**=`path`
-The `path` of a JSON file with the template data to send to the CA.
+**--set-file**=`file`
+The JSON `file` with the template data to send to the CA.
 
 **--dry-run**
 Executes the command without changing any file.
@@ -68,8 +68,8 @@ Creates a certificate without contacting the certificate authority. Offline mode
 uses the configuration, certificates, and keys created with **step ca init**,
 but can accept a different configuration file using **--ca-config** flag.
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **-f**, **--force**

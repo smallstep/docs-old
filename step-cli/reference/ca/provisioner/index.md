@@ -22,8 +22,8 @@ step ca provisioner <subcommand> [arguments] [global-flags] [subcommand-flags]
 
 ## Description
 
-The **step ca provisioner** command group provides facilities for managing the
-certificate authority provisioner.
+**step ca provisioner** command group provides facilities for managing the
+certificate authority provisioners.
 
 A provisioner is an entity that controls provisioning credentials, which are
 used to generate provisioning tokens.
@@ -86,6 +86,6 @@ $ step ca provisioner remove max@smallstep.com --kid 1234 --ca-config ca.json
 |---|---|
 | **[list](list/)** | list provisioners configured in the CA |
 | **[jwe-key](jwe-key/)** | retrieve and print a provisioning key in the CA |
-| **[add](add/)** | add one or more provisioners the CA configuration |
+| **[add](add/)** | add one or more provisioners to the CA configuration |
 | **[remove](remove/)** | remove one, or more, provisioners from the CA configuration |
 

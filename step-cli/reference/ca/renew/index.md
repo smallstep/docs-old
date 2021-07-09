@@ -13,9 +13,9 @@ menu:
 
 ```raw
 step ca renew <crt-file> <key-file>
-[--ca-url=<uri>] [--root=<path>] [--password-file=<path>]
-[--out=<path>] [--expires-in=<duration>] [--force]
-[--expires-in=<duration>] [--pid=<int>] [--pid-file=<path>]
+[--ca-url=<uri>] [--root=<file>] [--password-file=<file>]
+[--out=<file>] [--expires-in=<duration>] [--force]
+[--expires-in=<duration>] [--pid=<int>] [--pid-file=<file>]
 [--signal=<int>] [--exec=<string>] [--daemon]
 [--renew-period=<duration>]
 ```
@@ -48,8 +48,8 @@ They key file of the certificate.
 ## Options
 
 
-**--ca-config**=`path`
-The `path` to the certificate authority configuration file. Defaults to
+**--ca-config**=`file`
+The certificate authority configuration `file`. Defaults to
 $STEPPATH/config/ca.json
 
 **--ca-url**=`URI`
@@ -86,8 +86,8 @@ The process id to signal after the certificate has been renewed. By default the
 the SIGHUP (1) signal will be used, but this can be configured with the **--signal**
 flag.
 
-**--pid-file**=`path`
-The `path` from which to read the process id that will be signaled after the certificate
+**--pid-file**=`file`
+The `file` from which to read the process id that will be signaled after the certificate
 has been renewed. By default the the SIGHUP (1) signal will be used, but this can be configured with the **--signal**
 flag.
 

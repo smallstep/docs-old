@@ -14,7 +14,7 @@ menu:
 ```raw
 step crypto jwe encrypt
 [--alg=<key-enc-algorithm>] [--enc=<content-enc-algorithm>]
-[--key=<path>] [--jwks=<jwks>] [--kid=<kid>]
+[--key=<file>] [--jwks=<jwks>] [--kid=<kid>]
 ```
 
 ## Description
@@ -92,8 +92,8 @@ the authentication tag.
 
 - **A256GCM** (default): AES GCM using 256-bit key
 
-**--key**=`path`
-The `path` to the JWE recipient's public key.
+**--key**=`file`
+The `file` containing the JWE recipient's public key.
 JWEs can be encrypted for a recipient using a public JWK or a PEM encoded public key.
 
 **--jwks**=`jwks`

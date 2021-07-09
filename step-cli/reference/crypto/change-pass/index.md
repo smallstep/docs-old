@@ -13,7 +13,7 @@ menu:
 
 ```raw
 step crypto change-pass <key-file>
-[--out=<path>] [--password-file=<path>] [--new-password-file=<path>]
+[--out=<file>] [--password-file=<file>] [--new-password-file=<file>]
 [--insecure] [--no-password]
 ```
 

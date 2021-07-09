@@ -39,7 +39,7 @@ $ step crypto key format foo-key.pem
 | Name | Usage |
 |---|---|
 | **[format](format/)** | reformat a public or private key |
-| **[public](public/)** | print the public key from a private key |
+| **[public](public/)** | print the public key from a private key or certificate |
 | **[inspect](inspect/)** | print key details in human readable format |
 | **[fingerprint](fingerprint/)** | print the fingerprint of a public key |
 
