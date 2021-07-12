@@ -271,7 +271,7 @@ foo$ step ca certificate foo.internal foo.crt foo.key --issuer "Google Cloud"
 
 #### OAuth/OIDC Single Sign-on Provisioner
 
-Occasionally it's useful to issue certificates to people (e.g., for testing and debugging). To facilitate this, `step-ca` can be [configured to use OAuth/OpenID Connect (OIDC)](/docs/step-ca/configuration#oauthoidc-single-sign-on 'OIDC') _identity tokens_ for authentication. In other words, you can use single sign-on with GSuite, Okta, Active Directory, or any other OAuth OIDC provider to get a certificate:
+Occasionally it's useful to issue certificates to people (e.g., for testing and debugging). To facilitate this, `step-ca` can be [configured to use OAuth/OpenID Connect (OIDC)](/docs/step-ca/provisioners#oauthoidc-single-sign-on 'OIDC') _identity tokens_ for authentication. In other words, you can use single sign-on with GSuite, Okta, Active Directory, or any other OAuth OIDC provider to get a certificate:
 
 ![SSO Provisioner Architecture](https://i.imgur.com/OIX5Wav.png 'SSO Provisioner Architecture')
 
