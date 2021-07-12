@@ -275,6 +275,27 @@ CA's keys.
       </div>
     </Alert>
 
+## Provisioners
+
+Provisioners are people or entities that are registered with the certificate authority and 
+authorized to issue certificates. Visit the [`step-ca` provisioners](/docs/step-ca/provisioners) page to learn about the 
+different provisioners, their target use cases, and how to add, remove, and configure them.
+
+## Templates
+
+People use private CAs for all sorts of things, in many different contexts:
+web apps, mobile apps, code signing, cloud VM instances, SSH, IoT devices, etc.
+So `step-ca` must be flexible enough to handle a wide variety of flows.
+
+X.509 and SSH certificate templates open up these possibilities.
+With certificate templates, you can do things like:
+
+- Add custom SANs or extensions to X.509 certificates
+- Make longer certificate chains, with multiple intermediate CAs
+- Use SSH `force-command` or `source-address` extensions
+- Add conditionals around a certificate's parameters, and fail if they are not met
+
+Visit the [`step-ca` templates](/docs/step-ca/templates) page to learn how to use templates.
 
 ## Databases
 
