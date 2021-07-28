@@ -11,7 +11,7 @@ import Code from 'docs/Code';
 import Alert from 'docs/Alert';
 import AlertTitle from 'docs/AlertTitle';
 
-One could write several telephone books about the innards of X.509, asn.1 and the vast topics of infosec, netsec, and public key cryptography that are implicated in the design of a PKI. It's daunting. So let's begin at the beginning, with a simple online CA and a humble TLS-enabled "Hello World" application.
+One could write several telephone books about the innards of X.509, asn.1 and the vast topics of infosec, netsec, and public key cryptography that are implicated in the design of a PKI. It's daunting. So let's begin at the beginning, with a CA server and a TLS-enabled "Hello World" application.
 
 
 In this guide we will:
@@ -81,7 +81,7 @@ Please enter the password to decrypt /Users/bob/.step/secrets/intermediate_ca_ke
 
 ### Accessing your Certificate Authority
 
-#### Accessing your CA locally
+#### Accessing your CA
 
 You can use `step ca` and `step ssh` command groups to interact with the CA.
 
@@ -131,10 +131,6 @@ X.509v3 Root CA Certificate (ECDSA P-256) [Serial: 2282...6360]
           to:  2031-05-09T21:40:19Z
 ```
 
-#### Using the Golang wrapper
-
-You can access your CA programmatically using our [Go client wrapper](https://github.com/smallstep/certificates/tree/master/examples#user-content-basic-client-usage).
-
 ## Example: Run A Local Web Server Using TLS
 
 Now that the certificate authority is running, let's create an example server and use our new certificate authority to issue an X.509 certificate and connect to the server using HTTP over TLS.
@@ -157,7 +153,7 @@ $ step ca certificate localhost srv.crt srv.key
 
 ### Run a hello world example server configured for TLS connections
 
-We've got our certificates. Now let's create an example server that will run on localhost and use TLS. You can follow along with this `go` server to get a better idea of how X.509 certificates work with a real server.
+We've got our certificate. Now let's create an example server that will run on localhost and use TLS.
 
 This example server listens to port `9443` and serves _Hello, world!_ to any client that accepts the server certificate as trusted.
 
@@ -194,7 +190,13 @@ First, let's try making a curl request to our example server. In a new terminal,
 
 ```shell-session nocopy
 $ curl https://localhost:9443/hi
+```
 
+If you already ran `step certificate install` to install your root CA into your system's trust store, this command will work and you'll see "Hello, World!".
+
+If not, you'll see this error:
+
+```
 curl: (60) SSL certificate problem: unable to get local issuer certificate
 More details here: https://curl.haxx.se/docs/sslcerts.html
 curl failed to verify the legitimacy of the server and therefore could not
@@ -202,7 +204,9 @@ establish a secure connection to it. To learn more about this situation and
 how to fix it, please visit the web page mentioned above.
 ```
 
-As you can see, that doesn't work. curl has no way of telling if the example server can be trusted. Although if we get the root certificate from the CA, we can use that.
+In this case, `curl` does not yet trust your root CA.
+
+Let's download the CA's root certificate and pass it into `curl` to establish trust.
 
 ```shell-session nocopy
 $ step ca root root.crt
@@ -210,7 +214,7 @@ $ step ca root root.crt
 The root certificate has been saved in root.crt.
 ```
 
-Now we can make a curl request using the root certificate we got from the CA. When we add `--cacert root.crt` to the curl command, it will verify that the server certificate was signed by the CA, and at that point we see _Hello, world!_
+Now you can make a curl request using the root certificate you just downloaded. When you add `--cacert root.crt` to the curl command, it will verify that the server certificate was signed by the CA, and at that point you will see _Hello, world!_
 
 ```shell-session nocopy
 $ curl --cacert root.crt https://localhost:9443/hi
@@ -218,7 +222,7 @@ $ curl --cacert root.crt https://localhost:9443/hi
 Hello, world!
 ```
 
-Nice! We've just generated and integrated our first certificate using `step-ca`. 
+Nice! You've just generated and integrated our first certificate using `step-ca`. 
 
 ## Next Steps
 
