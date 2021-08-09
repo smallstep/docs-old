@@ -24,7 +24,7 @@ Let's perform some basic operations on X.509 certificates:
 
 ### Issue a Certificate From Scratch
 
-Once you have a certificate authority up and running, the `step ca` command makes generating keys and obtaining a certificate simple. You need just one command:
+Once you have a certificate authority up and running, the `step ca certificate` command makes generating a private key and obtaining a certificate simple. You need just one command:
 
 ```shell-session nocopy
 $ step ca certificate svc.example.com svc.crt svc.key
@@ -58,7 +58,7 @@ X.509v3 TLS Certificate (ECDSA P-256) [Serial: 7720...1576]
     </div>
 </Alert>
 
-### Issue a Certificate From a Certificate Signing Request (CSR)
+### Issue a Certificate From a [Certificate Signing Request (CSR)](https://smallstep.com/blog/everything-pki/#certificate-signing-requests)
 
 Let's make a CSR for this example, using `step certificate create --csr`, then we'll use `step ca sign` to get a signed certificate from the CA.
 
@@ -118,7 +118,7 @@ When the CA is initialized with `--ssh`, it creates two SSH CA key pairs: one fo
 
 In this section, we will delegate SSH authentication on both ends of the SSH connection:
 * **Hosts authenticating users**: Hosts will trust the user CA key, thereby delegating the authentication of users to the CA. When a user presents their certificate to a host during the SSH handshake, the host will trust it when it's signed by the user CA key.
-* **Users trusting hosts**: Clients will trust the host CA key, thereby delegating the authentication of hosts to the CA. When a host presents its host certificate to a user during the SSH handshake, the user will trust it when it's signed by the host CA key.
+* **Users trusting hosts**: Users will trust the host CA key, thereby delegating the authentication of hosts to the CA. When a host presents its host certificate to a user during the SSH handshake, the user will trust it when it's signed by the host CA key.
 
 ### Getting a host to authenticate users
 
@@ -141,7 +141,11 @@ TrustedUserCAKeys /path/to/ssh_user_key.pub
 EOF
 ```
 
-Restart SSHD. Your host will now trust any user certificate issued by the CA. 
+Restart SSHD. Your host will now trust any user certificate issued by the CA. On Ubuntu 18.04 LTS, run:
+
+```
+$ systemctl restart ssh.service
+```
 
 #### 2. Issue an SSH user certificate and test your connection
 
@@ -159,7 +163,7 @@ Please enter the password to encrypt the private key:
 ✔ SSH Agent: yes
 ```
 
-The CA issued a private key, a public key, and an SSH certificate, and it added the certificate and private key to our local SSH agent. We only need the private key and certificate to use SSH certificate authentication. Let's inspect the certificate:
+The CA issued a private key, a public key, and an SSH certificate, and `step` added the certificate and private key to our local SSH agent. We only need the private key and certificate to use SSH certificate authentication. Let's inspect the certificate:
 
 ```shell-session
 $ cat id_ecdsa-cert.pub | tail -1 | step ssh inspect
@@ -172,6 +176,7 @@ $ cat id_ecdsa-cert.pub | tail -1 | step ssh inspect
         Valid: from 2020-09-22T11:27:56 to 2020-09-23T03:28:56
         Principals:
                 alice
+                alice@smallstep.com
         Critical Options: (none)
         Extensions:
                 permit-pty
@@ -183,9 +188,11 @@ $ cat id_ecdsa-cert.pub | tail -1 | step ssh inspect
 
 By default, when using SSH certificates, SSHD will allow you to connect as any of the listed principals. If the list of principals is empty, SSHD will allow you to authenticate as _anyone_ on the host.
 
+Now you have a certificate for your user, try to login on your host.
+
 ### Getting SSH clients to trust hosts
 
-Hosts can have SSH certificates, too, instead of the typical host public key pair. Host certificates allow clients who trust the host CA to avoid "Trust this host's fingerprint?" prompts that normally arise when using conventional host keys for the first time.
+Hosts can have SSH certificates, too, instead of the typical host public key pair. Host certificates allow clients who trust the host CA to avoid the trust on first use prompt.
 
 #### 1. Issue a certificate for your host
 
@@ -219,6 +226,8 @@ $ cat ssh_host_ecdsa_key-cert.pub | step ssh inspect
         Extensions: (none)
 ```
 
+By default, host certificates expire in a month. 
+
 #### 2. Install your host key and certificate
 
 If you want your host to use this key, move the files to `/etc/ssh` and add the following to your SSHD configuration. On your host:
@@ -248,7 +257,7 @@ chmod 755 /etc/cron.weekly/rotate-ssh-certificate
 
 #### 4. Configure SSH clients to trust your host CA
 
-To get your SSH clients to trust host certificates issued by your CA, you'll need to add the host CA key to SSH's `known_hosts` file.
+To get your SSH clients to trust host certificates issued by your CA, you'll need to add the host CA key to SSH's `.ssh/known_hosts` file.
 
 To view the host key, run:
 
@@ -257,7 +266,7 @@ $ step ssh config --host --roots
 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFM2fTh3Utg3eGMqy2mJqa48Qsr7onZfOtIpJRNvvd71+eBUHBQdhnGmo2NPksNV3GxEuUZKAjZMlNv5c13XvfY=
 ```
 
-Add this to the `known_hosts` file on your SSH client, prepending `@cert-authority * ` to it to mark it as a Certificate Authority, eg:
+Add this to the `.ssh/known_hosts` file on your SSH client, prepending `@cert-authority * ` to it to mark it as a Certificate Authority, eg:
 
 ```
 @cert-authority * ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFM2fTh3Utg3eGMqy2mJqa48Qsr7onZfOtIpJRNvvd71+eBUHBQdhnGmo2NPksNV3GxEuUZKAjZMlNv5c13XvfY=
