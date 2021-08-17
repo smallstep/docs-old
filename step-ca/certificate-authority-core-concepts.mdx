@@ -32,30 +32,15 @@ on the network and accepts certificate requests.
 
 ## Provisioners
 
-The certificate signing API exposed by `step-ca` requires mutual
-authentication. The CA authenticates to the client using a certificate (which
-the client verifies using the root certificate created during CA initialization). 
-But the client must also authenticate to the CA. Again, this
-presents a challenge: the client obviously can't use a certificate for
-authentication because it doesn't have one yet.
-
-To verify the legitimacy of certificate signing requests, we need some entity
-that the CA trusts to measure and attest to the identity of our workloads. In
-the _step certificates_ architecture this entity is called a _provisioner_,
-because it helps to provision certificates.
-
-In general, once a _provisioner_ authenticates a workload's identity it issues
-the workload a _bearer token_ to submit to the CA, along with a [certificate
+Provisioners are methods of proving an entities' identity to the CA prior to getting a new certificate.
+The CA needs proof the an entity that is requesting a new certificate is who they say they are.
+Once a provisioner authenticates an entities' identity, it then issues the entity a bearer token to submit to the CA, along with a [certificate
 signing
 request](https://smallstep.com/blog/everything-pki.html#certificate-signing-requests
-'CSR') (CSR), to obtain a certificate. The _bearer token_ authenticates the
-workload and authorizes the certificate request.
+'CSR') (CSR), to obtain the new certificate.
 
-![Generic Architecture](https://i.imgur.com/zH4RYEj.png 'Generic Architecture')
-
-The details of how a provisioner interacts with a workload (or device or
-person) and the CA vary by provisioner type. Smallstep supports a number of
-provisioner types including:
+The details of how a provisioner interacts with an entity (machines or people) and the CA vary by provisioner type.
+Smallstep supports a number of provisioner types including:
 
 - [ACME protocol](/docs/step-ca/provisioners#acme)
 - [OAuth/OIDC Single Sign-on](/docs/step-ca/provisioners#oauthoidc-single-sign-on)
@@ -67,19 +52,14 @@ provisioner types including:
 
 ## Active vs. passive revocation
 
-On the public internet, sometimes HTTPS certificates need to be revoked before
-they expire. Over the years, there have been several methods for _actively
-revoking_ HTTPS certificates. Any approach to solving this problem adds
-complexity to the PKI—usually in the form of additional network requests. For
-example, a web browser might need to fetch a Certificate Revocation List (CRL)
-from a URL embedded in an HTTPS certificate so it can make sure the
-certificate, which would otherwise be valid, has not been actively revoked by
-a trusted authority.
+There are two certificate revocation methods: active vs. passive.
+Private PKIs like `step-ca` uses passive revocation by default.
+Passive revocation doesn't use Certificate Revocation List (CRL) and Online Certificate Signing Protocol (OCSP) like the Web PKI you may be familiar with. 
 
-When designing a private PKI, you can make things a lot simpler and more
-decentralized. If you make certificate lifetimes short enough, you can
-_passively revoke_ a certificate by letting it expire and making sure the
-Certificate Authority knows to reject any attempts to renew it.
+To passively revoke a certificate means to block its renewal at the CA.
+This eliminates the additional network request that occurs when using a web PKI because the certificate just expires by itself. 
+Unlike active revocation, certificates cannot be immedietely revoked.
+Therefore, certificates should have a shorter lifetime to reduce the value of a key that has be exfiltrated.
 
 ![passive revocation diagram](../../../static/images/passive-revocation.png)
 
