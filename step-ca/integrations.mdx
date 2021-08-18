@@ -8,13 +8,10 @@ unfurl: /static/graphics/smallstep-docs-unfurl.png
 import Alert from 'docs/Alert';
 import Code from 'docs/Code';
 
-`step-ca` integrates with a number of different protocols and platforms. Many 
-of these integrations are native to `step-ca` (like support for [ACME][acme-rfc]
-and [OIDC][oidc]), while others require additional tools from the smallstep 
-library (e.g. [autocert][autocert]).
+`step-ca` integrates with a number of different protocols and platforms.
+Many of these integrations are native to `step-ca` (like support for [ACME][acme-rfc] and [OIDC][oidc]), while others require additional tools from the smallstep library (e.g. [autocert][autocert]).
 
-This document lists, briefly describes, and links to documentation for all 
-`step-ca` integrations.
+This document lists, briefly describes, and links to documentation for all `step-ca` integrations.
 
 - Protocols and Platforms
   - [ACME](#acme)
@@ -35,20 +32,17 @@ This document lists, briefly describes, and links to documentation for all
 
 ### ACME
 
-Both `step` and `step-ca` are natively integrated with the [ACME protocol][acme-rfc]. `step`
-can be used to request ACME certificates from any ACME server, while `step-ca` 
-is a fully functional private ACME server that works with all popular ACME clients.
+Both `step` and `step-ca` are natively integrated with the [ACME protocol][acme-rfc].
+`step` can be used to request ACME certificates from any ACME server, while `step-ca` is a fully functional private ACME server that works with all popular ACME clients.
 
-Learn more about how to [setup your own private ACME server][private-acme-server] and [configure 
-popular ACME clients to use that server][configure-acme].
+Learn more about how to [setup your own private ACME server][private-acme-server] and [configure popular ACME clients to use that server][configure-acme].
 
 [private-acme-server]: /docs/tutorials/acme-challenge
 [configure-acme]: /docs/tutorials/acme-protocol-acme-clients
 
 ### OIDC
 
-Both `step` and `step-ca` natively support working with and issuing 
-credentials in exchange for OIDC tokens.
+Both `step` and `step-ca` natively support issuing certificates in exchange for OIDC tokens.
 
 Learn more about how to [configure an OIDC provisioner][configure-oidc].
 
@@ -56,12 +50,9 @@ Learn more about how to [configure an OIDC provisioner][configure-oidc].
 
 ### Cloud Instance Identity
 
-Cloud Instance Identity Documents (IIDs) are cryptographically signed blobs of
-information about a host that are often used by workloads to authenticate one another
-across one's infrastructure.
+Cloud Instance Identity Documents (IIDs) are cryptographically signed metadata about a host that are often used by workloads to authenticate one another across one's infrastructure.
 
-Both `step` and `step-ca` natively support working with and issuing 
-credentials in exchange for IIDs from AWS, GCP, and Azure.
+Both `step` and `step-ca` natively support issuing certificates in exchange for IIDs from AWS, GCP, and Azure.
 
 Learn more about how to [configure a cloud identity document provisioner][configure-iid].
 
@@ -72,13 +63,11 @@ Learn more about how to [configure a cloud identity document provisioner][config
 `autocert` is our kubernetes add-on that automatically injects TLS/HTTPS certificates into your containers.
 Learn more about how to [install and configure `autocert`][autocert].
 
-Alternatively, if you already use `cert-manager`, you can [configure it to trust `step-ca` for use with ACME](/docs/tutorials/kubernetes-acme-ca).
+If you use `cert-manager`, you can [configure it to trust `step-ca` for use with ACME](/docs/tutorials/kubernetes-acme-ca).
 
 ### Envoy Secret Discovery Service (SDS)
 
-`step-sds` implements the server-side API of [Envoy SDS][envoy-sds], which
-pushes certificates to the client. Both mTLS and Unix Domain Socket
-configurations are supported.
+`step-sds` implements the server-side API of [Envoy SDS][envoy-sds], which pushes certificates to the client. Both mTLS and Unix Domain Socket configurations are supported.
 
 Learn more about how to [install and configure `step-sds`][step-sds].
 
@@ -89,10 +78,9 @@ Learn more about how to [install and configure `step-sds`][step-sds].
 
 ### Cloud Key Management Service
 
-Cloud Key Management Services (Cloud KMS) allow users to store cryptographic 
-keys and sign certificates using cloud storage and APIs.
+Cloud Key Management Services (Cloud KMS) allow users to store cryptographic keys and sign certificates using cloud storage and APIs.
 
-Google Cloud KMS and Amazon AWS KMS are currently supported.
+Google Cloud KMS and Amazon AWS KMS are currently supported to store CA private keys.
 
 Learn more about how to [configure Cloud KMS][configure-cloudkms].
 
