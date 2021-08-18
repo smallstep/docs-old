@@ -12,11 +12,10 @@ import Footnote from 'docs/Footnote';
 import Link from 'docs/Link';
 import Reference from 'docs/Reference';
 
-When the `step ca init` command sets up your PKI, it creates an initial
-configuration file for your CA and stores it in `$STEPPATH/config/ca.json`.
+When the `step ca init` command sets up your PKI, it creates an initial configuration file for your CA and stores it in `$STEPPATH/config/ca.json`.
 
-In this document we'll describe how to configure every aspect of `step-ca`. You'll
-learn how to configure your CA to:
+In this document we'll describe how to configure every aspect of `step-ca`.
+You'll learn how to configure your CA to:
 
 - bind to a non default address
 - generate ACME certificates
@@ -48,21 +47,18 @@ learn how to configure your CA to:
 
 ## Specifying a Configuration File
 
-When you run `step-ca`, you must provide a path to a configuration file
-(`ca.json`). It is the only required argument. Typically you'd use `step path`
-to discover the path to `ca.json`:
+When you run `step-ca`, you must provide a path to a configuration file (`ca.json`). 
+It is the only required argument. Typically you'd use `step path` to discover the path to `ca.json`:
 
 ```shell-session
 $ step-ca $(step path)/config/ca.json
 ```
 
-For non-interactive use (eg. as a `systemd` service), you can also add a
-`--password-file` flag with the name of a file containing the password for the
-CA's keys.
+For non-interactive use (eg. as a `systemd` service), you can also add a `--password-file` flag with the name of a file containing the password for the CA's keys.
 
 ## Environment Variables
 
-* `STEPDEBUG` When set to `1`, `step-ca` will provide extra diagnostic information for debugging. This variable can also be used with `step`.
+* `STEPDEBUG` when set to `1`, `step-ca` will provide extra diagnostic information for debugging. This variable can also be used with `step`.
 
 ## Basic Configuration Options
 
@@ -191,7 +187,7 @@ CA's keys.
 
 - **kms**: enables and configures [cryptographic protection](#cryptographic-protection) using cloud key management services or hardware security modules.
 
-  - **type**: required. one of `awskms`, `cloudkms`, `pkcs11`, or `yubikey`
+  - **type**: required. Valid values are: `awskms`, `cloudkms`, `pkcs11`, or `yubikey`
 
   - **uri**: this field can be used to specify other fields in this section, and its value will take precedence over those values. See [cryptographic protection](#cryptographic-protection) for examples.
 
@@ -205,7 +201,16 @@ CA's keys.
 
 - **password**: optionally store the password for decrypting the intermediate private key (this should be the same password you chose during PKI initialization). If the value is not stored in configuration then you will be prompted for it when starting the CA.
 
-- **address**: ex. 127.0.0.1:8080 - address and port on which the CA will bind and respond to requests.
+    <Alert severity="warning">
+      <div> 
+        We do not recommend storing the password plain text in your <Code>ca.json</Code>. 
+        The recommended option is to use the <Code>--password-file</Code> flag when
+        running <Code>step-ca</Code>. This attribute is a convenience that should be 
+        avoided in production.
+      </div>
+    </Alert>
+
+- **address**: ex. 127.0.0.1:9000 - address and port on which the CA will bind and respond to requests.
 
 - **dnsNames**: comma separated list of DNS name(s) for the CA.
 
@@ -220,7 +225,7 @@ CA's keys.
 
 - **db**: data persistence layer. See [database documentation](#databases) for more info.
 
-  - **type**: badger, bbolt, mysql, etc.
+  - **type**: Valid values are: badger, badgerV1, badgerV2, bbolt, mysql.
 
   - **dataSource**: string that can be interpreted differently depending on the type of the database. Usually a path to where the data is stored. See the database configuration docs for more info.
 
@@ -228,7 +233,7 @@ CA's keys.
 
   - **valueDir**: directory to store the value log in (Badger specific).
 
-- **tls**: settings for negotiating communication with the CA; includes acceptable ciphersuites, min/max TLS version, etc.
+- **tls**: settings for negotiating communication with the CA; includes [acceptable ciphersuites](https://ciphersuite.info/), min/max TLS version, renegotiation.
 
 - **authority**: controls the request authorization and signature processes.
 
@@ -264,22 +269,10 @@ CA's keys.
 
   - **provisioners**: list of provisioners. Each provisioner has a name, associated authentication attributes, and an optional claims attribute that will override any values set in the global claims directly underneath authority. See [provisioner documentation](/docs/step-ca/provisioners) for more info.
 
-  - **password**: plain text password for starting the CA. Used to decrypt the intermediate private key. 
-
-    <Alert severity="warning">
-      <div> 
-        We do not recommend storing the password plain text in your <Code>ca.json</Code>. 
-        The recommended option is to use the <Code>--password-file</Code> flag when
-        running <Code>step-ca</Code>. This attribute is a convenience that should be 
-        avoided in production.
-      </div>
-    </Alert>
-
 ## Provisioners
 
-Provisioners are people or entities that are registered with the certificate authority and 
-authorized to issue certificates. Visit the [`step-ca` provisioners](/docs/step-ca/provisioners) page to learn about the 
-different provisioners, their target use cases, and how to add, remove, and configure them.
+Provisioners are methods of proving a client identity to the CA prior to getting a new certificate.
+Visit the [`step-ca` provisioners](/docs/step-ca/provisioners) page to learn about the different provisioners, their target use cases, and how to add, remove, and configure them.
 
 ## Templates
 
