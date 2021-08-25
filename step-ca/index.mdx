@@ -9,6 +9,11 @@ cta:
   path: /docs/step-ca/installation
 ---
 
+import Alert from 'docs/Alert';
+import AlertTitle from 'docs/AlertTitle';
+import Code from 'docs/Code';
+import Link from 'docs/Link';
+
 ## Introduction to `step-ca`
 
 `step-ca` is an online Certificate Authority (CA) for secure, automated X.509 and SSH certificate management. 
@@ -25,6 +30,21 @@ Teams use `step-ca` to:
 - Issue short-lived SSH certificates via OAuth OIDC single sign on
 - Issue customized X.509 and SSH certificates
 - and much more ...
+
+<Alert severity="success">
+  <AlertTitle>Don&apos;t want to run your own CA?</AlertTitle>
+  <div>
+    To get up and running quickly, or as an alternative to running your own
+    <Code>step-ca</Code> server, consider creating a{' '}
+    <Link
+      external
+      href="https://info.smallstep.com/certificate-manager-early-access-mvp/"
+    >
+      free hosted smallstep Certificate Manager authority
+    </Link>
+    .
+  </div>
+</Alert>
 
 ## Features
 

@@ -10,6 +10,7 @@ import CodeBlock from 'docs/CodeBlock';
 import Code from 'docs/Code';
 import Alert from 'docs/Alert';
 import AlertTitle from 'docs/AlertTitle';
+import Link from 'docs/Link';
 
 One could write several telephone books about the innards of X.509, asn.1 and the vast topics of infosec, netsec, and public key cryptography that are implicated in the design of a PKI. It's daunting. So let's begin at the beginning, with a CA server and a TLS-enabled "Hello World" application.
 
@@ -35,6 +36,21 @@ Run the command `step ca init` in a terminal to configure the `step ca` and repl
     <div>
         By default, the SSH CA is disabled. Create a CA with SSH CA capabilities by running <Code>step ca init --ssh</Code>.
     </div>
+</Alert>
+
+<Alert severity="success">
+  <AlertTitle>Don&apos;t want to run your own CA?</AlertTitle>
+  <div>
+    To get up and running quickly, or as an alternative to running your own
+    <Code>step-ca</Code> server, consider creating a{' '}
+    <Link
+      external
+      href="https://info.smallstep.com/certificate-manager-early-access-mvp/"
+    >
+      free hosted smallstep Certificate Manager authority
+    </Link>
+    .
+  </div>
 </Alert>
 
 Note that one of the prompts is about the default provisioner, but for now an email address works fine as an identifier.
