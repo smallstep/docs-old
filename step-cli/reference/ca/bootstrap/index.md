@@ -12,7 +12,7 @@ menu:
 ## Usage
 
 ```raw
-step ca bootstrap 
+step ca bootstrap
 [--ca-url=<uri>] [--fingerprint=<fingerprint>] [--install]
 [--team=name] [--team-url=url] [--redirect-url=<url>]
 ```
@@ -49,7 +49,7 @@ The `url` step queries to retrieve initial team configuration. Only used with
 the **--team** option. If the url contains `<>` placeholders, they are replaced with the team ID.
 
 **--redirect-url**=`url`
-Terminal OAuth redirect `url`.
+The `url` to open in the system browser when the OAuth flow is successful.
 
 **-f**, **--force**
 Force the overwrite of files without asking.

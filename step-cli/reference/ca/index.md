@@ -10,6 +10,7 @@ menu:
       - bootstrap
       - token
       - certificate
+      - rekey
       - renew
       - revoke
       - provisioner
@@ -89,7 +90,8 @@ $ step ca renew internal.crt internal.key \
 | **[bootstrap](bootstrap/)** | initialize the environment to use the CA commands |
 | **[token](token/)** | generate an OTT granting access to the CA |
 | **[certificate](certificate/)** | generate a new private key and certificate signed by the root certificate |
-| **[renew](renew/)** | renew a valid certificate |
+| **[rekey](rekey/)** | rekey a certificate |
+| **[renew](renew/)** | renew a certificate |
 | **[revoke](revoke/)** | revoke a certificate |
 | **[provisioner](provisioner/)** | create and manage the certificate authority provisioners |
 | **[sign](sign/)** | generate a new certificate signing a certificate request |

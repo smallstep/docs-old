@@ -12,7 +12,10 @@ menu:
 ## Usage
 
 ```raw
-step beta ca provisioner remove <name> [--ca-url=<uri>] [--root=<file>]
+step beta ca provisioner remove <name>
+[--admin-cert=<file>] [--admin-key=<file>]
+[--admin-provisioner=<string>] [--admin-subject=<string>]
+[--password-file=<file>] [--ca-url=<uri>] [--root=<file>]
 ```
 
 ## Description

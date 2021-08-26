@@ -117,7 +117,7 @@ Generate a JWT Auth token instead of an OAuth Token (only works with service acc
 Callback listener `address` (e.g. ":10000")
 
 **--redirect-url**=`url`
-Terminal OAuth redirect `url`.
+The `url` to open in the system browser when the OAuth flow is successful.
 
 ## Examples
 

@@ -12,8 +12,8 @@ menu:
 ## Usage
 
 ```raw
-step certificate needs-renewal <cert_file or host_name>
-[--expires-in=<duration>] [--roots=<root-bundle>] [--servername=<servername>]
+step certificate needs-renewal <cert-file or hostname>
+[--expires-in=<percent|duration>] [--roots=<root-bundle>] [--servername=<servername>]
 ```
 
 ## Description
@@ -27,7 +27,7 @@ adjusted using the '--expires-in' flag.
 
 ## Positional arguments
 
-`cert_file or hostname`
+`cert-file or hostname`
 The path to a certificate OR a hostname with protocol prefix.
 
 ## Options

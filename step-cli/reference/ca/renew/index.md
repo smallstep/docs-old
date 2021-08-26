@@ -7,7 +7,7 @@ menu:
 ---
 
 ## Name
-**step ca renew** -- renew a valid certificate
+**step ca renew** -- renew a certificate
 
 ## Usage
 

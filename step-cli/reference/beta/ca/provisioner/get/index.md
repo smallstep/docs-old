@@ -12,7 +12,10 @@ menu:
 ## Usage
 
 ```raw
-step beta ca provisioner get <name> [--ca-url=<uri>] [--root=<file>]
+step beta ca provisioner get <name>
+[--admin-cert=<file>] [--admin-key=<file>]
+[--admin-provisioner=<string>] [--admin-subject=<string>]
+[--password-file=<file>] [--ca-url=<uri>] [--root=<file>]
 ```
 
 ## Description
@@ -34,6 +37,9 @@ The provisioner `name` to use for generating admin credentials.
 
 **--admin-subject**=`subject`, **--admin-name**=`subject`
 The admin `subject` to use for generating admin credentials.
+
+**--password-file**=`file`
+The path to the `file` containing the password to encrypt or decrypt the private key.
 
 **--ca-url**=`URI`
 `URI` of the targeted Step Certificate Authority.

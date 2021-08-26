@@ -18,6 +18,7 @@ menu:
       - renew
       - revoke
       - rekey
+      - needs-renewal
 ---
 
 ## Name
@@ -103,4 +104,5 @@ $ ssh internal.example.com
 | **[renew](renew/)** | renew a SSH certificate using the SSH CA |
 | **[revoke](revoke/)** | revoke a SSH certificate using the SSH CA |
 | **[rekey](rekey/)** | rekey a SSH certificate using the SSH CA |
+| **[needs-renewal](needs-renewal/)** | Check if an SSH certificate needs to be renewed |
 

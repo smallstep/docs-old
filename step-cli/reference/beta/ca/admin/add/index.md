@@ -13,6 +13,9 @@ menu:
 
 ```raw
 step beta ca admin add <subject> <provisioner> [--super]
+[--admin-cert=<file>] [--admin-key=<file>]
+[--admin-provisioner=<string>] [--admin-subject=<string>]
+[--password-file=<file>] [--ca-url=<uri>] [--root=<file>]
 ```
 
 ## Description

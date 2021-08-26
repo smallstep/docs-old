@@ -12,8 +12,10 @@ menu:
 ## Usage
 
 ```raw
-step beta ca admin update <subject> [--super] [--provisioner=<name>]
-[--ca-url=<uri>] [--root=<file>]
+step beta ca admin update <subject> [--super] [--provisioner=<string>]
+[--admin-cert=<file>] [--admin-key=<file>]
+[--admin-provisioner=<string>] [--admin-subject=<string>]
+[--password-file=<file>] [--ca-url=<uri>] [--root=<file>]
 ```
 
 ## Description
@@ -31,8 +33,8 @@ The name of the admin to update.
 **--super**
 Update the admin with super-admin privileges.
 
-**--provisioner**=`value`
-Filter admin by provisioner name
+**--provisioner**=`string`
+The `string` name of a provisioner by which to filter admins.
 
 **--admin-cert**=`chain`
 Admin certificate (`chain`) in PEM format to store in the 'x5c' header of a JWT.

@@ -13,7 +13,9 @@ menu:
 
 ```raw
 step beta ca admin list [--super] [--provisioner=<string>]
-[--ca-url=<uri>] [--root=<file>]
+[--admin-cert=<file>] [--admin-key=<file>]
+[--admin-provisioner=<string>] [--admin-subject=<string>]
+[--password-file=<file>] [--ca-url=<uri>] [--root=<file>]
 ```
 
 ## Description
@@ -22,12 +24,6 @@ step beta ca admin list [--super] [--provisioner=<string>]
 
 ## Options
 
-
-**--ca-url**=`URI`
-`URI` of the targeted Step Certificate Authority.
-
-**--root**=`file`
-The path to the PEM `file` used as the root certificate authority.
 
 **--super**
 Only return super-admins.
@@ -50,6 +46,12 @@ The admin `subject` to use for generating admin credentials.
 
 **--password-file**=`file`
 The path to the `file` containing the password to encrypt or decrypt the private key.
+
+**--ca-url**=`URI`
+`URI` of the targeted Step Certificate Authority.
+
+**--root**=`file`
+The path to the PEM `file` used as the root certificate authority.
 
 ## Examples
 

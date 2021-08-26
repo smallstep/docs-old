@@ -39,6 +39,28 @@ Generate only the PKI without the CA configuration.
 **--ssh**
 Create keys to sign SSH certificates.
 
+**--helm**
+Generates a Helm values YAML to be used with step-certificates chart.
+
+**--deployment-type**=`name`
+The `name` of the deployment type to use. Options are:
+- **standalone**: An instance of step-ca that does not connect to any cloud services. You
+    manage authority keys and configuration yourself.
+    Choose standalone if you'd like to run step-ca yourself and do not want
+    cloud services or commercial support.
+
+- **linked**: An instance of step-ca with locally managed keys that connects to your
+    Certificate Manager account for provisioner management, alerting,
+    reporting, revocation, and other managed services.
+    Choose linked if you'd like cloud services and support, but need to
+    control your authority's signing keys.
+
+- **hosted**: A highly available, fully-managed instance of step-ca run by smallstep
+    just for you.
+    Choose hosted if you'd like cloud services and support.
+
+More information and pricing at: https://u.step.sm/cm
+
 **--name**=`name`
 The `name` of the new PKI.
 
@@ -61,14 +83,29 @@ The path to the `file` containing the password to encrypt the provisioner key.
 `URI` of the Step Certificate Authority to write in defaults.json
 
 **--ra**=`name`
-The registration authority `name` to use. Currently only "CloudCAS" is supported.
+The registration authority `name` to use. Currently "StepCAS" and "CloudCAS" are supported.
 
-**--issuer**=`name`
-The registration authority issuer `name` to use.
+**--issuer**=`url`
+The registration authority issuer `url` to use.
+
+If StepCAS is used, this flag should be the URL of the CA to connect
+to, e.g https://ca.smallstep.com:9000
 
 If CloudCAS is used, this flag should be the resource name of the
 intermediate certificate to use. This has the format
 'projects/\*/locations/\*/caPools/\*/certificateAuthorities/\*'.
+
+**--issuer-fingerprint**=`fingerprint`
+The root certificate `fingerprint` of the issuer CA.
+This flag is supported in "StepCAS", and it should be the result of running:
+```shell
+$ step certificate fingerprint root_ca.crt
+4fe5f5ef09e95c803fdcb80b8cf511e2a885eb86f3ce74e3e90e62fa3faf1531
+```
+
+**--issuer-provisioner**=`name`
+The `name` of an existing provisioner in the issuer CA.
+This flag is supported in "StepCAS".
 
 **--credentials-file**=`file`
 The registration authority credentials `file` to use.
