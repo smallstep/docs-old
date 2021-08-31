@@ -11,5 +11,155 @@ import CodeBlock from 'docs/CodeBlock';
 import ContentLink from 'docs/ContentLink';
 import Link from 'docs/Link';
 
-ACME support in `step-ca` allows softwar
+When public ACME Certificate Authorities (CA) like Let's Encrypt issue certificates to clients in the Web PKI, the CA depends heavily on DNS for client verification. To get a certificate, a client must prove to the CA that it either directly controls the public DNS records for a domain (for the DNS-01 challenge type)—or that it controls the IP address pointed to by public DNS records (for the HTTP-01 and TLS-ALPN-01 challenge types).
 
+When deploying ACME internally, the same constraints are true: A server that authorizes certificate requests must be able to query internal DNS servers or reach internal hosts. This is why we created a Registration Authority (RA) for Certificate Manager. An RA is a service you run on your own network that authenticates ACME challenges (or other certificate requests). It does not issue certificates or hold CA keys. Instead, it relays authenticated certificate requests to Certificate Manager, which then issues certificates.
+
+In this tutorial, you'll configure a Remote RA that you can run to authenticate requests for Certificate Manager certificates.
+
+![Use%20ACME%20with%20Certificate%20Manage%2045533a57cdfb46ac93752d51f14ef76e/Screen_Shot_2021-07-26_at_5.18.17_PM.png](Use%20ACME%20with%20Certificate%20Manage%2045533a57cdfb46ac93752d51f14ef76e/Screen_Shot_2021-07-26_at_5.18.17_PM.png)
+
+## Before you begin
+
+You will need:
+
+- An account on the Smallstep platform. Need one? [Register here](https://info.smallstep.com/signup/)
+- An Authority in Certificate Manager that will act as your upstream CA
+- A host or Kubernetes cluster where you can run the Registration Authority
+
+## Run a Registration Authority on Linux
+
+### Set up your RA
+
+Setting up an RA manually involves the following steps:
+
+1. Create an Authority in Certificate Manager with a JWK provisioner
+
+    First, create a hosted Authority in the Certificate Manager dashboard if you haven't already, and configure your local `step` CLI to access this Authority, using `step ca bootstrap`.
+
+    Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `ra@example.com`):
+
+    ```bash
+    $ step beta ca provisioner add ra@example.com --type JWK --create
+    ```
+
+    You'll be asked for a password for the JWK encryption key. Provide a strong password and store it somewhere safe. You'll need it later in this setup process.
+
+2. Setup a local instance of `step-ca` that can act as a registration authority (RA).
+
+    You'll need to configure the RA to work with your hosted Authority in Certificate Manager, using the JWK provisioner you just created for the RA to Authority connection.
+
+    Follow the instructions in our [Registration Authority documentation](https://smallstep.com/docs/step-ca/configuration#registration-authority-ra-mode), using the following `/etc/step-ca/config/ca.json` configuration file:
+
+    ```bash
+    {
+      "address": ":443",
+      "dnsNames": ["ra.example.com"],
+      "db": {
+        "type": "badgerV2",
+        "dataSource": "/etc/step-ca/db"
+      },
+      "logger": {"format": "text"},
+      "authority": {
+        "type": "stepcas",
+        "certificateAuthority": "https://ca.example.smallstep.com",
+        "certificateAuthorityFingerprint": "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
+        "certificateIssuer": {
+          "type" : "jwk",
+          "provisioner": "ra@example.com"
+        },
+        "provisioners": [{
+          "type": "ACME",
+          "name": "acme"
+        }]
+      },
+      "tls": {
+        "cipherSuites": [
+          "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
+          "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+        ],
+        "minVersion": 1.2,
+        "maxVersion": 1.3,
+        "renegotiation": false
+      }
+    }
+    ```
+
+    Substitute your own values for the following:
+
+    - `address`: The address and port you would like your RA to listen on (eg. `10.20.30.104:9000` or just `:443` to bind to `0.0.0.0:443`.
+    - `certificateAuthority`: the URL of your upstream CA
+    - `certificateAuthorityFingerprint`: the CA fingerprint of your upstream CA
+    - `certificateIssuer.provisioner`: Your JWK provisioner name
+
+    Next, put the issuing JWK provisioner password into a file (eg. `$STEPPATH/password.txt`). When starting up `step-ca` in RA mode, you must pass the issuing JWK provisioner password filename:
+
+    ```bash
+    $ /usr/bin/step-ca config/ca.json --issuer-password-file password.txt
+    ```
+
+1. Distribute your root CA certificate and start issuing certs. 🥳
+
+    In another terminal run the following to download your root certificate from anywhere on your network, substituting your RA's URL and the root CA fingerprint:
+
+    ```bash
+    $ step ca root root_ca.crt --ca-url https://ra.example.com --fingerprint b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5
+    ```
+
+    You can then get a certificate manually, using `step` with the RA's ACME provisioner:
+
+    ```bash
+    $ step ca certificate my-hostname.example.com server.crt server.key
+    ```
+
+1. Configure your local ACME clients to use your RA (instead of Let's Encrypt)
+
+    We've written a [tutorial for configuring popular ACME clients to use internal ACME](https://smallstep.com/docs/tutorials/acme-protocol-acme-clients).
+
+### Run a Registration Authority in Kubernetes
+
+If you're running Kubernetes, you can run an ACME Registration Authority in your cluster. We have a Helm Chart for deploying an RA to Kubernetes. 
+
+**TL;DR:** There's a setup script showing all of the steps together [in this README](https://github.com/smallstep/helm-charts/tree/master/step-certificates/examples).
+
+1. Create an Authority in Certificate Manager with a JWK provisioner
+
+    First, create a hosted Authority in the Certificate Manager dashboard if you haven't already, install the `step` CLI locally (`brew install step`), and configure `step` to access your Authority, using `step ca bootstrap`.
+
+    Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `registration-authority`):
+
+    ```bash
+    $ step beta ca provisioner add registration-authority --type JWK --create
+    ```
+
+    You'll be asked for a password for the JWK encryption key. Provide a strong password and store it somewhere safe. You'll need it later in this setup process.
+
+2. Configure the Helm Chart
+
+    Download the `step_values.yml`
+
+    ```jsx
+    curl -o step_values.yml -sSL https://raw.githubusercontent.com/smallstep/helm-charts/master/step-certificates/examples/registration_authority/values.yml
+    ```
+
+    You will need to change the following fields in this YAML file to match your configuration:
+
+    - `certificateAuthority` — your Certificate Manager Authority URL
+    - `certificateAuthorityFingerprint` — your Certificate Manager Authority fingerprint
+    - `certificateIssuer.provisioner` — the name of your JWK provisioner
+    - `dnsNames` — the DNS names you'd like your RA to be available on (these values will be added to the RA's TLS certificate subject)
+    - `ca-url` — your Certificate Manager Authority URL
+    - `fingerprint` — your Certificate Manager Authority fingerprint
+    - `secrets.certificate_issuer.password` — the base64 encoded JWK encryption key password.  (`echo 'your-jwk-password-here' | base64`)
+3. In Helm, add the Smallstep Helm charts repository
+
+    ```jsx
+    $ helm repo add smallstep https://smallstep.github.io/helm-charts/
+    $ helm repo update smallstep
+    ```
+
+4. Install the Helm chart
+
+    ```
+    $ helm install -f step_values.yml smallstep/step-certificates
+    ```
