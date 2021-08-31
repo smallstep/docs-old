@@ -31,6 +31,8 @@ certificate_manager:
     path: certificate_manager/acme
     
 registration_authorities:
+  - title: ACME for Smallstep Certificate Manager
+    path: registration-authorities/acme-for-certificate-manager
   - title: ACME for Google Certificate Authority Service
     path: registration-authorities/acme-for-cas
 
