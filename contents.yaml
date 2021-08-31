@@ -26,8 +26,10 @@ smallstep_ssh:
   - title: Okta UID GID Sync Guide
     path: ssh/okta-gid-uid
 
-certificate_manager: []
-
+certificate_manager:
+  - title: ACME Server
+    path: certificate_manager/acme
+    
 registration_authorities:
   - title: ACME for Google Certificate Authority Service
     path: registration-authorities/acme-for-cas
