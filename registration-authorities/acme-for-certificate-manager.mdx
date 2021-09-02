@@ -163,3 +163,7 @@ If you're running Kubernetes, you can run an ACME Registration Authority in your
     ```
     $ helm install -f step_values.yml smallstep/step-certificates
     ```
+
+5. Configure your local ACME clients to use your RA (instead of Let's Encrypt)
+
+    We've written a [tutorial for configuring popular ACME clients to use internal ACME](https://smallstep.com/docs/tutorials/acme-protocol-acme-clients).
