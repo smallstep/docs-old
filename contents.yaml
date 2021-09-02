@@ -28,7 +28,7 @@ smallstep_ssh:
 
 certificate_manager:
   - title: ACME Server
-    path: certificate_manager/acme
+    path: certificate-manager/acme
     
 registration_authorities:
   - title: ACME for Smallstep Certificate Manager
