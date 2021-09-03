@@ -31,10 +31,15 @@ If you run into any issues please let us know [in GitHub Discussions][gh-discuss
 </Alert>
 
 ## Requirements
-- This tutorial assumes you have initialized and started up a `step-ca` instance using the steps in [Getting Started](/docs/step-ca/getting-started). As an alternative, you can use our hosted CA, [Smallstep Certificate Manager](/certificate-manager)
-- Additionally, you'll need to configure your CA with an ACME provisioner. Run `step ca provisioner add acme --type ACME`, and restart your CA.
+- For [Smallstep Certificate Manager](/docs/certificate-manager/acme), this tutorial assumes you have created a hosted or linked authority and are running a local [ACME Registration Authority](/docs/registration-authorities/acme-for-certificate-manager). 
+- For `step-ca`, this tutorial assumes you have initialized and started up an instance using the steps in [Getting Started](/docs/step-ca/getting-started). Additionally, you'll need to configure your CA with an ACME provisioner. Run `step ca provisioner add acme --type ACME`, and restart your CA. 
 
 ## Overview
+
+Most ACME clients connect to Let’s Encrypt’s CA by default.
+To connect to smallstep, you need to point the client to the right [ACME Directory URL][acme-dir].
+
+[acme-dir]: https://tools.ietf.org/html/rfc8555#section-7.1.1
 
 * [ACME and `step-ca`](#acme-and-step-ca-recap)
 * [Certbot](#certbot)
@@ -49,11 +54,6 @@ If you run into any issues please let us know [in GitHub Discussions][gh-discuss
 * [Traefik](#traefik)
 
 ### ACME and `step-ca` Recap
-
-Most ACME clients connect to Let’s Encrypt’s CA by default.
-To connect to `step-ca`, you need to point the client to the right [ACME Directory URL][acme-dir].
-
-[acme-dir]: https://tools.ietf.org/html/rfc8555#section-7.1.1
 
 A single instance of `step-ca` can have multiple ACME provisioners, each with their own ACME Directory URL that looks like:
 
