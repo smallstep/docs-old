@@ -12,16 +12,21 @@ import AlertTitle from 'docs/AlertTitle';
 import CodeBlock from 'docs/CodeBlock';
 import ContentLink from 'docs/ContentLink';
 import Link from 'docs/Link';
-import DocsForm from 'docs/DocsValidatedInput';
+import DnyamicDocForm from 'docs/DnyamicDocForm';
 
 export const router = () => useRouter();
-export const ca_url = () => router().query.caUrl ? router().query.caUrl : "https://ra.example.com"
-export const fingerprint = () => router().query.fingerprint ? router().query.fingerprint : "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"
-export const provisioner = () => router().query.provisioner ? router().query.provisioner : "ra@example.com"
+export const ca_url = () => router().query.caUrl && router().query.caUrl.length ? router().query.caUrl : "https://ra.example.com"
+export const fingerprint = () => router().query.fingerprint && router().query.fingerprint.length  ? router().query.fingerprint : "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"
+export const provisioner = () => router().query.provisioner && router().query.provisioner.length ? router().query.provisioner : "ra@example.com"
+export const dns = () => {
+  return router().query.dns && router().query.dns.length ? router().query.dns : "ra.example.com"
+}
+
+export const address = () => router().query.address && router().query.address.length ? router().query.address : ":443"
 export const ca_config = () => (
   `{
-      "address": ":443",
-      "dnsNames": ["ra.example.com"],
+      "address": "${address()}",
+      "dnsNames": [${dns()}],
       "db": {
         "type": "badgerV2",
         "dataSource": "/etc/step-ca/db"
@@ -73,6 +78,11 @@ export const formFields = {
           name: "provisioner",
           placeholder: "ra@example.com"
         },
+        dns:{
+          label: "DNS Names",
+          name: "dns",
+          placeholder: "ra.example.com, ca.example.io"
+        },
       }
 
 
@@ -91,10 +101,11 @@ You will need:
 - An account on the Smallstep platform. Need one? [Register here](https://info.smallstep.com/certificate-manager-early-access-mvp/)
 - An Authority in Certificate Manager that will act as your upstream CA
 - A host or Kubernetes cluster where you can run the Registration Authority
-
-
- Use this form to help autogenerate content
-  <DocsForm  formFields={formFields} baseUrl="/docs/registration-authorities/acme-for-certificate-manager" />
+<DnyamicDocForm
+  formFields={formFields}
+  baseUrl="/docs/registration-authorities/acme-for-certificate-manager"
+  title="Use this form to pre-fill some of the example commands"
+/>
 
 ## Run a Registration Authority on Linux
 
