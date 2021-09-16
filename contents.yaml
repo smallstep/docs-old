@@ -11,6 +11,8 @@ platform:
     path: platform/events
 
 smallstep_ssh:
+  - title: How It Works
+    path: ssh/how-it-works
   - title: Client Quickstart Guide
     path: ssh/client
   - title: Host Quickstart Guide
