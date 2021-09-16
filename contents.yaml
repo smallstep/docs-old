@@ -11,6 +11,8 @@ platform:
     path: platform/events
 
 smallstep_ssh:
+  - title: How It Works
+    path: ssh/how-it-works
   - title: Client Quickstart Guide
     path: ssh/client
   - title: Host Quickstart Guide
@@ -27,6 +29,8 @@ smallstep_ssh:
     path: ssh/okta-gid-uid
 
 certificate_manager:
+  - title: How It Works
+    path: certificate-manager/how-it-works
   - title: ACME Server
     path: certificate-manager/acme
     
