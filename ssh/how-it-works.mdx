@@ -29,11 +29,11 @@ The certificate is valid for 16 hours by default, and it includes a list of Prin
 
 Finally, `step`stores Alice's certificate in her laptop's SSH agent. It's never stored on disk.
 
-From here, the `ssh handshake` continues seamlessly. <br>
+From here, the `ssh handshake` continues seamlessly. <br />
 
 ![image](/static/graphics/ssh-hiw-alice1.png 'SSH Certificate Issued')
 
-<br>
+<br />
 
 If Alice wants to connect from a different device, it's easier for her to run `step ssh login` (or let `step ssh proxycommand` run it for her transparently) than it is to extract her certificate from `ssh-agent` and copy it over. Bastion hosts are supported, too! You can ssh to the server using its internal DNS name, and the connection will flow through your bastion. All connection requests to the host are logged and reported in the smallstep dashboard.
 
@@ -71,9 +71,9 @@ With User information synced from the identity provider and the Hosts registered
 
 Upon connection, `ssh` and `sshd` validate the authenticity of certificates using a standard exchange process:
 
-<br>
+<br />
 
-![image2](/static/graphics/ssh-hiw-alice2.png 'SSH Handshake') <br>
+![image2](/static/graphics/ssh-hiw-alice2.png 'SSH Handshake') <br />
 
 Upon verification of the User's certificate, the system will determine access using the following workflow:
 
