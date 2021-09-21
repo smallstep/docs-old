@@ -12,17 +12,19 @@ import AlertTitle from 'docs/AlertTitle';
 import CodeBlock from 'docs/CodeBlock';
 import ContentLink from 'docs/ContentLink';
 import Link from 'docs/Link';
-import DnyamicDocForm from 'docs/DnyamicDocForm';
+import DynamicDocForm from 'docs/DynamicDocForm';
 
 export const router = () => useRouter();
+
+export const query_string = (queryParam, defaultValue) => router().query[queryParam] && router().query[queryParam].length ? router().query[queryParam] : defaultValue;
 export const ca_url = () => router().query.caUrl && router().query.caUrl.length ? router().query.caUrl : "https://ra.example.com"
 export const fingerprint = () => router().query.fingerprint && router().query.fingerprint.length  ? router().query.fingerprint : "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"
-export const provisioner = () => router().query.provisioner && router().query.provisioner.length ? router().query.provisioner : "ra@example.com"
+export const provisioner = () => router().query.provisioner && router().query.provisioner.length ? router().query.provisioner : "acme-ra-jwk"
+  export const address = () => router().query.address && router().query.address.length ? router().query.address : ":443"
 export const dns = () => {
   return router().query.dns && router().query.dns.length ? router().query.dns : "ra.example.com"
 }
 
-export const address = () => router().query.address && router().query.address.length ? router().query.address : ":443"
 export const ca_config = () => (
   `{
       "address": "${address()}",
@@ -98,10 +100,10 @@ In this tutorial, you'll configure a Remote RA that you can run to authenticate 
 
 You will need:
 
-- An account on the Smallstep platform. Need one? [Register here](https://info.smallstep.com/certificate-manager-early-access-mvp/)
+- An account on the Smallstep platform. Need one? [Register here](https://smallstep.com/signup?product=cm)
 - An Authority in Certificate Manager that will act as your upstream CA
 - A host or Kubernetes cluster where you can run the Registration Authority
-<DnyamicDocForm
+<DynamicDocForm
   formFields={formFields}
   baseUrl="/docs/registration-authorities/acme-for-certificate-manager"
   title="Use this form to pre-fill some of the example commands"
@@ -117,11 +119,14 @@ Setting up an RA manually involves the following steps:
 
     First, create a hosted Authority in the Certificate Manager dashboard if you haven't already, and configure your local `step` CLI to access this Authority, using `step ca bootstrap`.
 
-    Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `ra@example.com`):
+    Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `acme-ra-jwk`):
 
     <CodeBlock language="shell-session" copyText={ca_config()}>
       <> $ step beta ca provisioner add {provisioner()} --type JWK --create</>
     </CodeBlock>
+    ```bash
+    $ step beta ca provisioner add acme-ra-jwk --type JWK --create
+    ```
 
     You'll be asked for a password for the JWK encryption key. Provide a strong password and store it somewhere safe. You'll need it later in this setup process.
 
@@ -129,8 +134,8 @@ Setting up an RA manually involves the following steps:
 
     You'll need to configure the RA to work with your hosted Authority in Certificate Manager, using the JWK provisioner you just created for the RA to Authority connection.
 
-    Follow the instructions in our [Registration Authority documentation](https://smallstep.com/docs/step-ca/configuration#registration-authority-ra-mode), using the following `/etc/step-ca/config/ca.json` configuration file:
-    
+      Create a `/etc/step-ca/config/ca.json` configuration file with the following contents:
+
       <CodeBlock language="shell-session" copyText={ca_config()}>
       {ca_config()}
       </CodeBlock>

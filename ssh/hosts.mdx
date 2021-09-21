@@ -7,7 +7,7 @@ import CodeBlock from 'docs/CodeBlock';
 
 ### Before you begin
 
-* You'll need a account on the smallstep platform. Need one? [**Register here**](https://info.smallstep.com/signup/)
+* You'll need a account on the smallstep platform. Need one? [**Register here**](https://smallstep.com/signup?product=ssh)
 * You'll need the **enrollment token** you received upon signup.
 * We support the following host platforms:
   * CentOS 8
@@ -35,7 +35,11 @@ import CodeBlock from 'docs/CodeBlock';
 
 **This section only applies to multi-user environments.**
 
-**Host Tags** (key-value pairs) are the pillar our access control model. Rather than mapping people or groups directly to hosts, you'll map _tag combinations_ to your hosts and to your user groups. First you'll put your hosts into logical groups using tags, eg. `role`:`web` or `env`:`staging`. Then, you'll grant user groups access to all hosts with a specific tag combination. Finally, you'll choose which user group tag combinations will allow `sudo` privileges on any matching hosts.
+**Host Tags** (key-value pairs) are the pillar of our access control model. 
+Rather than mapping people or groups directly to hosts, you'll map _tag combinations_ to your hosts and to your user groups. o
+First you'll put your hosts into logical groups using tags, eg. `role`:`web` or `env`:`staging`. 
+Then, you'll grant user groups access to all hosts with a specific tag combination. 
+Finally, you'll choose which user group tag combinations will allow `sudo` privileges on any matching hosts.
 
 Let's look at an example:
 
