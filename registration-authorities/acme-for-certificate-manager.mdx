@@ -5,23 +5,19 @@ description: How to configure a Smallstep ACME Registration Authority with Certi
 unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
-import { useRouter } from 'next/router';
-
 import Alert from 'docs/Alert';
 import AlertTitle from 'docs/AlertTitle';
 import CodeBlock from 'docs/CodeBlock';
 import ContentLink from 'docs/ContentLink';
 import Link from 'docs/Link';
 import DynamicDocForm from 'docs/DynamicDocsForm';
+import { parseQueryParam } from 'docs/DocUtils';
 
-export const router = () => useRouter();
-
-export const query_string = (queryParam, defaultValue) => router().query[queryParam] && router().query[queryParam].length ? router().query[queryParam] : defaultValue;
-export const ca_url = () => query_string('caUrl', 'https://ra.example.com')
-export const fingerprint = () => query_string('fingerprint', 'b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5')
-export const provisioner = () => query_string('provisioner', 'acme-ra-jwk')
-export const address = () => query_string('address', ':443')
-export const dns = () => query_string('dns', 'ra.example.com')
+export const ca_url = () => parseQueryParam('caUrl', 'https://ra.example.com')
+export const fingerprint = () => parseQueryParam('fingerprint', 'b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5')
+export const provisioner = () => parseQueryParam('provisioner', 'acme-ra-jwk')
+export const address = () => parseQueryParam('address', ':443')
+export const dns = () => parseQueryParam('dns', 'ra.example.com')
 export const ca_config = () => (
   `{
       "address": "${address()}",
