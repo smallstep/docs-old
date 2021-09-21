@@ -37,10 +37,10 @@ Setting up an RA manually involves the following steps:
 
     First, create a hosted Authority in the Certificate Manager dashboard if you haven't already, and configure your local `step` CLI to access this Authority, using `step ca bootstrap`.
 
-    Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `ra@example.com`):
+    Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `acme-ra-jwk`):
 
     ```bash
-    $ step beta ca provisioner add ra@example.com --type JWK --create
+    $ step beta ca provisioner add acme-ra-jwk --type JWK --create
     ```
 
     You'll be asked for a password for the JWK encryption key. Provide a strong password and store it somewhere safe. You'll need it later in this setup process.
@@ -66,7 +66,7 @@ Setting up an RA manually involves the following steps:
         "certificateAuthorityFingerprint": "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
         "certificateIssuer": {
           "type" : "jwk",
-          "provisioner": "ra@example.com"
+          "provisioner": "acme-ra-jwk"
         },
         "provisioners": [{
           "type": "ACME",
