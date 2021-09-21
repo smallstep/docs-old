@@ -12,19 +12,16 @@ import AlertTitle from 'docs/AlertTitle';
 import CodeBlock from 'docs/CodeBlock';
 import ContentLink from 'docs/ContentLink';
 import Link from 'docs/Link';
-import DynamicDocForm from 'docs/DynamicDocForm';
+import DynamicDocForm from 'docs/DynamicDocsForm';
 
 export const router = () => useRouter();
 
 export const query_string = (queryParam, defaultValue) => router().query[queryParam] && router().query[queryParam].length ? router().query[queryParam] : defaultValue;
-export const ca_url = () => router().query.caUrl && router().query.caUrl.length ? router().query.caUrl : "https://ra.example.com"
-export const fingerprint = () => router().query.fingerprint && router().query.fingerprint.length  ? router().query.fingerprint : "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"
-export const provisioner = () => router().query.provisioner && router().query.provisioner.length ? router().query.provisioner : "acme-ra-jwk"
-  export const address = () => router().query.address && router().query.address.length ? router().query.address : ":443"
-export const dns = () => {
-  return router().query.dns && router().query.dns.length ? router().query.dns : "ra.example.com"
-}
-
+export const ca_url = () => query_string('caUrl', 'https://ra.example.com')
+export const fingerprint = () => query_string('fingerprint', 'b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5')
+export const provisioner = () => query_string('provisioner', 'acme-ra-jwk')
+export const address = () => query_string('address', ':443')
+export const dns = () => query_string('dns', 'ra.example.com')
 export const ca_config = () => (
   `{
       "address": "${address()}",
@@ -60,32 +57,32 @@ export const ca_config = () => (
 )
 
 export const formFields = {
-        address: {
-          label: "address or port",
-          name: "address",
-          placeholder: ":443"
-        },
-        caUrl:{
-          label: "Certificate Authority",
-          name: "caUrl",
-          placeholder: "www.example.com"
-        },
-        fingerprint:{
-          label: "Fingerprint",
-          name: "fingerprint",
-          placeholder: "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"
-        },
-        provisioner:{
-          label: "JWK Provisioner Name",
-          name: "provisioner",
-          placeholder: "ra@example.com"
-        },
-        dns:{
-          label: "DNS Names",
-          name: "dns",
-          placeholder: "ra.example.com, ca.example.io"
-        },
-      }
+  address: {
+    label: "address or port",
+    name: "address",
+    placeholder: ":443",
+  },
+  caUrl:{
+    label: "Certificate Authority",
+    name: "caUrl",
+    placeholder: "www.example.com",
+  },
+  fingerprint:{
+    label: "Fingerprint",
+    name: "fingerprint",
+    placeholder: "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
+  },
+  provisioner:{
+    label: "JWK Provisioner Nam e",
+    name: "provisioner",
+    placeholder: "ra@example.com",
+  },
+  dns:{
+    label: "DNS Names",
+    name: "dns",
+    placeholder: "ra.example.com, ca.example.io",
+  },
+}
 
 
 When public ACME Certificate Authorities (CA) like Let's Encrypt issue certificates to clients in the Web PKI, the CA depends heavily on DNS for client verification. To get a certificate, a client must prove to the CA that it either directly controls the public DNS records for a domain (for the DNS-01 challenge type)—or that it controls the IP address pointed to by public DNS records (for the HTTP-01 and TLS-ALPN-01 challenge types).
@@ -103,10 +100,12 @@ You will need:
 - An account on the Smallstep platform. Need one? [Register here](https://smallstep.com/signup?product=cm)
 - An Authority in Certificate Manager that will act as your upstream CA
 - A host or Kubernetes cluster where you can run the Registration Authority
+
+### Optional
+Use this form to pre-fill some of the examples with values from your ca
 <DynamicDocForm
   formFields={formFields}
   baseUrl="/docs/registration-authorities/acme-for-certificate-manager"
-  title="Use this form to pre-fill some of the example commands"
 />
 
 ## Run a Registration Authority on Linux
