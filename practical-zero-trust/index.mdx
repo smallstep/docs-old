@@ -8,36 +8,18 @@ import { ToolsIcon } from '@smallstep/step-ui';
 
 import ContentLink from 'docs/ContentLink';
 
-## The DevOps practictioner's guide
+## The DevOps practitioners guide
 
 Zero Trust or BeyondProd approaches require authenticated and encrypted communications everywhere.
 TLS is the cryptographic protocol that powers encryption for all your technologies.
 For TLS, you need certificates.
-This series of practitioner's tutorial provide instructions for automating TLS certificates for popular technologies.
-renewal and enabling server-side encryption.
+This series of practitioner's tutorials provide instructions for automating TLS certificates for popular technologies.
+Get started quickly with the **try it** path and learn about TLS with your specific technology. 
+Then, when ready, follow the **operationalize it** path to automate deployments and certificate management powering server-side encryption. 
+The tutorials include configuration options for Linux, Docker, and Kubernetes environments using the ACME protocol, systemd timers, and other modern techniques for certificate management.
 
+## Available Tutorials
 
-### Teams use Mutual TLS because:
-
-- mTLS is fast, easy to use, and works everywhere you do
-- You can avoid complicated VPN/VPC configurations
-- It allows you to scale end-to-end encryption anywhere
-- and much more ...
-
-## Features
-
-### Works Everywhere
-
-Nearly every language, server, database, client (and more!) already offers battle-tested TLS/SSL support. mTLS lets you replace countless fragile and frustrating bits of security infrastructure with a single consistent solution that's easier to understand, easier to scale, and easier to operate.
-
-### No VPNs
-
-mTLS eliminates the need to use network boundaries, VPNs, and IP block/allow lists to provide access to your applications. There is usually no need to do anything more than configure the tools and libraries you're already using in your applications to speak TLS.
-
-### Massive Scalability
-
-Using proven cryptography and mTLS your applications talk directly to each other rather than bogging down inside a network tunnel or calling back to a central authority. Proven inside the largest distributed systems, mTLS makes it easy to scale your infrastructure securely.
-
-<ContentLink tile icon={<ToolsIcon />} href="/hello-mtls#configuration-examples">
-  Generate your configuration &gt;
-</ContentLink>
+### [Redis TLS >](/practical-zero-trust/redis-tls)
+### [Kubernetes TLS >](/practical-zero-trust/kubernetes-tls)
+### [nginx TLS >](/practical-zero-trust/nginx-tls)
