@@ -64,8 +64,9 @@ More information and pricing at: https://u.step.sm/cm
 **--name**=`name`
 The `name` of the new PKI.
 
-**--dns**=`names`
-The comma separated DNS `names` or IP addresses of the new CA.
+**--dns**=`name`
+The DNS `name` or IP address of the new CA.
+Use the '--dns' flag multiple times to configure multiple DNS names.
 
 **--address**=`address`
 The `address` that the new CA will listen at.

@@ -57,8 +57,9 @@ TLS Server Name Indication that should be sent to request a specific certificate
 
 ## Exit codes
 
-This command returns '0' if the certificate needs renewal, '1' if the
-certificate does not need renewal, and '255' for any error.
+This command returns '0' if the X509 certificate needs renewal, '1' if the
+X509 certificate does not need renewal, '2' if the X509 certificate file does not
+exist, and '255' for any other error.
 
 ## Examples
 

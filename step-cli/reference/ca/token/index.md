@@ -16,9 +16,9 @@ step ca token <subject>
 [--kid=<kid>] [--issuer=<name>] [--ca-url=<uri>] [--root=<file>]
 [--cert-not-before=<time|duration>] [--cert-not-after=<time|duration>]
 [--not-before=<time|duration>] [--not-after=<time|duration>]
-[--password-file=<file>] [--output-file=<file>] [--key=<file>]
-[--san=<SAN>] [--offline] [--revoke]
-[--x5c-cert=<file>] [--x5c-key=<file>]
+[--password-file=<file>] [--provisioner-password-file=<file>]
+[--output-file=<file>] [--key=<file>] [--san=<SAN>] [--offline]
+[--revoke] [--x5c-cert=<file>] [--x5c-key=<file>]
 [--sshpop-cert=<file>] [--sshpop-key=<file>]
 [--ssh] [--host] [--principal=<string>]
 [--k8ssa-token-path=<file>
@@ -107,7 +107,10 @@ The path to the PEM `file` used as the root certificate authority.
 **--provisioner**=`name`, **--issuer**=`name`
 The provisioner `name` to use.
 
-**--provisioner-password-file**=`file`, **--password-file**=`file`
+**--password-file**=`file`
+The path to the `file` containing the password to encrypt or decrypt the private key.
+
+**--provisioner-password-file**=`file`
 The path to the `file` containing the password to decrypt the one-time token
 generating key.
 
