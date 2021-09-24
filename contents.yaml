@@ -86,6 +86,8 @@ step_ca:
   - title: Email
     path: mailto:info@smallstep.com?Subject=step-ca%20troubleshooting
 
+practical_zero_trust: []
+
 mutual_tls: []
 
 tutorials:
