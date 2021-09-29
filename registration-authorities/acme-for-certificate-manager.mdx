@@ -11,74 +11,7 @@ import CodeBlock from 'docs/CodeBlock';
 import ContentLink from 'docs/ContentLink';
 import Link from 'docs/Link';
 import DynamicDocForm from 'docs/DynamicDocsForm';
-import { parseQueryParam } from 'docs/DocUtils';
-
-export const ca_url = () => parseQueryParam('caUrl', 'https://ra.example.com')
-export const fingerprint = () => parseQueryParam('fingerprint', 'b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5')
-export const provisioner = () => parseQueryParam('provisioner', 'acme-ra-jwk')
-export const address = () => parseQueryParam('address', ':443')
-export const dns = () => parseQueryParam('dns', 'ra.example.com')
-export const ca_config = () => (
-  `{
-      "address": "${address()}",
-      "dnsNames": [${dns()}],
-      "db": {
-        "type": "badgerV2",
-        "dataSource": "/etc/step-ca/db"
-      },
-      "logger": {"format": "text"},
-      "authority": {
-        "type": "stepcas",
-        "certificateAuthority": "${ca_url()}",
-        "certificateAuthorityFingerprint": "${fingerprint()}",
-        "certificateIssuer": {
-          "type" : "jwk",
-          "provisioner": "${provisioner()}"
-        },
-        "provisioners": [{
-          "type": "ACME",
-          "name": "acme"
-        }]
-      },
-      "tls": {
-        "cipherSuites": [
-          "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
-          "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
-        ],
-        "minVersion": 1.2,
-        "maxVersion": 1.3,
-        "renegotiation": false
-      }
-    }`
-)
-
-export const formFields = {
-  address: {
-    label: "address or port",
-    name: "address",
-    placeholder: ":443",
-  },
-  caUrl:{
-    label: "Certificate Authority",
-    name: "caUrl",
-    placeholder: "www.example.com",
-  },
-  fingerprint:{
-    label: "Fingerprint",
-    name: "fingerprint",
-    placeholder: "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
-  },
-  provisioner:{
-    label: "JWK Provisioner Nam e",
-    name: "provisioner",
-    placeholder: "ra@example.com",
-  },
-  dns:{
-    label: "DNS Names",
-    name: "dns",
-    placeholder: "ra.example.com, ca.example.io",
-  },
-}
+import FormValues  from 'docs/FormValues';
 
 
 When public ACME Certificate Authorities (CA) like Let's Encrypt issue certificates to clients in the Web PKI, the CA depends heavily on DNS for client verification. To get a certificate, a client must prove to the CA that it either directly controls the public DNS records for a domain (for the DNS-01 challenge type)—or that it controls the IP address pointed to by public DNS records (for the HTTP-01 and TLS-ALPN-01 challenge types).
@@ -99,10 +32,33 @@ You will need:
 
 ### Optional
 Use this form to pre-fill some of the examples with values from your ca
-<DynamicDocForm
-  formFields={formFields}
-  baseUrl="/docs/registration-authorities/acme-for-certificate-manager"
-/>
+<DynamicDocForm formFields={[
+  {
+    label: "address or port",
+    name: "address",
+    placeholder: ":443",
+  },
+  {
+    label: "Certificate Authority",
+    name: "caUrl",
+    placeholder: "www.example.com",
+  },
+  {
+    label: "Fingerprint",
+    name: "fingerprint",
+    placeholder: "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
+  },
+  {
+    label: "JWK Provisioner Nam e",
+    name: "provisioner",
+    placeholder: "ra@example.com",
+  },
+  {
+    label: "DNS Names",
+    name: "dns",
+    placeholder: "ra.example.com, ca.example.io",
+  },
+]}/>
 
 ## Run a Registration Authority on Linux
 
@@ -115,13 +71,13 @@ Setting up an RA manually involves the following steps:
     First, create a hosted Authority in the Certificate Manager dashboard if you haven't already, and configure your local `step` CLI to access this Authority, using `step ca bootstrap`.
 
     Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `acme-ra-jwk`):
-
-    <CodeBlock language="shell-session" copyText={ca_config()}>
-      <> $ step beta ca provisioner add {provisioner()} --type JWK --create</>
+    <FormValues>
+    {({provisioner="acme-ra-jwk"}) => (
+    <CodeBlock language="shell-session" copyText={`$ step beta ca provisioner add ${provisioner} --type JWK --create`}>
+      {`$ step beta ca provisioner add ${provisioner} --type JWK --create`}
     </CodeBlock>
-    ```bash
-    $ step beta ca provisioner add acme-ra-jwk --type JWK --create
-    ```
+    )}
+    </FormValues>
 
     You'll be asked for a password for the JWK encryption key. Provide a strong password and store it somewhere safe. You'll need it later in this setup process.
 
@@ -131,9 +87,43 @@ Setting up an RA manually involves the following steps:
 
       Create a `/etc/step-ca/config/ca.json` configuration file with the following contents:
 
-      <CodeBlock language="shell-session" copyText={ca_config()}>
-      {ca_config()}
-      </CodeBlock>
+      <FormValues>
+       {({caUrl="https://ra.example.com", provisioner="acme-ra-jwk", dns="ra.example.com", address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+         <CodeBlock language="shell-session">
+        {`{
+      "address": "${address}",
+      "dnsNames": ["${dns}"],
+      "db": {
+        "type": "badgerV2",
+        "dataSource": "/etc/step-ca/db"
+      },
+      "logger": {"format": "text"},
+      "authority": {
+        "type": "stepcas",
+        "certificateAuthority": "${caUrl}",
+        "certificateAuthorityFingerprint": "${fingerprint}",
+        "certificateIssuer": {
+          "type" : "jwk",
+          "provisioner": "${provisioner}"
+        },
+        "provisioners": [{
+          "type": "ACME",
+          "name": "acme"
+        }]
+      },
+      "tls": {
+        "cipherSuites": [
+          "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305",
+          "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+        ],
+        "minVersion": 1.2,
+        "maxVersion": 1.3,
+        "renegotiation": false
+      }
+    }`}
+         </CodeBlock>
+       )}
+      </FormValues>
 
     Substitute your own values for the following:
 
@@ -151,12 +141,14 @@ Setting up an RA manually involves the following steps:
 3. Distribute your root CA certificate and start issuing certs. 🥳
 
     In another terminal run the following to download your root certificate from anywhere on your network, substituting your RA's URL and the root CA fingerprint:
-    <CodeBlock language="shell-session" copyText="step certificate inspect server.crt">
-      <>
-      $ step ca root root_ca.crt --ca-url {ca_url()} --fingerprint {fingerprint()}
-      </>
+    <FormValues>
+    {({caUrl="https://ra.example.com", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+    <CodeBlock language="shell-session" copyText={`$ step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}>
+      {`$ step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}
     </CodeBlock>
-
+    )}
+    </FormValues>
+    
     You can then get a certificate manually, using `step` with the RA's ACME provisioner:
 
     ```bash
@@ -189,8 +181,8 @@ If you're running Kubernetes, you can run an ACME Registration Authority in your
 
     Download the `step_values.yml`
 
-    ```jsx
-    curl -o step_values.yml -sSL https://raw.githubusercontent.com/smallstep/helm-charts/master/step-certificates/examples/registration_authority/values.yml
+    ```bash
+    $ curl -o step_values.yml -sSL https://raw.githubusercontent.com/smallstep/helm-charts/master/step-certificates/examples/registration_authority/values.yml
     ```
 
     You will need to change the following fields in this YAML file to match your configuration:
@@ -204,14 +196,14 @@ If you're running Kubernetes, you can run an ACME Registration Authority in your
     - `secrets.certificate_issuer.password` — the base64 encoded JWK encryption key password.  (`echo 'your-jwk-password-here' | base64`)
 3. In Helm, add the Smallstep Helm charts repository
 
-    ```jsx
+    ```bash
     $ helm repo add smallstep https://smallstep.github.io/helm-charts/
     $ helm repo update smallstep
     ```
 
 4. Install the Helm chart
 
-    ```
+    ```bash
     $ helm install -f step_values.yml smallstep/step-certificates
     ```
 
