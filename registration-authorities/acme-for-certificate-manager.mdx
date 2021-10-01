@@ -34,12 +34,12 @@ You will need:
 Use this form to pre-fill some of the examples with values from your ca
 <DynamicDocForm formFields={[
   {
-    label: "address or port",
+    label: "Address or Port",
     name: "address",
     placeholder: ":443",
   },
   {
-    label: "Certificate Authority",
+    label: "Certificate Authority URL",
     name: "caUrl",
     placeholder: "www.example.com",
   },
@@ -49,7 +49,7 @@ Use this form to pre-fill some of the examples with values from your ca
     placeholder: "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
   },
   {
-    label: "JWK Provisioner Nam e",
+    label: "Provisioner Name",
     name: "provisioner",
     placeholder: "ra@example.com",
   },
@@ -73,7 +73,7 @@ Setting up an RA manually involves the following steps:
     Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `acme-ra-jwk`):
     <FormValues>
     {({provisioner="acme-ra-jwk"}) => (
-    <CodeBlock language="shell-session" copyText={`$ step beta ca provisioner add ${provisioner} --type JWK --create`}>
+    <CodeBlock language="shell-session" copyText={`step beta ca provisioner add ${provisioner} --type JWK --create`}>
       {`$ step beta ca provisioner add ${provisioner} --type JWK --create`}
     </CodeBlock>
     )}
@@ -143,7 +143,7 @@ Setting up an RA manually involves the following steps:
     In another terminal run the following to download your root certificate from anywhere on your network, substituting your RA's URL and the root CA fingerprint:
     <FormValues>
     {({caUrl="https://ra.example.com", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
-    <CodeBlock language="shell-session" copyText={`$ step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}>
+    <CodeBlock language="shell-session" copyText={`step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}>
       {`$ step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}
     </CodeBlock>
     )}
