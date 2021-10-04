@@ -5,9 +5,6 @@ description: Create an intermediate CA from your existing PKI or new PKI using o
 unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
-import Alert from 'docs/Alert';
-import CodeBlock from 'docs/CodeBlock';
-import Link from 'docs/Link';
 
 With `step-ca` you can create an entirely new private PKI setup or an intermediate CA from your existing PKI. Intermediate CAs (also called subordinate CAs) are used to sign and issue leaf certificates to subscribers. Intermediates aren't generally included in trust stores, making them easier to revoke and rotate, so certificate issuance from an intermediate typically is online and automated.
 

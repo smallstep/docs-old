@@ -5,11 +5,6 @@ description: How to configure a Smallstep ACME Registration Authority with Certi
 unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
-import Alert from 'docs/Alert';
-import AlertTitle from 'docs/AlertTitle';
-import CodeBlock from 'docs/CodeBlock';
-import ContentLink from 'docs/ContentLink';
-import Link from 'docs/Link';
 
 When public ACME Certificate Authorities (CA) like Let's Encrypt issue certificates to clients in the Web PKI, the CA depends heavily on DNS for client verification. To get a certificate, a client must prove to the CA that it either directly controls the public DNS records for a domain (for the DNS-01 challenge type)—or that it controls the IP address pointed to by public DNS records (for the HTTP-01 and TLS-ALPN-01 challenge types).
 
