@@ -116,6 +116,9 @@ Generate a JWT Auth token instead of an OAuth Token (only works with service acc
 **--listen**=`address`
 Callback listener `address` (e.g. ":10000")
 
+**--listen-url**=`url`
+The redirect_uri `url` in the authorize request (e.g. "http://127.0.0.1:10000")
+
 **--redirect-url**=`url`
 The `url` to open in the system browser when the OAuth flow is successful.
 
@@ -134,6 +137,11 @@ $ step oauth --listen localhost:0
 Redirect to a fixed port instead of random one:
 ```shell
 $ step oauth --listen :10000
+```
+
+Redirect to a fixed url but listen on all the interfaces:
+```shell
+$ step oauth --listen 0.0.0.0:10000 --listen-url http://127.0.0.1:10000
 ```
 
 Get just the access token:

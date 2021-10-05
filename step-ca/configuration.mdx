@@ -245,9 +245,6 @@ CA's keys.
 
     - **defaultTLSCertDuration**: if no certificate validity period is specified, use this value.
 
-    - **disableIssuedAtCheck**: disable a check verifying that provisioning tokens must be issued after the CA has booted. This claim is one prevention
- against token reuse. The default value is false. Do not change this unless you know what you are doing.
-
     - **minUserSSHCertDuration**: do not allow certificates with a duration less than this value.
 
     - **maxUserSSHCertDuration**: do not allow certificates with a duration greater than this value.
@@ -261,6 +258,9 @@ CA's keys.
     - **defaultHostSSHCertDuration**: if no certificate validity period is specified, use this value.
 
     - **enableSSHCA**: enable this provisioner to generate SSH Certificates. The default value is false.
+
+  - **disableIssuedAtCheck**: disable a check verifying that provisioning tokens must be issued after the CA has booted. This claim is one prevention
+ against token reuse. The default value is false. Do not change this unless you know what you are doing.
 
   - **provisioners**: list of provisioners. Each provisioner has a name, associated authentication attributes, and an optional claims attribute that will override any values set in the global claims directly underneath authority. See [provisioner documentation](/docs/step-ca/provisioners) for more info.
 

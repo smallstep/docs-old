@@ -42,7 +42,8 @@ Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
 ## Exit codes
 
 This command returns '0' if the SSH certificate needs renewal, '1' if the
-SSH certificate does not need renewal, and '255' for any error.
+SSH certificate does not need renewal, '2' if the SSH certificate file does not
+exist, and '255' for any other error.
 
 ## Examples
 

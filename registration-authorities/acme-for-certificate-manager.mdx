@@ -95,7 +95,7 @@ Setting up an RA manually involves the following steps:
 
     You'll need to configure the RA to work with your hosted Authority in Certificate Manager, using the JWK provisioner you just created for the RA to Authority connection.
 
-      Create a `/etc/step-ca/config/ca.json` configuration file with the following contents:
+    Create a `/.step/config/ca.json` configuration file with the following contents:
 
       <FormValues>
        {({caUrl="https://example.mycompany.ca.smallstep.com"", provisioner="acme-ra-jwk", dns="ra.example.com", address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
@@ -105,7 +105,7 @@ Setting up an RA manually involves the following steps:
       "dnsNames": ["${dns}"],
       "db": {
         "type": "badgerV2",
-        "dataSource": "/etc/step-ca/db"
+        "dataSource": "./.step/db"
       },
       "logger": {"format": "text"},
       "authority": {
@@ -142,18 +142,20 @@ Setting up an RA manually involves the following steps:
     - `certificateAuthorityFingerprint`: the CA fingerprint of your upstream CA
     - `certificateIssuer.provisioner`: Your JWK provisioner name
 
+3. 
     Next, put the issuing JWK provisioner password into a file (eg. `$STEPPATH/password.txt`). When starting up `step-ca` in RA mode, you must pass the issuing JWK provisioner password filename:
 
-    ```bash
-    $ /usr/bin/step-ca config/ca.json --issuer-password-file password.txt
-    ```
 
-3. Distribute your root CA certificate and start issuing certs. 🥳
+    <CodeBlock language="shell-session" copyText="step-ca /.step/config/ca.json --issuer-password-file password.txt">
+      {`$ step-ca /.step/config/ca.json --issuer-password-file password.txt`}
+    </CodeBlock>
+
+4. Distribute your root CA certificate and start issuing certs. 🥳
 
     In another terminal run the following to download your root certificate from anywhere on your network, substituting your RA's URL and the root CA fingerprint:
     <FormValues>
     {({raUrl="https://ra.example.com", raFingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
-    <CodeBlock language="shell-session" copyText={`step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}>
+    <CodeBlock language="shell-session" copyText={`step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${raFingerprint}`}>
       {`$ step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${raFingerprint}`}
     </CodeBlock>
     )}
@@ -161,11 +163,11 @@ Setting up an RA manually involves the following steps:
     
     You can then get a certificate manually, using `step` with the RA's ACME provisioner:
 
-    ```bash
-    $ step ca certificate my-hostname.example.com server.crt server.key
-    ```
-
-4. Configure your local ACME clients to use your RA (instead of Let's Encrypt)
+    <CodeBlock language="shell-session" copyText="step ca certificate my-hostname.example.com server.crt server.key">
+      {`$ step ca certificate my-hostname.example.com server.crt server.key`}
+    </CodeBlock>
+    
+5. Configure your local ACME clients to use your RA (instead of Let's Encrypt)
 
     We've written a [tutorial for configuring popular ACME clients to use internal ACME](https://smallstep.com/docs/tutorials/acme-protocol-acme-clients).
 
@@ -181,9 +183,9 @@ If you're running Kubernetes, you can run an ACME Registration Authority in your
 
     Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `registration-authority`):
 
-    ```bash
-    $ step beta ca provisioner add registration-authority --type JWK --create
-    ```
+    <CodeBlock language="shell-session" copyText="step beta ca provisioner add registration-authority --type JWK --create">
+      {`$ step beta ca provisioner add registration-authority --type JWK --create`}
+    </CodeBlock>
 
     You'll be asked for a password for the JWK encryption key. Provide a strong password and store it somewhere safe. You'll need it later in this setup process.
 
@@ -191,9 +193,9 @@ If you're running Kubernetes, you can run an ACME Registration Authority in your
 
     Download the `step_values.yml`
 
-    ```bash
-    $ curl -o step_values.yml -sSL https://raw.githubusercontent.com/smallstep/helm-charts/master/step-certificates/examples/registration_authority/values.yml
-    ```
+    <CodeBlock language="shell-session" copyText="curl -o step_values.yml -sSL https://raw.githubusercontent.com/smallstep/helm-charts/master/step-certificates/examples/registration_authority/values.yml">
+      {`$ curl -o step_values.yml -sSL https://raw.githubusercontent.com/smallstep/helm-charts/master/step-certificates/examples/registration_authority/values.yml`}
+    </CodeBlock>
 
     You will need to change the following fields in this YAML file to match your configuration:
 
@@ -206,16 +208,21 @@ If you're running Kubernetes, you can run an ACME Registration Authority in your
     - `secrets.certificate_issuer.password` — the base64 encoded JWK encryption key password.  (`echo 'your-jwk-password-here' | base64`)
 3. In Helm, add the Smallstep Helm charts repository
 
-    ```bash
-    $ helm repo add smallstep https://smallstep.github.io/helm-charts/
-    $ helm repo update smallstep
-    ```
+    <CodeBlock language="shell-session" copyText="helm repo add smallstep https://smallstep.github.io/helm-charts/">
+      {`$ helm repo add smallstep https://smallstep.github.io/helm-charts/`}
+    </CodeBlock>
+    <CodeBlock language="shell-session" copyText="helm repo update smallstep">
+      {`$ helm repo update smallstep`}
+    </CodeBlock>
 
 4. Install the Helm chart
 
-    ```bash
-    $ helm install -f step_values.yml smallstep/step-certificates
     ```
+    helm install -f step_values.yml smallstep/step-certificates
+    ```
+    <CodeBlock language="shell-session" copyText="helm install -f step_values.yml smallstep/step-certificates">
+      {`$ helm install -f step_values.yml smallstep/step-certificates`}
+    </CodeBlock>
 
 5. Configure your local ACME clients to use your RA (instead of Let's Encrypt)
 
