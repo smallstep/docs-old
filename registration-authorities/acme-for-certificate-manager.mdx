@@ -98,7 +98,7 @@ Setting up an RA manually involves the following steps:
     Create a `/.step/config/ca.json` configuration file with the following contents:
 
       <FormValues>
-       {({caUrl="https://example.mycompany.ca.smallstep.com"", provisioner="acme-ra-jwk", dns="ra.example.com", address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+       {({caUrl="https://example.mycompany.ca.smallstep.com", provisioner="acme-ra-jwk", dns="ra.example.com", address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
          <CodeBlock language="shell-session">
         {`{
       "address": "${address}",
