@@ -154,7 +154,7 @@ Setting up an RA manually involves the following steps:
 
     In another terminal run the following to download your root certificate from anywhere on your network, substituting your RA's URL and the root CA fingerprint:
     <FormValues>
-    {({raUrl="https://ra.example.com", raFingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+    {({raUrl="https://ra.example.com", raFingerprint="c04dba6150a891ac1ce055af7fd1afddc4a351e690c69079c934614defdb704d"}) => (
     <CodeBlock language="shell-session" copyText={`step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${raFingerprint}`}>
       {`$ step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${raFingerprint}`}
     </CodeBlock>
