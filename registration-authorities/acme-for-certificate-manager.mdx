@@ -10,6 +10,9 @@ import AlertTitle from 'docs/AlertTitle';
 import CodeBlock from 'docs/CodeBlock';
 import ContentLink from 'docs/ContentLink';
 import Link from 'docs/Link';
+import DynamicDocForm from 'docs/DynamicDocsForm';
+import FormValues  from 'docs/FormValues';
+
 
 When public ACME Certificate Authorities (CA) like Let's Encrypt issue certificates to clients in the Web PKI, the CA depends heavily on DNS for client verification. To get a certificate, a client must prove to the CA that it either directly controls the public DNS records for a domain (for the DNS-01 challenge type)—or that it controls the IP address pointed to by public DNS records (for the HTTP-01 and TLS-ALPN-01 challenge types).
 
@@ -27,6 +30,46 @@ You will need:
 - An Authority in Certificate Manager that will act as your upstream CA
 - A host or Kubernetes cluster where you can run the Registration Authority
 
+### Optional
+Use this form to pre-fill some of the examples with values from your CA
+<DynamicDocForm formFields={[
+  {
+    label: "Address or Port",
+    name: "address",
+    placeholder: ":443",
+  },
+  {
+    label: "Certificate Authority URL",
+    name: "caUrl",
+    placeholder: "https://example.mycompany.ca.smallstep.com",
+  },
+  {
+    label: "Certificate Manager Authority Fingerprint",,
+    name: "fingerprint",
+    placeholder: "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
+  },
+  {
+    label: "Provisioner Name",
+    name: "provisioner",
+    placeholder: "acme-ra-jwk",
+  },
+  {
+    label: "Registration Authority DNS Names",
+    name: "dns",
+    placeholder: "ra.example.com, ca.example.io",
+  },
+  {
+    label: "Registration Authority Fingerprint",,
+    name: "rafingerprint",
+    placeholder: "c04dba6150a891ac1ce055af7fd1afddc4a351e690c69079c934614defdb704d",
+  },
+  {
+    label: "Registration Authority URL",,
+    name: "raUrl",
+    placeholder: "https://ra.example.com",
+  },
+]}/>
+
 ## Run a Registration Authority on Linux
 
 ### Set up your RA
@@ -38,10 +81,13 @@ Setting up an RA manually involves the following steps:
     First, create a hosted Authority in the Certificate Manager dashboard if you haven't already, and configure your local `step` CLI to access this Authority, using `step ca bootstrap`.
 
     Now, as a Super Administrator, add a JWK provisioner to the Authority, and give it a name (eg. `acme-ra-jwk`):
-
-    <CodeBlock language="shell-session" copyText="step beta ca provisioner add acme-ra-jwk --type JWK --create">
-      {`$ step beta ca provisioner add acme-ra-jwk --type JWK --create`}
+    <FormValues>
+    {({provisioner="acme-ra-jwk"}) => (
+    <CodeBlock language="shell-session" copyText={`step beta ca provisioner add ${provisioner} --type JWK --create`}>
+      {`$ step beta ca provisioner add ${provisioner} --type JWK --create`}
     </CodeBlock>
+    )}
+    </FormValues>
 
     You'll be asked for a password for the JWK encryption key. Provide a strong password and store it somewhere safe. You'll need it later in this setup process.
 
@@ -51,10 +97,12 @@ Setting up an RA manually involves the following steps:
 
     Create a `/.step/config/ca.json` configuration file with the following contents:
 
-    ```bash
-    {
-      "address": ":443",
-      "dnsNames": ["ra.example.com"],
+      <FormValues>
+       {({caUrl="https://example.mycompany.ca.smallstep.com"", provisioner="acme-ra-jwk", dns="ra.example.com", address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+         <CodeBlock language="shell-session">
+        {`{
+      "address": "${address}",
+      "dnsNames": ["${dns}"],
       "db": {
         "type": "badgerV2",
         "dataSource": "./.step/db"
@@ -62,11 +110,11 @@ Setting up an RA manually involves the following steps:
       "logger": {"format": "text"},
       "authority": {
         "type": "stepcas",
-        "certificateAuthority": "https://ca.example.smallstep.com",
-        "certificateAuthorityFingerprint": "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
+        "certificateAuthority": "${caUrl}",
+        "certificateAuthorityFingerprint": "${fingerprint}",
         "certificateIssuer": {
           "type" : "jwk",
-          "provisioner": "acme-ra-jwk"
+          "provisioner": "${provisioner}"
         },
         "provisioners": [{
           "type": "ACME",
@@ -82,8 +130,10 @@ Setting up an RA manually involves the following steps:
         "maxVersion": 1.3,
         "renegotiation": false
       }
-    }
-    ```
+    }`}
+         </CodeBlock>
+       )}
+      </FormValues>
 
     Substitute your own values for the following:
 
@@ -103,11 +153,14 @@ Setting up an RA manually involves the following steps:
 4. Distribute your root CA certificate and start issuing certs. 🥳
 
     In another terminal run the following to download your root certificate from anywhere on your network, substituting your RA's URL and the root CA fingerprint:
-
-    <CodeBlock language="shell-session" copyText="step ca root root_ca.crt --ca-url https://ra.example.com --fingerprint b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5">
-      {`$ step ca root root_ca.crt --ca-url https://ra.example.com --fingerprint b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5`}
+    <FormValues>
+    {({raUrl="https://ra.example.com", raFingerprint="c04dba6150a891ac1ce055af7fd1afddc4a351e690c69079c934614defdb704d"}) => (
+    <CodeBlock language="shell-session" copyText={`step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${raFingerprint}`}>
+      {`$ step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${raFingerprint}`}
     </CodeBlock>
-
+    )}
+    </FormValues>
+    
     You can then get a certificate manually, using `step` with the RA's ACME provisioner:
 
     <CodeBlock language="shell-session" copyText="step ca certificate my-hostname.example.com server.crt server.key">
