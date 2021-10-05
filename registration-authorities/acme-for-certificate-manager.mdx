@@ -31,7 +31,7 @@ You will need:
 - A host or Kubernetes cluster where you can run the Registration Authority
 
 ### Optional
-Use this form to pre-fill some of the examples with values from your ca
+Use this form to pre-fill some of the examples with values from your CA
 <DynamicDocForm formFields={[
   {
     label: "Address or Port",
@@ -41,22 +41,32 @@ Use this form to pre-fill some of the examples with values from your ca
   {
     label: "Certificate Authority URL",
     name: "caUrl",
-    placeholder: "www.example.com",
+    placeholder: "https://example.mycompany.ca.smallstep.com",
   },
   {
-    label: "Fingerprint",
+    label: "Certificate Manager Authority Fingerprint",,
     name: "fingerprint",
     placeholder: "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
   },
   {
     label: "Provisioner Name",
     name: "provisioner",
-    placeholder: "ra@example.com",
+    placeholder: "acme-ra-jwk",
   },
   {
-    label: "DNS Names",
+    label: "Registration Authority DNS Names",
     name: "dns",
     placeholder: "ra.example.com, ca.example.io",
+  },
+  {
+    label: "Registration Authority Fingerprint",,
+    name: "rafingerprint",
+    placeholder: "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
+  },
+  {
+    label: "Registration Authority URL",,
+    name: "raUrl",
+    placeholder: "https://ra.example.com",
   },
 ]}/>
 
@@ -88,7 +98,7 @@ Setting up an RA manually involves the following steps:
       Create a `/etc/step-ca/config/ca.json` configuration file with the following contents:
 
       <FormValues>
-       {({caUrl="https://ra.example.com", provisioner="acme-ra-jwk", dns="ra.example.com", address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+       {({caUrl="https://example.mycompany.ca.smallstep.com"", provisioner="acme-ra-jwk", dns="ra.example.com", address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
          <CodeBlock language="shell-session">
         {`{
       "address": "${address}",
@@ -142,9 +152,9 @@ Setting up an RA manually involves the following steps:
 
     In another terminal run the following to download your root certificate from anywhere on your network, substituting your RA's URL and the root CA fingerprint:
     <FormValues>
-    {({caUrl="https://ra.example.com", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+    {({raUrl="https://ra.example.com", raFingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
     <CodeBlock language="shell-session" copyText={`step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}>
-      {`$ step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}
+      {`$ step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${raFingerprint}`}
     </CodeBlock>
     )}
     </FormValues>
