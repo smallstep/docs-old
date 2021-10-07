@@ -36,7 +36,7 @@ You'll grant access to your hosts via Active Directory Groups. If you don't alre
 
 In the Azure portal, start at the [Groups](https://portal.azure.com/#blade/Microsoft_AAD_IAM/GroupsManagementMenuBlade/AllGroups) blade.
 
-![](/static/graphics/quickstart/aad-create-user-group.png)
+![](/graphics/quickstart/aad-create-user-group.png)
 
 When creating your groups, give them names and accept the defaults on all other settings.
 
@@ -45,7 +45,7 @@ When creating your groups, give them names and accept the defaults on all other 
 1. In the Smallstep SSH dashboard, under the Users tab, choose Azure.
 2. Paste your Tenant ID from the [Active Directory Overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) blade into the "Add Your Team" dialog:
 
-   ![](/static/graphics/quickstart/azure-onboarding.png)
+   ![](/graphics/quickstart/azure-onboarding.png)
 
 3. Choose **Save**.
 
@@ -61,7 +61,7 @@ When creating your groups, give them names and accept the defaults on all other 
     Your browser will open to an Azure AD single sign-on flow,
     and you'll be prompted to add the Smallstep SSH enterprise application to your tenant.
 
-    ![Azure consent screenshot](/static/graphics/quickstart/azure-consent.png)
+    ![Azure consent screenshot](/graphics/quickstart/azure-consent.png)
 6.  Choose **Consent on behalf of your organization.**
 7.  Accept the application for your tenant, and finish the sign-on flow.
 
@@ -81,7 +81,7 @@ Choose **Users and Groups** on the left:
 
 Your Users and Groups list should now look something like this:
 
-![](/static/graphics/quickstart/aad-group-example.png)
+![](/graphics/quickstart/aad-group-example.png)
 
 ### Step 4. Enable user provisioning (SCIM) in Azure
 
@@ -114,7 +114,7 @@ Return to the Smallstep dashboard.
 
 * Navigate to the LOGS menu. You should see a list of success messages assocated with `SCIM-SYNC` catagory items.
 
-   ![](/static/graphics/quickstart/scim-logs.png "SCIM Logs")
+   ![](/graphics/quickstart/scim-logs.png "SCIM Logs")
 
 * Navigate to the USERS menu. If the onboarding dialog is open, press `Esc` to close.
 * You should see your Users and Groups synced over from Azure AD.

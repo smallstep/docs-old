@@ -2,7 +2,7 @@
 title: Configuring `step-ca` Provisioners
 html_title: Configuring open source step-ca Provisioners
 description: Learn how to configure step-ca Provisioners
-unfurl: /static/graphics/smallstep-docs-unfurl.png
+unfurl: /graphics/smallstep-docs-unfurl.png
 ---
 
 
@@ -331,7 +331,7 @@ The OIDC provisioner in `step-ca` can be configured to trust and accept an OAuth
 By default, the issued certificate will use the _subject_ (sub) claim from the identity token as its subject.
 The value of the token's _email_ claim is also included as an email _SAN_ in the certificate.
 
-![example of provisioner working with step ca](../../../../../static/images/oauth-provisioner.png)
+![example of provisioner working with step ca](/graphics/oauth-provisioner.png)
 
 _Fig. 3: Diagram of how step works with individuals using a single sign-on provisioner_
 
@@ -700,7 +700,7 @@ Here's the contents of an example IID from AWS:
 }
 ```
 
-![example of provisioner working with step ca](../../../../../static/images/iid-provisioner.png)
+![example of provisioner working with step ca](/graphics/iid-provisioner.png)
 
 _Fig. 2: Diagram of how step works with a cloud service as the provisioner_
 
@@ -766,7 +766,7 @@ will grant a certificate after validating it.
 
 Find your AWS [account ID](https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html) to restrict access to our VMs:
 
-![AWS Account ID](../../../../../static/images/aws-account-id.png)
+![AWS Account ID](/graphics/aws-account-id.png)
 
 On the host running `step-ca` add an AWS provisioner to your configuration by running:
 

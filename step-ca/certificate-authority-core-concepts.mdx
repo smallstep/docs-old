@@ -2,7 +2,7 @@
 title: Certificate Authority Core Concepts
 html_title: Certificate authority core concepts for open source step-ca
 description: Learn about certificate authority core concepts for open source step-ca
-unfurl: /static/graphics/smallstep-docs-unfurl.png
+unfurl: /graphics/smallstep-docs-unfurl.png
 ---
 
 
@@ -58,7 +58,7 @@ This eliminates the additional network request that occurs when using a web PKI 
 Unlike active revocation, certificates cannot be immedietely revoked.
 Therefore, certificates should have a shorter lifetime to reduce the value of a key that has be exfiltrated.
 
-![passive revocation diagram](../../../static/images/passive-revocation.png)
+![passive revocation diagram](/graphics/passive-revocation.png)
 
 ## Other operational modes
 
@@ -75,7 +75,7 @@ a single CA can serve several RAs.
 
 In RA mode, `step-ca` can peer with two kinds of upstream CA: A `step-ca` instance, or a [Google CloudCAS](https://cloud.google.com/certificate-authority-service/) authority.
 
-![Example PKI topology with StepCAS RA Mode](/static/graphics/stepcas-ra-mode.png)
+![Example PKI topology with StepCAS RA Mode](/graphics/stepcas-ra-mode.png)
 
 See the [Registration Authority (RA) Mode](configuration#registration-authority-ra-mode) section of our Configuration Guide for more on RA mode.
 
@@ -87,7 +87,7 @@ Offline mode uses the configuration, database, certificates, and keys of an exis
 
 This table shows some of the feature differences between an online `step-ca` server, `step` CLI in offline mode, and the [`step certificate` subcommand](https://smallstep.com/docs/step-cli/basic-crypto-operations#run-an-offline-x509-certificate-authority).
 
-![](../../../static/images/cas-three-ways.png)
+![](/graphics/cas-three-ways.png)
 
 ### Example: Offline Mode
 
