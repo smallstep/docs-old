@@ -25,7 +25,7 @@ The following features are supported:
 
 Let's look at an example:
 
-![](/static/graphics/quickstart/host-tags-example.png)
+![](/graphics/quickstart/host-tags-example.png)
 
 * The `developers` group will have access to  `myserver #1` only.
 * The `data` group will have access to  `myserver #2` and  `myserver #3`.
@@ -42,7 +42,7 @@ Sign in at `https://smallstep.com/app/[Team ID]`
   * In the example below that combination is `database` : `production`.
 * Make a note of the tag combination, you will need this in Step 2
 
-![](/static/graphics/quickstart/acl-host-detail.png)
+![](/graphics/quickstart/acl-host-detail.png)
 
 ### Step 2: Grant User Group Access to Host(s)
 
@@ -51,13 +51,13 @@ You should see two Directories. The "Smallstep" directory contains Administrator
 * Select your identity provider directory
 * Choose the "GROUPS" tab.
 
-![](/static/graphics/quickstart/acl-select-idp-group.png)
+![](/graphics/quickstart/acl-select-idp-group.png)
 
 * Select the User Group that you want to configure for access control. You will see the user group detail page with a list of existing Host Grants and a form to add additional grants.
   * Enter the tag values from Step 1
   * If Sudo access is permitted for this user group, select the "Allow Sudo" checkbox
   * Click the checkbox to enable access control
 
-![](/static/graphics/quickstart/acl-grant-access.png)
+![](/graphics/quickstart/acl-grant-access.png)
 
 * All users in the group now have access to all hosts with the specified tag combination.

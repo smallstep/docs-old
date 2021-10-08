@@ -2,12 +2,8 @@
 title: Connect your identity provider and issue X.509 certificates for user authentication to services
 html_title: user authentication via OIDC for X.509 certificate
 description: Use single sign-on and MFA for user authentication to services and workloads. Connect your existing identity provider and authenticated issue X.509 certificates
-unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
-import Alert from 'docs/Alert';
-import CodeBlock from 'docs/CodeBlock';
-import Link from 'docs/Link';
 
 Smallstep makes running your own private CA and managing certificates for internal services easy.  `step-ca` also supports OAuth for provisioning X.509 certificates for user authentication.  We make it easy for developers to obtain a certificate via single sign-on using your existing identity provider (Google, Okta, Active Directory, ...). Issued certificates are signed by the CA and trusted by all your workloads and services so you can use mTLS everywhere. 
 

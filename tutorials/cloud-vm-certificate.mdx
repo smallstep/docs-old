@@ -2,12 +2,8 @@
 title: Use the AWS, GCP, or Azure metadata API to issue X.509 cloud VM certificates to workloads
 html_title: Cloud VM certificate use metadata API for PKI auto-enroll
 description: Use the cloud metadata API to make it embarrassingly easy to get private PKI certificates to workloads running on AWS, GCP, and Azure virtual machines (VMs)
-unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
-import Alert from 'docs/Alert';
-import CodeBlock from 'docs/CodeBlock';
-import Link from 'docs/Link';
 
 With `step-ca`, you can use our provisioners to automate certificate enrollment for almost anything in your production network. To create a cloud VM certificate, we recommend you use the cloud provider metadata API and our IID provisioner. This short tutorial will show how to use Instance Identity Documents (IID) to authorize and retrieve an X.509 Certificate from `step-ca`. 
 
@@ -188,10 +184,10 @@ path)/certs/root_ca.crt`, and you're good to go. You now have a strong
 standards-based mechanism to authenticate workloads and encrypt traffic using
 TLS.
 
-[6]: ../../../static/images/iid-authentication.png
+[6]: /graphics/iid-authentication.png
 [7]: /docs/step-ca/provisioners#cloud-provisioners
 [8]: https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html
-[9]: ../../../static/images/aws-account-id.png
+[9]: /graphics/aws-account-id.png
 
 ## Next steps
 

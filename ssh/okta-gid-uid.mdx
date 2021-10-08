@@ -22,13 +22,13 @@ Already have UID and GID fields for your users? Skip to Step 2.
 
   You may want to provide an Attribute Range minimum here, especially if you want to protect a range of IDs for service accounts on your hosts.
 
-  ![](/static/graphics/quickstart/okta-gid-uidadd.png)
+  ![](/graphics/quickstart/okta-gid-uidadd.png)
 
 * **Save and Add Another**, then create a GID attribute with data type **"number"**.
 
   You may want to provide an Attribute Range minimum here, especially if you want to protect a range of IDs for service accounts on your hosts.
 
-  ![](/static/graphics/quickstart/okta-gid-gidadd.png)
+  ![](/graphics/quickstart/okta-gid-gidadd.png)
 
 * **Save**
 
@@ -42,11 +42,11 @@ Already have UID and GID fields for your users? Skip to Step 2.
   Scope ☑ **User personal**
   The attribute should be marked **required**, because any Okta user with an empty uid or gid value won't sync to Smallstep.
 
-  ![](/static/graphics/quickstart/okta-gid-uidsync.png)
+  ![](/graphics/quickstart/okta-gid-uidsync.png)
 
 * **Save and Add Another,** and add a gid attribute.
 
-  ![](/static/graphics/quickstart/okta-gid-uidsync.png)
+  ![](/graphics/quickstart/okta-gid-uidsync.png)
 
 * **Save**
 
@@ -62,13 +62,13 @@ Already have UID and GID fields for your users? Skip to Step 2.
 
   Apply on **Create and update**
 
-  ![](/static/graphics/quickstart/okta-gid-createupdate.png)
+  ![](/graphics/quickstart/okta-gid-createupdate.png)
 
 * **Save**, and 
 * **Repeat** for `gid`.
 * When you're finished, the mappings should look like this:
 
-  ![](/static/graphics/quickstart/okta-gid-finalmap.png)
+  ![](/graphics/quickstart/okta-gid-finalmap.png)
 
 ### Step 4. Verify syncing with smallstep before going into production
 

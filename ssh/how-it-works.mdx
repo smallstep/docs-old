@@ -2,16 +2,10 @@
 title: Smallstep SSH How It Works
 html_title: Smallstep SSH How It Works
 description: Learn how Smallstep delivers single sign-on SSH with open source components (OpenSSH, PAM, NSS) and industry-standard protocols (SCIM & OIDC).
-unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
 import { FileWithFlippedCornerIcon } from '@smallstep/step-ui';
 
-import Alert from 'docs/Alert';
-import AlertTitle from 'docs/AlertTitle';
-import Link from 'docs/Link';
-import Code from 'docs/Code';
-import ContentLink from 'docs/ContentLink';
 
 ## What happens when a user types `ssh [host-name]`
 
@@ -31,7 +25,7 @@ Finally, `step`stores Alice's certificate in her laptop's SSH agent. It's never 
 
 From here, the `ssh handshake` continues seamlessly. <br />
 
-![image](/static/graphics/ssh-hiw-alice1.png 'SSH Certificate Issued')
+![image](/graphics/ssh-hiw-alice1.png 'SSH Certificate Issued')
 
 <br />
 
@@ -55,7 +49,7 @@ With an SSH certificate in place, smallstep interacts with SSHD, PAM, and NSS UN
 
 Host tags are similar to EC2 Instance Tags. They’re used to define collections of hosts for access control. You might assign tags identifying a host’s role (e.g., bastion, web, database), region (e.g., us-east), environment (e.g., staging, production), or any other relevant attribute. Let's look at an example:
 
-![](/static/graphics/acl-tag-example.png 'Host tags example')
+![](/graphics/acl-tag-example.png 'Host tags example')
 
 - A host tag combination of `db`: `dev` gives you access to `myserver #1`.
 - A host tag combination of `db`: `prod` gives you access to `myserver #2` and `myserver #3`.
@@ -73,7 +67,7 @@ Upon connection, `ssh` and `sshd` validate the authenticity of certificates usin
 
 <br />
 
-![image2](/static/graphics/ssh-hiw-alice2.png 'SSH Handshake') <br />
+![image2](/graphics/ssh-hiw-alice2.png 'SSH Handshake') <br />
 
 Upon verification of the User's certificate, the system will determine access using the following workflow:
 

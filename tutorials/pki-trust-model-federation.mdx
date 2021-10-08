@@ -2,12 +2,8 @@
 title: Federate PKI trust models between multiple autonomous certificate authorities
 html_title: PKI trust model federation with step-ca
 description: Learn how to secure comms across autonomous internal PKI, perform easy PKI migrations, and automate online root rotations using PKI trust models and step-ca
-unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
-import Alert from 'docs/Alert';
-import CodeBlock from 'docs/CodeBlock';
-import Link from 'docs/Link';
 
 Suppose `foo.internal` is running in AWS, and `bar.internal` is running in GCP.
 To communicate, requests must be sent across the public internet. Traditionally

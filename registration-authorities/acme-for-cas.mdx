@@ -2,14 +2,8 @@
 title: ACME Registration Authority for Google Certificate Authority Service
 html_title: ACME Registration Authority for Google Certificate Authority Service
 description: How to configure a Smallstep ACME Registration Authority with GCP CAS. 
-unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
-import Alert from 'docs/Alert';
-import AlertTitle from 'docs/AlertTitle';
-import CodeBlock from 'docs/CodeBlock';
-import ContentLink from 'docs/ContentLink';
-import Link from 'docs/Link';
 
 A Registration Authority sits in front of a Certificate Authority (CA) and provides an authentication and authorization layer.
 This guide will show you how to set up an ACME Registration Authority (RA) backed by a [Google Cloud Certificate Authority Service][cas] (CAS) instance.
@@ -150,11 +144,11 @@ gcloud privateca subordinates describe example-intermediate-ca \
 1. Select "Smallstep ACME Registration Authority for CAS" from GCP marketplace
 and hit the `Launch` button.
 
-  ![](/static/images/cas-launch-image.png)
+  ![](/graphics/cas-launch-image.png)
 
 2. Fill in required fields in the Launcher UI.
 
-  ![](/static/images/cas-required-fields.png)
+  ![](/graphics/cas-required-fields.png)
 
     * **Service Account**: email address of the service account generated in the previous step.
       This value should be equivalent to `step-cas-sa@<PROJECT_ID>.iam.gserviceaccount.com`.
@@ -171,7 +165,7 @@ and hit the `Launch` button.
 
   Click the small `more` button to expand optional fields.
 
-  ![](/static/images/cas-optional-fields.png)
+  ![](/graphics/cas-optional-fields.png)
 
     * **RA DNS Name**: use this field to configure a permanent DNS name for your
       ACME RA. By default, this value will be the internal hostname of the instance.
@@ -186,7 +180,7 @@ and hit the `Launch` button.
 
 4. Deploy!
 
-  ![](/static/images/cas-deploy.png)
+  ![](/graphics/cas-deploy.png)
 
 #### 8. Let's test out our deployment!
 

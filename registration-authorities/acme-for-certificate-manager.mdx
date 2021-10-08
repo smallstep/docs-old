@@ -2,16 +2,7 @@
 title: ACME Registration Authority for Smallstep Certificate Manager
 html_title: ACME Registration Authority for Smallstep Certificate Manager
 description: How to configure a Smallstep ACME Registration Authority with Certificate Manager.
-unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
-
-import Alert from 'docs/Alert';
-import AlertTitle from 'docs/AlertTitle';
-import CodeBlock from 'docs/CodeBlock';
-import ContentLink from 'docs/ContentLink';
-import Link from 'docs/Link';
-import DynamicDocForm from 'docs/DynamicDocsForm';
-import FormValues  from 'docs/FormValues';
 
 
 When public ACME Certificate Authorities (CA) like Let's Encrypt issue certificates to clients in the Web PKI, the CA depends heavily on DNS for client verification. To get a certificate, a client must prove to the CA that it either directly controls the public DNS records for a domain (for the DNS-01 challenge type)—or that it controls the IP address pointed to by public DNS records (for the HTTP-01 and TLS-ALPN-01 challenge types).
@@ -20,7 +11,7 @@ When deploying ACME internally, the same constraints are true: A server that aut
 
 In this tutorial, you'll configure a Remote RA that you can run to authenticate requests for Certificate Manager certificates.
 
-![Example PKI topology with Certificate Manager plus RA Mode](/static/graphics/certificate_manager_ra_mode.png)
+![Example PKI topology with Certificate Manager plus RA Mode](/graphics/certificate_manager_ra_mode.png)
 
 ## Before you begin
 
@@ -31,7 +22,9 @@ You will need:
 - A host or Kubernetes cluster where you can run the Registration Authority
 
 ### Optional
-Use this form to pre-fill some of the examples with values from your CA
+
+Use this form to pre-fill some of the examples with values from your CA.
+
 <DynamicDocForm formFields={[
   {
     label: "Address or Port",
@@ -60,7 +53,7 @@ Use this form to pre-fill some of the examples with values from your CA
   },
   {
     label: "Registration Authority Fingerprint",
-    name: "rafingerprint",
+    name: "raFingerprint",
     placeholder: "c04dba6150a891ac1ce055af7fd1afddc4a351e690c69079c934614defdb704d",
   },
   {
@@ -99,7 +92,7 @@ Setting up an RA manually involves the following steps:
 
       <FormValues>
        {({caUrl="https://example.mycompany.ca.smallstep.com", provisioner="acme-ra-jwk", dns="ra.example.com", address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
-         <CodeBlock language="shell-session">
+         <CodeBlock autoCopy language="json">
         {`{
       "address": "${address}",
       "dnsNames": ["${dns}"],
@@ -142,9 +135,8 @@ Setting up an RA manually involves the following steps:
     - `certificateAuthorityFingerprint`: the CA fingerprint of your upstream CA
     - `certificateIssuer.provisioner`: Your JWK provisioner name
 
-3. 
-    Next, put the issuing JWK provisioner password into a file (eg. `$STEPPATH/password.txt`). When starting up `step-ca` in RA mode, you must pass the issuing JWK provisioner password filename:
 
+3. Next, put the issuing JWK provisioner password into a file (eg. `$STEPPATH/password.txt`). When starting up `step-ca` in RA mode, you must pass the issuing JWK provisioner password filename:
 
     <CodeBlock language="shell-session" copyText="step-ca /.step/config/ca.json --issuer-password-file password.txt">
       {`$ step-ca /.step/config/ca.json --issuer-password-file password.txt`}

@@ -2,13 +2,8 @@
 title: Smallstep Certificate Manager How It Works
 html_title: Smallstep Certificate Manager How It Works
 description: Understand how Smallstep Certificate Manager works and if it’s appropriate to your use case. 
-unfurl: /static/graphics/smallstep-docs-unfurl.png
 ---
 
-import Alert from 'docs/Alert';
-import AlertTitle from 'docs/AlertTitle';
-import Link from 'docs/Link';
-import Code from 'docs/Code';
 
 Certificates power modern software. Kubernetes, service meshes, containers, microservices, distributed databases & queues, configuration management & orchestration systems, BeyondCorp proxies, and secure software supply chains all use certificates. Organizations running modern infrastructure make extensive use of certificates, whether they're aware of it or not.
 
@@ -52,7 +47,7 @@ For most scenarios, this is a nuance you won't have to worry about. By default, 
 
 Like an issuing authority, a **registration authority** is an online service that accepts and authenticates certificate requests. But, instead of issuing certificates itself, a registration authority passes authentic requests to an issuing authority to sign. Registration authorities support all Provisioner types and are an optional component. They deliver most of the benefits of a linked issuing authority with less operational complexity since there's no signing key to manage.
 
-![ACME Registration Authority](/static/graphics/ia-cloud-ra-challenge-client.svg "In this example, the Smallstep ACME RA runs within the local network or VPC and responds to ACME requests from internal infrastructure and workloads. The RA accepts ACME orders and authenticates requests by verifying an ACME challenge. Upon verification, a CSR is securely passed to the Issuing Authority to sign and catalog.")
+![ACME Registration Authority](/graphics/ia-cloud-ra-challenge-client.svg "In this example, the Smallstep ACME RA runs within the local network or VPC and responds to ACME requests from internal infrastructure and workloads. The RA accepts ACME orders and authenticates requests by verifying an ACME challenge. Upon verification, a CSR is securely passed to the Issuing Authority to sign and catalog.")
 
 ### Validation Authorities
 
@@ -150,7 +145,7 @@ What provisioner key do you want to use?
 Concretely, a template is a JSON representation of a certificate that's materialized using Go's [`text/template`](https://golang.org/pkg/text/template/) module and [sprig functions](http://masterminds.github.io/sprig/). They look like this:
 
 
-![Certificate Templates](/static/graphics/templates-screenshot.svg "Certificate Templates")
+![Certificate Templates](/graphics/templates-screenshot.svg "Certificate Templates")
 
 Context from certificate requests and authentication credentials are made available as template variables, so you can adjust certificate details based on who's requesting the certificate.
 
@@ -266,7 +261,7 @@ $ step ca certificate alice@yourco.com alice.crt alice.key --token $TOKEN
 
 Certificates provide a secure, flexible, scalable mechanism for authenticating people, too (e.g., for SSH access, API access, or to connect to a BeyondCorp identity-aware proxy). Most organizations already have an identity provider (IdP) for authenticating people. The `OIDC` provisioner lets you leverage authentication services from G Suite, Okta, Azure AD, and any other IdP that supports OAuth OIDC to authenticate a certificate request.
 
-![Developer single sign on for TLS certificate](/static/graphics/cm-hiw-sso.svg "The certificate command triggers the OIDC Provisioner and the default browser to open the IDP login screen. The developer authenticates to the corporate single sign-on service and, upon successful completion, returns to the terminal with a personal x.509 certificate.")
+![Developer single sign on for TLS certificate](/graphics/cm-hiw-sso.svg "The certificate command triggers the OIDC Provisioner and the default browser to open the IDP login screen. The developer authenticates to the corporate single sign-on service and, upon successful completion, returns to the terminal with a personal x.509 certificate.")
 
 ```shell-session
 $ step certificate inspect ee.crt -short
