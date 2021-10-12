@@ -29,6 +29,8 @@ smallstep_ssh:
     path: ssh/okta-gid-uid
 
 certificate_manager:
+  - title: Getting Started
+    path: certificate-manager/getting-started
   - title: How It Works
     path: certificate-manager/how-it-works
   - title: ACME Server
