@@ -469,7 +469,7 @@ Run the `step-cloudkms-init --help` command for more options.
 
 [Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault/#product-overview) is Microsoft's managed key management service.
 
-To configure AWS KMS in your certificate authority, add the `kms` property to `ca.json` and replace the `key` property with the AWS KMS key name of your intermediate key:
+To configure Azure Key Vault in your certificate authority, add the `kms` property to `ca.json` and replace the `key` property with the key name of your intermediate key:
 
 ```json nocopy
 {
@@ -484,6 +484,8 @@ To configure AWS KMS in your certificate authority, add the `kms` property to `c
 ```
 
 Authentication to Azure is handled via environment variables; we recommend [using file-based authentication](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication) via the `AZURE_AUTH_LOCATION` environment variable. See [Authentication Methods for Azure SDK for Go](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization) for an overview of authentication types and methods.
+
+For local development and testing, Azure CLI credentials will be used if no authentication environment variables are set.
 
 ### AWS KMS
 
