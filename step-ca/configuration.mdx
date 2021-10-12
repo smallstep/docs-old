@@ -33,6 +33,7 @@ learn how to configure your CA to:
 - [Cryptographic Protection](#cryptographic-protection)
   - [Google Cloud KMS](#google-cloud-kms)
   - [AWS KMS](#aws-kms)
+  - [Azure Key Vault KMS](#azure-key-vault-kms)
   - [YubiKey PIV](#yubikey-piv)
   - [PKCS #11](#pkcs-11)
 - [Registration Authority (RA) mode](#registration-authority-ra-mode)
@@ -402,7 +403,9 @@ At this time `step-ca` does not have any API or interface for easily exporting d
 By default, `step-ca` stores its signing keys encrypted on disk, on the CA.
 Some use cases may require more advanced cryptographic protection.
 For protection of you signing keys,
-`step-ca` integrates with [Google Cloud KMS](#google-cloud-kms), [AWS KMS](#aws-kms),
+`step-ca` integrates with [Google Cloud KMS](#google-cloud-kms),
+[AWS KMS](#aws-kms),
+[Azure Key Vault KMS](#azure-key-vault-kms), 
 [YubiKey PIV](#yubikey-piv),
 and [PKCS #11 hardware security modules (HSMs)](#pkcs-11).
 
@@ -461,6 +464,26 @@ Creating SSH Keys ...
 By default, the keys are generated using the `SOFTWARE` protection level. Add the flag `---protection-level HSM` to use a Hardware Security Module (HSM).
 
 Run the `step-cloudkms-init --help` command for more options.
+
+### Azure Key Vault KMS
+
+[Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault/#product-overview) is Microsoft's managed key management service.
+
+To configure AWS KMS in your certificate authority, add the `kms` property to `ca.json` and replace the `key` property with the AWS KMS key name of your intermediate key:
+
+```json nocopy
+{
+    "root": "/home/step/certs/root_ca.crt",
+    "crt": "/home/step/certs/intermediate_ca.crt",
+    "key": "azurekms:key-id=f879f239-feb6-4596-9ed2-b1606277c7fe",
+    "kms": {
+        "type": "azurekms",
+        "uri": "azurekms:name=key-name;vault=vault-name?hsm=true"
+    }
+}
+```
+
+Authentication to Azure is handled via environment variables; we recommend [using file-based authentication](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication) via the `AZURE_AUTH_LOCATION` environment variable. See [Authentication Methods for Azure SDK for Go](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization) for an overview of authentication types and methods.
 
 ### AWS KMS
 
