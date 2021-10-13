@@ -33,7 +33,7 @@ learn how to configure your CA to:
 - [Cryptographic Protection](#cryptographic-protection)
   - [Google Cloud KMS](#google-cloud-kms)
   - [AWS KMS](#aws-kms)
-  - [Azure Key Vault KMS](#azure-key-vault-kms)
+  - [Azure Key Vault](#azure-key-vault-kms)
   - [YubiKey PIV](#yubikey-piv)
   - [PKCS #11](#pkcs-11)
 - [Registration Authority (RA) mode](#registration-authority-ra-mode)
@@ -405,7 +405,7 @@ Some use cases may require more advanced cryptographic protection.
 For protection of you signing keys,
 `step-ca` integrates with [Google Cloud KMS](#google-cloud-kms),
 [AWS KMS](#aws-kms),
-[Azure Key Vault KMS](#azure-key-vault-kms), 
+[Azure Key Vault](#azure-key-vault), 
 [YubiKey PIV](#yubikey-piv),
 and [PKCS #11 hardware security modules (HSMs)](#pkcs-11).
 
@@ -416,12 +416,12 @@ see our blog post [Build a Tiny Certificate Authority For Your Homelab](https://
 
 [Cloud KMS](https://cloud.google.com/kms/docs) is Google's cloud-hosted KMS that allows you to store the cryptographic keys and sign certificates using their infrastructure. Cloud KMS supports two different protection levels: `SOFTWARE` and `HSM`.
 
-To configure Cloud KMS in your certificate authority, add the `kms` property to your `ca.json` file and replace the property `key` with the Cloud KMS key name of your intermediate key:
+To configure Cloud KMS in your certificate authority, add the `kms` object to your `ca.json` file and replace the property `key` with the Cloud KMS key name of your intermediate key:
 
 ```json nocopy
 {
-    "root": "/home/step/certs/root_ca.crt",
-    "crt": "/home/step/certs/intermediate_ca.crt",
+    "root": "/etc/step-ca/certs/root_ca.crt",
+    "crt": "/etc/step-ca/certs/intermediate_ca.crt",
     "key": "projects/<project-id>/locations/global/keyRings/<ring-id>/cryptoKeys/<key-id>/cryptoKeyVersions/<version-number>",
     "kms": {
         "type": "cloudkms",
@@ -465,38 +465,58 @@ By default, the keys are generated using the `SOFTWARE` protection level. Add th
 
 Run the `step-cloudkms-init --help` command for more options.
 
-### Azure Key Vault KMS
+### Azure Key Vault
 
 [Azure Key Vault](https://azure.microsoft.com/en-us/services/key-vault/#product-overview) is Microsoft's managed key management service.
 
-To configure Azure Key Vault in your certificate authority, add the `kms` property to `ca.json` and replace the `key` property with the key name of your intermediate key:
+#### Authentication
+
+When using Azure Key Vault with `step-ca`, authentication to Azure is handled via environment variables; we recommend using either [file-based authentication](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication) via the `AZURE_AUTH_LOCATION` environment variable, or setting the `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, and `AZURE_CLIENT_SECRET` variables when starting `step-ca`. See [Authentication Methods for Azure SDK for Go](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization) for an overview of authentication methods and environment variables.
+
+For local development and testing, Azure CLI credentials will be used if no authentication environment variables are set.
+
+#### Initialize a PKI
+
+To initialize a PKI backed by Azure Key Vault, start by authenticating to Azure using one of the above approaches.
+
+Then, run:
+
+```bash
+$ step ca init --kms azurekms
+```
+
+You will be walked through the setup and configuration process.
+
+#### Manual Configuration
+
+To configure an existing CA for Azure Key Vault, or to import an existing Azure Key Vault signing key, add the `kms` object to your `ca.json`, and replace the `key` properties with the key name, vault name, and version of your intermediate (signing) key in Azure Key Vault:
 
 ```json nocopy
 {
-    "root": "/home/step/certs/root_ca.crt",
-    "crt": "/home/step/certs/intermediate_ca.crt",
-    "key": "azurekms:key-id=f879f239-feb6-4596-9ed2-b1606277c7fe",
+    "root": "/etc/step-ca/certs/root_ca.crt",
+    "crt": "/etc/step-ca/certs/intermediate_ca.crt",
+    "key": "azurekms:name=intermediate-ca-key;vault=example-vault-0?version=15faf8b8b80d4f1ead067c6383a38b8f",
     "kms": {
         "type": "azurekms",
-        "uri": "azurekms:name=key-name;vault=vault-name?hsm=true"
+        "uri": "azurekms:"
     }
 }
 ```
 
-Authentication to Azure is handled via environment variables; we recommend [using file-based authentication](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization#use-file-based-authentication) via the `AZURE_AUTH_LOCATION` environment variable. See [Authentication Methods for Azure SDK for Go](https://docs.microsoft.com/en-us/azure/developer/go/azure-sdk-authorization) for an overview of authentication types and methods.
-
-For local development and testing, Azure CLI credentials will be used if no authentication environment variables are set.
+* In `key`, the `name` and `vault` should point to the vault name and key name of your intermediate key in Azure Key Vault.
+* In `key`, the `version` is optional. If omitted, the latest version will be used.
+* In `kms`, the `uri` can be used to provide client credentials (eg. `azurekms:client-id=fooo;client-secret=bar;tenant-id=9de53416-4431-4181-7a8b-23af3EXAMPLE`), but this is not recommended.
 
 ### AWS KMS
 
 [AWS KMS](https://aws.amazon.com/kms/) is Amazon's managed encryption and key management service. It creates and stores the cryptographic keys and uses AWS infrastructure for signing operations. Amazon KMS operations are always backed by HSMs.
 
-To configure AWS KMS in your certificate authority, add the `kms` property to `ca.json` and replace the `key` property with the AWS KMS key name of your intermediate key:
+To configure AWS KMS in your certificate authority, add the `kms` object to `ca.json` and replace the `key` property with the AWS KMS key name of your intermediate key:
 
 ```json nocopy
 {
-    "root": "/home/step/certs/root_ca.crt",
-    "crt": "/home/step/certs/intermediate_ca.crt",
+    "root": "/etc/step-ca/certs/root_ca.crt",
+    "crt": "/etc/step-ca/certs/intermediate_ca.crt",
     "key": "awskms:key-id=f879f239-feb6-4596-9ed2-b1606277c7fe",
     "kms": {
         "type": "awskms",

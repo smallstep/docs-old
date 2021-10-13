@@ -20,7 +20,7 @@ This document lists, briefly describes, and links to documentation for all
   - [Kubernetes](#kubernetes)
   - [Envoy Secret Discovery Service](#envoy-secret-discovery-service-sds)
 - Cryptographic Protection
-  - [Cloud Key Management Service](#cloud-key-management-service)
+  - [Cloud Key Management Services](#cloud-key-management-services)
   - [YubiKey PIV](#yubikey-piv)
   - [PKCS#11 HSMs](#pkcs11-hsms)
 
@@ -84,16 +84,12 @@ Learn more about how to [install and configure `step-sds`][step-sds].
 
 ## Cryptographic Protection
 
-### Cloud Key Management Service
+### Cloud Key Management Services
 
-Cloud Key Management Services (Cloud KMS) allow users to store cryptographic 
-keys and sign certificates using cloud storage and APIs.
-
-Google Cloud KMS, Amazon AWS KMS, and Azure Key Vault KMS are currently supported.
-
-Learn more about how to [configure Cloud KMS][configure-cloudkms].
-
-[configure-cloudkms]: /docs/step-ca/configuration#cloud-key-management-service
+Cloud Key Management Services allow users to store cryptographic keys and sign certificates
+using cloud storage and APIs.
+Integrations with Google Cloud KMS, Amazon AWS KMS, and Azure Key Vault are currently supported.
+[Learn more.](/docs/step-ca/configuration#cryptographic-protection)
 
 ### YubiKey PIV
 
