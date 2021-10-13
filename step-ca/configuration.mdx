@@ -485,7 +485,7 @@ Then, run:
 $ step ca init --kms azurekms
 ```
 
-You will be walked through the setup and configuration process.
+You will be walked through the process of creating root and intermediate CA signing keys in Key Vault, and configuring the CA to use them. If you create an SSH CA, SSH host and user CA keys will be created in Key Vault as well.
 
 #### Manual Configuration
 
@@ -497,16 +497,15 @@ To configure an existing CA for Azure Key Vault, or to import an existing Azure 
     "crt": "/etc/step-ca/certs/intermediate_ca.crt",
     "key": "azurekms:name=intermediate-ca-key;vault=example-vault-0?version=15faf8b8b80d4f1ead067c6383a38b8f&hsm=true",
     "kms": {
-        "type": "azurekms",
-        "uri": "azurekms:"
+        "type": "azurekms"
     }
 }
 ```
 
-* In `key`, the `name` and `vault` should point to the vault name and key name of your intermediate key in Azure Key Vault.
-* In `key`, the `version` is optional. If omitted, the latest version will be used.
-* In `key`, the optional `hsm` property can be set to `true` if HSM protection is desired. The default is `false`.
-* In `kms`, the `uri` can be used to provide client credentials (eg. `azurekms:client-id=fooo;client-secret=bar;tenant-id=9de53416-4431-4181-7a8b-23af3EXAMPLE`), but this is not recommended.
+* In the `key` URI, the `name` and `vault` should point to the vault name and key name of your intermediate key in Azure Key Vault.
+* In the `key` URI, the `version` is the version of the Azure Key Vault key name. Though it is optional, we recommend setting this value explicitly. If omitted, the latest version will be used.
+* In the `key` URI, the optional `hsm` property can be set to `true` if HSM protection is desired. This is only used when the key is being created by `step-ca`. The default is to use software-protected (non-HSM-backed) keys. See Key Vault's [About Keys](https://docs.microsoft.com/en-us/azure/key-vault/keys/about-keys) page for more details.
+* In `kms`, an optional `uri` property can be added to provide client credentials (eg. `azurekms:client-id=fooo;client-secret=bar;tenant-id=9de53416-4431-4181-7a8b-23af3EXAMPLE`) instead of using the environment variables described above.
 
 ### AWS KMS
 
