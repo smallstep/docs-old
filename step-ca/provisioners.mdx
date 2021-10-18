@@ -19,6 +19,7 @@ In this section we'll discuss the different provisioners, their target use cases
 - [X5C - X.509 Certificate](#x5c-x509-certificate)
 - [SSHPOP - SSH Certificate](#sshpop-ssh-certificate)
 - [ACME](#acme)
+- [SCEP](#scep)
 - [K8sSA - Kubernetes Service Account](#k8ssa-kubernetes-service-account)
 - [Cloud Provisioners](#cloud-provisioners)
 
@@ -34,6 +35,7 @@ OIDC   | ✔️  | ✔️  | ✔️  | ✔️  | ✔️ <Reference id="f1" marke
 X5C    | ✔️  | ✔️  | ✔️  | ✔️  | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫
 K8sSA  | ✔️  | ✔️  | ✔️  | ✔️  | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫
 ACME   | ✔️  | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫
+SCEP   | ✔️  | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫
 SSHPOP | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | 𝗫 | ✔️  | ✔️  | ✔️
 AWS    | ✔️  | ✔️  | 𝗫 | 𝗫 | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫
 Azure  | ✔️  | ✔️  | 𝗫 | 𝗫 | ✔️  | 𝗫 | 𝗫 | 𝗫 | 𝗫
@@ -610,6 +612,40 @@ see the [claims](#claims) section for all the options.
 
 See our [`step-ca` ACME tutorial](/docs/tutorials/acme-challenge)
 for more guidance on configuring and using the ACME protocol with `step-ca`.
+
+### SCEP
+
+The SCEP provisioner can sign and renew certificates using the SCEP protocol ([RFC8894](https://datatracker.ietf.org/doc/html/rfc8894)). SCEP is very popular for use in network equipment and mobile device management (MDM). It runs over HTTP using POSTed binary data or base64-encoded GET parameters, using CMS (PKCS#7) and CSR (PKCS#10) data formats. A shared secret authenticates clients to the CA.
+
+#### Requirements
+
+Many SCEP client implmentations require an RSA CA chain. Because `step ca init` creates ECDSA chains by default, you may need to [use an RSA CA chain](/docs/tutorials/rsa-chain) in your CA to ensure broader compability.
+
+#### Configuration
+
+The `step ca provisioner` command group does not yet support SCEP. Configure a new SCEP provisioner by adding the following to the `provisioners` section of `$(step path)/config/ca.json`:
+
+```json
+{
+    "type": "SCEP",
+    "name": "scepca",
+    "forceCN": true,
+    "challenge": "secret1234"
+}
+```
+
+Change the `"challenge"` password to a value that you will distribute to your clients.
+
+Next, you will need the CA to listen using HTTP, which it does not do by default. Enable this by filling in the `"insecureAddress"` property to your top-level CA configuration:
+
+```json
+        ...
+        "insecureAddress": ":8080",
+        ...
+```
+
+Finally, restart `step-ca`.
+Your SCEP provisioner is now available at the endpoint `http://your.ca.hostname:8080/scep/scepca`.
 
 ### K8sSA - Kubernetes Service Account
 
