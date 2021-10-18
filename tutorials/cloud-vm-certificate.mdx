@@ -5,7 +5,7 @@ description: Use the cloud metadata API to make it embarrassingly easy to get pr
 ---
 
 
-With `step-ca`, you can use our provisioners to automate certificate enrollment for almost anything in your production network. To create a cloud VM certificate, we recommend you use the cloud provider metadata API and our IID provisioner. This short tutorial will show how to use Instance Identity Documents (IID) to authorize and retrieve an X.509 Certificate from `step-ca`. 
+With open source `step-ca`, you can use our provisioners to automate certificate enrollment for almost anything in your production network. To create a cloud VM certificate, we recommend you use the cloud provider metadata API and our IID provisioner. This short tutorial will show how to use Instance Identity Documents (IID) to authorize and retrieve an X.509 Certificate from `step-ca`. 
 
 IIDs are simply credentials that identify an instance's name and owner. By
 presenting an IID in a request, a workload can prove that it is running on a cloud VM instance that you own.
@@ -14,7 +14,6 @@ presenting an IID in a request, a workload can prove that it is running on a clo
 
 - Learn how to automate enrollment of cloud VM certificates using the AWS, Azure, or GCP metadata API.
 - Examples include copy/paste code blocks and specific commands for cloud providers.
-- you will have a fully functioning ACME configuration using a private certificate authority. 
 - Estimated effort: Reading time ~5 mins, Lab time ~10 to 60 mins. 
 
 <Alert severity="info">
@@ -25,7 +24,7 @@ presenting an IID in a request, a workload can prove that it is running on a clo
 
 ## Requirements
 
-- This tutorial assumes you have initialized and started up a `step-ca` instance using the steps in [Getting Started](/docs/step-ca/getting-started). As an alternative, you can use our hosted CA, [Smallstep Certificate Manager.](/certificate-manager)
+- **Open source -** This tutorial assumes you have initialized and started up a `step-ca` instance using the steps in [Getting Started](/docs/step-ca/getting-started). 
 
 ## IID-based authentication overview
 
@@ -199,8 +198,9 @@ CLI` abstracts away the remaining differences.
 Depending on your situation and tech stack, you might put these commands in a
 startup script, put them in an AMI, or use configuration management for the
 last piece of automation. If you’re using kubernetes, then IID-based
-authentication isn’t right for you. Use [autocert][11] or [cert-manager
+authentication isn’t right for you. Use [ACME][13], [autocert][11] or [cert-manager
 integration][12] instead.
 
 [11]: https://github.com/smallstep/autocert
 [12]: https://github.com/smallstep/step-issuer
+[13]: https://smallstep.com/docs/tutorials/kubernetes-acme-ca
