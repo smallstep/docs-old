@@ -28,9 +28,8 @@ from a certificate authority to clients.
 
 ## Requirements
 
-- This tutorial assumes you have initialized and started up a `step-ca`
-instance using the steps in [Getting Started](/docs/step-ca/getting-started).
-As an alternative, you can use our hosted CA, [Smallstep Certificate
+- **Open source -** This tutorial assumes you have initialized and started up a `step-ca`instance using the steps in [Getting Started](/docs/step-ca/getting-started).
+- **Smallstep Certificate Manager -** use [this documentation](/docs/certificate-manager/acme) for running a private ACME server using [Smallstep Certificate
 Manager](/certificate-manager)
 
 ## Overview
@@ -86,18 +85,18 @@ The ACME server challenges the client to provision a random DNS `TXT` record for
 
 **Use Case**
 
-You might see a challenge like this when you are trying to use third party tools, like plugins or some Amazon cloud services.
+You might see a challenge like this when trying to use third-party tools, like plugins or some Amazon cloud services.
 
 ### The TLS alpn challenge (tls-alpn-01)
 
 The ACME server uses application layer protocol negotiation to request an ACME challenge validation.
-The client then presents a self-signed tls certificate containing the identifier in question as a special x509 extension.
+The client then presents a self-signed TLS certificate containing the identifier in question as a special x509 extension.
 
 **Use Case**
 
 The TLS ALPN challenge is commonly used in cases where an ingress controller fronts clients attempting to receive a certificate, or in cases where, for any number of reasons, TLS is the only allowed external protocol.
 
-## ACME with `step-ca`
+## ACME with open source `step-ca`
 
 Now, let's demonstrate provisioning a X.509 certificate with ACME using `step-ca`.
 
@@ -123,7 +122,7 @@ To configure an ACME client to connect to `step-ca` you need to do two things:
 Most ACME clients connect to Let’s Encrypt’s CA by default.
 To connect to `step-ca`, you need to point the client to the right ACME Directory URL.
 
-A single instance of `step-ca` can have multiple ACME provisioners, each with their own ACME Directory URL.
+A single instance of `step-ca` can have multiple ACME provisioners, each with its own ACME Directory URL.
 The ACME directory URL has the form:
 
 ```
@@ -169,6 +168,7 @@ Once your root certificate is installed, no additional client configuration is n
 ## Examples
 
 `step-ca` should work with any ACMEv2 (RFC8555) compliant client that supports the http-01 or dns-01 challenge.
+We created a [seperate tutorial](/tutorials/acme-protocol-acme-clients) that documents the most popular ACME client configurations. 
 If you run into any issues please let us know [on GitHub Discussions][gh-discussions] or [in an issue][gh-issues].
 
 [gh-discussions]: https://github.com/smallstep/certificates/discussions
