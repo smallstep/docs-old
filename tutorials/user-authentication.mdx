@@ -52,8 +52,6 @@ step ca provisioner add Google --type oidc --ca-config $(step path)/config/ca.js
     --domain smallstep.com --domain gmail.com
 ```
 
-Learn how to [add provisioners for other popular identity providers](/docs/step-ca/provisioners#cloud-provisioners).
-
 ### 2. Reload the CA
 
 You'll need to restart or SIGHUP `step-ca` in order to pick up the configuration changes.
