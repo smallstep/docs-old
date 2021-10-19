@@ -103,6 +103,8 @@ tutorials:
     path: tutorials/cloud-vm-certificate
   - title: Issue X.509 user certificates via your identity provider
     path: tutorials/user-authentication
+  - title: Create a CA that uses RSA keys
+    path: tutorials/rsa-chain
   - title: Import an existing root or intermediate CA into `step-ca`
     path: tutorials/intermediate-ca-new-ca
   - title: Use Keycloak to issue SSH certificates with step-ca
