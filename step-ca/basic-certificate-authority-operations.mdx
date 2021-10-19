@@ -53,7 +53,7 @@ X.509v3 TLS Certificate (ECDSA P-256) [Serial: 7720...1576]
     </div>
 </Alert>
 
-### Issue a Certificate From a [Certificate Signing Request (CSR)](https://smallstep.com/blog/everything-pki/#certificate-signing-requests)
+### Sign a [Certificate Signing Request (CSR)](https://smallstep.com/blog/everything-pki/#certificate-signing-requests)
 
 Let's make a CSR for this example, using `step certificate create --csr`, then we'll use `step ca sign` to get a signed certificate from the CA.
 
@@ -66,6 +66,66 @@ $ step ca sign foo.csr foo.crt
 ✔ Please enter the password to decrypt the provisioner key: ...
 ✔ CA: https://127.0.0.1:4337
 ✔ Certificate: foo.crt
+```
+
+### Issue a certificate using a CA token
+
+Under the hood, several `step-ca` provisioners use a token-based authentication mechanism. A certificate request is wrapped inside a signed JavaScript Web Token (JWT) and sent to the server. Sometimes it's useful to separate the creation of the CA authentication token from the creation of the private key and the signing of the certificate. For example, you may want to inject a CA token into a Docker container, then have the container use the token to request its own certificate. This way, the container doesn't have to hold any long-lived CA credentials.
+
+How the signed token is generated depends on the provisioner type:
+* The JWK provisioner signs the token using an encrypted JavaScript Web Key stored in the CA provisioner configuration. In the example below, we'll use `step ca sign` to ask the CA to sign a token. But, if you have the private key for the JWK configured in the CA, you can generate CA tokens offline, without contacting the CA.
+* The X5C provisioner signs the token using an X509 certificate private key whose root is configured in the CA.
+* The OIDC provisioner uses the identity token returned from the OAuth flow, which is signed with the OAuth provider's private key.
+
+Let's use a JWK provisioner to separate the token request from the signing request:
+
+```shell-session nocopy
+$ TOKEN=$(step ca token localhost)
+✔ Provisioner: carl@smallstep.com (JWK) [kid: kvPj79hrAnrQywrVy-oFmye4foHq1rdUg55nxsuCvkI]
+✔ Please enter the password to decrypt the provisioner key:
+$ echo $TOKEN | step crypto jwt inspect --insecure
+{
+  "header": {
+    "alg": "ES256",
+    "kid": "kvPj79hrAnrQywrVy-oFmye4foHq1rdUg55nxsuCvkI",
+    "typ": "JWT"
+  },
+  "payload": {
+    "aud": "https://localhost:8443/1.0/sign",
+    "exp": 1634667515,
+    "iat": 1634667215,
+    "iss": "carl@smallstep.com",
+    "jti": "ffa63c06b0f3ccb0de554711836042a877e32a0322df42d617c6da59af65ec7d",
+    "nbf": 1634667215,
+    "sans": [
+      "localhost"
+    ],
+    "sha": "256538bb3b338289f80308ef286b00d4a4ac87b87fa3fcaff2234f2943572bb6",
+    "sub": "localhost"
+  },
+  "signature": "g8S-1Mrb9U3l3CbTRE-Mvcy2m2I-M2b_9KXj04SnqSxyMVDRzvnpoW3XYtlGgCcIexo5gQpOpe0QrkdZuKwhUQ"
+}
+```
+
+[The raw `$TOKEN`](https://jwt.io/#debugger-io?token=eyJhbGciOiJFUzI1NiIsImtpZCI6Imt2UGo3OWhyQW5yUXl3clZ5LW9GbXllNGZvSHExcmRVZzU1bnhzdUN2a0kiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo4NDQzLzEuMC9zaWduIiwiZXhwIjoxNjM0NjY3NTE1LCJpYXQiOjE2MzQ2NjcyMTUsImlzcyI6ImNhcmxAc21hbGxzdGVwLmNvbSIsImp0aSI6ImZmYTYzYzA2YjBmM2NjYjBkZTU1NDcxMTgzNjA0MmE4NzdlMzJhMDMyMmRmNDJkNjE3YzZkYTU5YWY2NWVjN2QiLCJuYmYiOjE2MzQ2NjcyMTUsInNhbnMiOlsibG9jYWxob3N0Il0sInNoYSI6IjI1NjUzOGJiM2IzMzgyODlmODAzMDhlZjI4NmIwMGQ0YTRhYzg3Yjg3ZmEzZmNhZmYyMjM0ZjI5NDM1NzJiYjYiLCJzdWIiOiJsb2NhbGhvc3QifQ.g8S-1Mrb9U3l3CbTRE-Mvcy2m2I-M2b_9KXj04SnqSxyMVDRzvnpoW3XYtlGgCcIexo5gQpOpe0QrkdZuKwhUQ&publicKey=%7B%0A%20%20%22use%22%3A%20%22sig%22%2C%0A%20%20%22kty%22%3A%20%22EC%22%2C%0A%20%20%22kid%22%3A%20%22kvPj79hrAnrQywrVy-oFmye4foHq1rdUg55nxsuCvkI%22%2C%0A%20%20%22crv%22%3A%20%22P-256%22%2C%0A%20%20%22alg%22%3A%20%22ES256%22%2C%0A%20%20%22x%22%3A%20%22qgJNrHeWBxHpGKns1VqkQCTQYIHOzoJm5khaqGXAbdw%22%2C%0A%20%20%22y%22%3A%20%22Sb4RL5_S5ZAKPZMAS8a0eye1uJHDJWFiCfXFx04mYcc%22%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D) is a series of base64-encoded values.
+
+Once you have a token, pass it to the environment where the certificate will be created. Then continue:
+
+```shell-session nocopy
+$ step certificate create --csr localhost localhost.csr localhost.key
+Please enter the password to encrypt the private key:
+Your certificate signing request has been saved in localhost.csr.
+Your private key has been saved in localhost.key.
+$ step ca sign --token $TOKEN localhost.csr localhost.crt
+✔ CA: https://localhost:8443
+✔ Certificate: localhost.crt
+$ step certificate inspect localhost.crt --short
+X.509v3 TLS Certificate (ECDSA P-256) [Serial: 1459...0708]
+  Subject:     localhost
+  Issuer:      Example Intermediate CA
+  Provisioner: carl@smallstep.com [ID: kvPj...CvkI]
+  Valid from:  2021-10-19T18:14:55Z
+          to:  2021-10-20T18:15:55Z
 ```
 
 ### Renew a Certificate
