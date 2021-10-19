@@ -19,14 +19,14 @@ Next, delete your existing PKI and create RSA root and intermediate certificates
 
 ```bash
 step certificate create "Example Root CA" \
-    $(step path)/certs/root_ca.crt \
-    $(step path)/secrets/root_ca_key \
-    --profile root-ca \
-    --kty RSA
+	$(step path)/certs/root_ca.crt \
+	$(step path)/secrets/root_ca_key \
+	--profile root-ca \
+	--kty RSA
 step certificate create "Example Intermediate CA" \
-    $(step path)/certs/intermediate_ca.crt \
+	$(step path)/certs/intermediate_ca.crt \
 	$(step path)/secrets/intermediate_ca_key \
-    --profile intermediate-ca \
+	--profile intermediate-ca \
 	--ca $(step path)/certs/root_ca.crt \
 	--ca-key $(step path)/secrets/root_ca_key \
 	--kty RSA

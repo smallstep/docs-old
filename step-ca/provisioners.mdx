@@ -619,7 +619,10 @@ The SCEP provisioner can sign and renew certificates using the SCEP protocol ([R
 
 #### Requirements
 
-Many SCEP client implmentations require an RSA CA chain. Because `step ca init` creates ECDSA chains by default, you may need to [use an RSA CA chain](/docs/tutorials/rsa-chain) in your CA to ensure broader compability.
+Your CA must use an RSA intermediate CA, even if your client supports ECDSA.
+We use the RSA intermediate to encrypt/decrypt data, and you cannot do that with an ECDSA key.
+
+Because `step ca init` creates an ECDSA chain by default, you will need to [convert your CA to use an RSA CA chain](/docs/tutorials/rsa-chain) before using the SCEP provisioner.
 
 #### Configuration
 
@@ -636,7 +639,7 @@ The `step ca provisioner` command group does not yet support SCEP. Configure a n
 
 Change the `"challenge"` password to a value that you will distribute to your clients.
 
-Next, you will need the CA to listen using HTTP, which it does not do by default. Enable this by filling in the `"insecureAddress"` property to your top-level CA configuration:
+Most SCEP clients use HTTP. So, you will most likely need your CA to listen using HTTP, which it does not do by default. Enable this by filling in the `"insecureAddress"` property to your top-level CA configuration:
 
 ```json
         ...
@@ -683,7 +686,7 @@ An example of a K8sSA provisioner in the `ca.json`:
     "publicKeys": "LS0tLS1...LS0tCg==",
     "claims": {
         "maxTLSCertDuration": "8h",
-        "defaultTLSCertDuration": "2h",
+        "defaultTLSCertDuration": "2h"
 	},
     "options": {
         "x509": {
