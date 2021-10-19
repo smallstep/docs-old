@@ -16,7 +16,7 @@ automated certificate management, you can leverage mTLS for secure
 cross-connectivity without a VPN to avoid these issues.
 
 In this scenario, you may want to run two CAs: one in AWS and one in GCP. That
-way, you don’t need to expose `step-ca` to the public internet. To make this
+way, you don’t need to expose open source `step-ca` to the public internet. To make this
 work, these CAs must federate a PKI trust model, which means `foo.internal` and
 `bar.internal` must trust both CAs to issue certificates.
 
@@ -37,8 +37,8 @@ federated roots to workloads in both clouds.
 </Alert>
 
 ## Requirements
-
-- This tutorial assumes you have initialized and started up a `step-ca` instance using the steps in [Getting Started](/docs/step-ca/getting-started). As an alternative, you can use our hosted CA, [Smallstep Certificate Manager](/certificate-manager)
+- **Open Source -** This tutorial assumes you have initialized and started up a `step-ca`instance using the steps in [Getting Started](/docs/step-ca/getting-started).
+- **[Smallstep Certificate Manager](/certificate-manager) -** Please contact [Smallstep](mailto:cs@smallstep.com) if you would like federate and existing Root with a Certificate Manager authority.
 
 ## Overview
 
