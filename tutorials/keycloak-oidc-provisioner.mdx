@@ -6,7 +6,7 @@ description: Let's set up Keycloak as an OpenID Connect (OIDC) provider for step
 
 
 [Keycloak](https://www.keycloak.org/), the open-source identity provider,
-provides an OAuth flow that can be used with `step-ca` to authenticate requests for certificates.
+provides an OAuth flow that can be used with open source `step-ca` to authenticate requests for certificates.
 
 In this tutorial, we'll configure Keycloak and `step-ca` to take advantage of this flow,
 which is especially useful for issuing X.509 client authentication certificates or
@@ -24,7 +24,8 @@ which is especially useful for issuing X.509 client authentication certificates 
 
 ## Requirements
 
-- This tutorial assumes you have initialized a `step-ca` instance using the steps in [Getting Started](/docs/step-ca/getting-started). As an alternative, you can use our hosted CA, [Smallstep Certificate Manager.](/certificate-manager)
+- **Open source -** This tutorial assumes you have initialized a `step-ca` instance using the steps in [Getting Started](/docs/step-ca/getting-started). 
+- **[Smallstep Certificate Manager](/certificate-manager) -** Please visit the [OIDC documentation](/docs/certificate-manager/oidc) for instructions on connecting your identity provider to Certificate Manager.
 - You'll need a Docker environment, and Docker Compose version 3+.
 - You'll need a hostname and TLS certificate files for your Keycloak instance.
 
