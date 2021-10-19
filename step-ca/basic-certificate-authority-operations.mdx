@@ -82,8 +82,8 @@ This way, the container doesn't have to hold any long-lived CA credentials.
 
 How the signed token is generated depends on the provisioner type. For example:
 * The JWK provisioner expects tokens signed using an encrypted JavaScript Web Key stored in the CA provisioner configuration. 
-  In the example below, we'll use `step ca token` to ask the CA to sign a token.
-  But, if you have the private key for the JWK configured in the CA, you can generate CA tokens offline, without contacting the CA.
+  In the example below, we'll use `step ca token` to ask the CA to sign a token for us.
+  But, given a copy of the private key from the JWK provisioner configuration, you can generate and sign CA tokens without ever contacting the CA.
 * The X5C provisioner expects tokens signed using an X509 certificate private key whose root is configured in the CA.
 * The OIDC provisioner expects an identity token returned from the OAuth flow,
   which is signed with the OAuth provider's private key.
@@ -120,7 +120,9 @@ $ echo $TOKEN | step crypto jwt inspect --insecure
 
 [The raw `$TOKEN`](https://jwt.io/#debugger-io?token=eyJhbGciOiJFUzI1NiIsImtpZCI6Imt2UGo3OWhyQW5yUXl3clZ5LW9GbXllNGZvSHExcmRVZzU1bnhzdUN2a0kiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo4NDQzLzEuMC9zaWduIiwiZXhwIjoxNjM0NjY3NTE1LCJpYXQiOjE2MzQ2NjcyMTUsImlzcyI6ImNhcmxAc21hbGxzdGVwLmNvbSIsImp0aSI6ImZmYTYzYzA2YjBmM2NjYjBkZTU1NDcxMTgzNjA0MmE4NzdlMzJhMDMyMmRmNDJkNjE3YzZkYTU5YWY2NWVjN2QiLCJuYmYiOjE2MzQ2NjcyMTUsInNhbnMiOlsibG9jYWxob3N0Il0sInNoYSI6IjI1NjUzOGJiM2IzMzgyODlmODAzMDhlZjI4NmIwMGQ0YTRhYzg3Yjg3ZmEzZmNhZmYyMjM0ZjI5NDM1NzJiYjYiLCJzdWIiOiJsb2NhbGhvc3QifQ.g8S-1Mrb9U3l3CbTRE-Mvcy2m2I-M2b_9KXj04SnqSxyMVDRzvnpoW3XYtlGgCcIexo5gQpOpe0QrkdZuKwhUQ&publicKey=%7B%0A%20%20%22use%22%3A%20%22sig%22%2C%0A%20%20%22kty%22%3A%20%22EC%22%2C%0A%20%20%22kid%22%3A%20%22kvPj79hrAnrQywrVy-oFmye4foHq1rdUg55nxsuCvkI%22%2C%0A%20%20%22crv%22%3A%20%22P-256%22%2C%0A%20%20%22alg%22%3A%20%22ES256%22%2C%0A%20%20%22x%22%3A%20%22qgJNrHeWBxHpGKns1VqkQCTQYIHOzoJm5khaqGXAbdw%22%2C%0A%20%20%22y%22%3A%20%22Sb4RL5_S5ZAKPZMAS8a0eye1uJHDJWFiCfXFx04mYcc%22%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D) is a series of base64-encoded values.
 
-Once you have a token, pass it to the environment where the certificate will be created. Then continue:
+Now that you have a token, you can pass it to the environment where the certificate will be created.
+
+Then, in that context, continue:
 
 ```shell-session nocopy
 $ step certificate create --csr localhost localhost.csr localhost.key
@@ -143,7 +145,7 @@ X.509v3 TLS Certificate (ECDSA P-256) [Serial: 1459...0708]
 
 Certificate renewal is easy, and is authenticated using the existing private key:
 
-```
+```shell-session
 $ step ca renew foo.crt foo.key
 ✔ Would you like to overwrite foo.crt [y/n]: y
 Your certificate has been saved in foo.crt.
@@ -200,7 +202,7 @@ $ step ssh config --roots > /path/to/ssh_user_key.pub
 
 Add this to key your SSHD configuration. On your host, run:
 
-```
+```shell-session
 $ cat <<EOF >> /etc/ssh/sshd_config
 # This is the CA's public key for authenticating user certificates:
 TrustedUserCAKeys /path/to/ssh_user_key.pub
@@ -209,7 +211,7 @@ EOF
 
 Restart SSHD. Your host will now trust any user certificate issued by the CA. On Ubuntu 18.04 LTS, run:
 
-```
+```shell-session
 $ systemctl restart ssh.service
 ```
 
