@@ -23,16 +23,11 @@ You will need:
 
 ### Optional
 
-Use this form to pre-fill some of the examples with values from your CA.
+Use this form to pre-fill some of the examples with values from your setup.
 
 <DynamicDocForm formFields={[
   {
-    label: "Address or Port",
-    name: "address",
-    placeholder: ":443",
-  },
-  {
-    label: "Certificate Authority URL",
+    label: "Certificate Manager Authority URL",
     name: "caUrl",
     placeholder: "https://example.mycompany.ca.smallstep.com",
   },
@@ -42,7 +37,7 @@ Use this form to pre-fill some of the examples with values from your CA.
     placeholder: "b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5",
   },
   {
-    label: "Provisioner Name",
+    label: "Certificate Manager JWK Provisioner Name",
     name: "provisioner",
     placeholder: "acme-ra-jwk",
   },
@@ -52,9 +47,9 @@ Use this form to pre-fill some of the examples with values from your CA.
     placeholder: "ra.example.com, ca.example.io",
   },
   {
-    label: "Registration Authority Fingerprint",
-    name: "raFingerprint",
-    placeholder: "c04dba6150a891ac1ce055af7fd1afddc4a351e690c69079c934614defdb704d",
+    label: "RA Bind Port or Address",
+    name: "address",
+    placeholder: ":443",
   },
   {
     label: "Registration Authority URL",
@@ -65,7 +60,99 @@ Use this form to pre-fill some of the examples with values from your CA.
 
 ## Run a Registration Authority on Linux
 
-### Set up your RA
+### Option 1: Use our Linux RA install script
+
+#### 0. Before you begin
+
+Create a JWK provisioner in Certificate Manager.
+Your RA will use this provisioner to get certificates.
+
+#### 1. Create your RA
+
+Our [setup script](https://files.smallstep.com/install-step-ra.sh) will install an RA on a Linux host (Debian-based distros).
+
+The script will:
+- Install the `step` and `step-ca` binaries in `/usr/bin`
+- Connect to your Certificate Manager CA
+- Help you choose a JWK provisioner on your CA to link your RA to
+- Create RA configuration files in `/etc/step-ca`
+- Create a `step` user and group
+- Add a systemd service called `step-ca.service`
+- Enable and start `step-ca.service`
+- Export a `STEPPATH` variable in `/root/.bash_profile`
+
+The script has the following requirements:
+- It must be run on a machine that uses systemd
+- It must be run as `root`
+- It requires `jq`, `curl`, and `tar` commands
+
+To run the script:
+
+<FormValues>
+{({caUrl="https://example.mycompany.ca.smallstep.com", provisioner="acme-ra-jwk", dns="ra.example.com", address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+<CodeBlock language="shell-session" copyText={`curl -sSLO https://files.smallstep.com/install-step-ra.sh && \\
+bash install-step-ra.sh \\
+    --ca-url ${caUrl} \\
+    --fingerprint ${fingerprint} \\
+    --provisioner-name ${provisioner} \\
+    --dns-names ${dns} \\
+    --listen-address ${address}`}>
+{`# curl -sSLO https://files.smallstep.com/install-step-ra.sh
+# bash install-step-ra.sh \\
+    --ca-url ${caUrl} \\
+    --fingerprint ${fingerprint} \\
+    --provisioner-name "${provisioner}" \\
+    --dns-names "${dns}" \\
+    --listen-address ${address}`}
+</CodeBlock>
+)}
+</FormValues>
+
+Your RA service should now be running. It is configured with a single ACME provisioner, but you can add other provisioners as needed.
+
+Then follow the prompts to configure and start your RA.
+
+Check that your RA server is running properly:
+
+<FormValues>
+{({address=":443", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+<CodeBlock language="shell-session" copyText={`journalctl -fu step-ca.service`}>
+{`# journalctl -fu step-ca.service
+-- Logs begin at Wed 2021-07-28 18:57:26 UTC. --
+Jul 28 19:05:34 ip-172-31-28-100 systemd[1]: Started step-ca service.
+Jul 28 19:05:35 ip-172-31-28-100 step-ca[2013]: badger 2021/07/28 19:05:35 INFO: All 0 tables opened in 0s
+Jul 28 19:05:35 ip-172-31-28-100 step-ca[2013]: badger 2021/07/28 19:05:35 INFO: No head keys found
+Jul 28 19:05:35 ip-172-31-28-100 step-ca[2013]: 2021/07/28 19:05:35 Using root fingerprint '${fingerprint}'
+Jul 28 19:05:35 ip-172-31-28-100 step-ca[2013]: 2021/07/28 19:05:35 Serving HTTPS on ${address} ...`}
+</CodeBlock>
+)}
+</FormValues>
+
+You have completed the basic setup of your RA.
+
+#### 2. Distribute your root CA certificate and start issuing certs. 🥳
+
+To download your root certificate from anywhere on your network, run the following, substituting your RA's URL and the root CA fingerprint:
+
+<FormValues>
+{({caUrl="https://example.mycompany.ca.smallstep.com", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f5"}) => (
+<CodeBlock language="shell-session" copyText={`step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}>
+{`$ step ca root root_ca.crt --ca-url ${caUrl} --fingerprint ${fingerprint}`}
+</CodeBlock>
+)}
+</FormValues>
+
+You can then get a certificate manually, using `step` with the RA's ACME provisioner:
+
+```bash
+$ step ca certificate my-hostname.example.com server.crt server.key
+```
+
+#### 3. Configure your local ACME clients to use your RA (instead of Let's Encrypt)
+
+We've written a [tutorial for configuring popular ACME clients to use internal ACME](https://smallstep.com/docs/tutorials/acme-protocol-acme-clients).
+
+### Option 2: Manual RA Setup
 
 Setting up an RA manually involves the following steps:
 
@@ -146,9 +233,9 @@ Setting up an RA manually involves the following steps:
 
     In another terminal run the following to download your root certificate from anywhere on your network, substituting your RA's URL and the root CA fingerprint:
     <FormValues>
-    {({raUrl="https://ra.example.com", raFingerprint="c04dba6150a891ac1ce055af7fd1afddc4a351e690c69079c934614defdb704d"}) => (
-    <CodeBlock language="shell-session" copyText={`step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${raFingerprint}`}>
-      {`$ step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${raFingerprint}`}
+    {({raUrl="https://ra.example.com", fingerprint="b4fc6b547ca4610b69cfcc53c6933e7a37170476dfe13EXAMPLE92c403f"}) => (
+    <CodeBlock language="shell-session" copyText={`step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${fingerprint}`}>
+      {`$ step ca root root_ca.crt --ca-url ${raUrl} --fingerprint ${fingerprint}`}
     </CodeBlock>
     )}
     </FormValues>
