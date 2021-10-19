@@ -68,14 +68,24 @@ $ step ca sign foo.csr foo.crt
 ✔ Certificate: foo.crt
 ```
 
-### Issue a certificate using a CA token
+### Issue a certificate using a single-use CA token
 
-Under the hood, several `step-ca` provisioners use a token-based authentication mechanism. A certificate request is wrapped inside a signed JavaScript Web Token (JWT) and sent to the server. Sometimes it's useful to separate the creation of the CA authentication token from the creation of the private key and the signing of the certificate. For example, you may want to inject a CA token into a Docker container, then have the container use the token to request its own certificate. This way, the container doesn't have to hold any long-lived CA credentials.
+Under the hood, several provisioners use a single-use, signed, short-lived token to authenticate certificate requests.
+Clients wrap a certificate request inside a signed JavaScript Web Token (JWT),
+and send them to the `step-ca` server.
 
-How the signed token is generated depends on the provisioner type:
-* The JWK provisioner signs the token using an encrypted JavaScript Web Key stored in the CA provisioner configuration. In the example below, we'll use `step ca sign` to ask the CA to sign a token. But, if you have the private key for the JWK configured in the CA, you can generate CA tokens offline, without contacting the CA.
-* The X5C provisioner signs the token using an X509 certificate private key whose root is configured in the CA.
-* The OIDC provisioner uses the identity token returned from the OAuth flow, which is signed with the OAuth provider's private key.
+Sometimes it's useful to separate the creation of the CA authentication token from the creation of the private key and the signing of the certificate.
+For example, you may want to inject a CA token into a Docker container,
+then have the container use the token to request its own certificate.
+This way, the container doesn't have to hold any long-lived CA credentials.
+
+How the signed token is generated depends on the provisioner type. For example:
+* The JWK provisioner expects tokens signed using an encrypted JavaScript Web Key stored in the CA provisioner configuration. 
+  In the example below, we'll use `step ca token` to ask the CA to sign a token.
+  But, if you have the private key for the JWK configured in the CA, you can generate CA tokens offline, without contacting the CA.
+* The X5C provisioner expects tokens signed using an X509 certificate private key whose root is configured in the CA.
+* The OIDC provisioner expects an identity token returned from the OAuth flow,
+  which is signed with the OAuth provider's private key.
 
 Let's use a JWK provisioner to separate the token request from the signing request:
 
