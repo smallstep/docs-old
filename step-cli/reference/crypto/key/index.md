@@ -9,6 +9,8 @@ menu:
       - public
       - inspect
       - fingerprint
+      - sign
+      - verify
 ---
 
 ## Name
@@ -42,4 +44,6 @@ $ step crypto key format foo-key.pem
 | **[public](public/)** | print the public key from a private key or certificate |
 | **[inspect](inspect/)** | print key details in human readable format |
 | **[fingerprint](fingerprint/)** | print the fingerprint of a public key |
+| **[sign](sign/)** | sign a message using an asymmetric key |
+| **[verify](verify/)** | verify a signed message |
 
