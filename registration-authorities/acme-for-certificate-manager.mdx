@@ -58,6 +58,13 @@ Use this form to pre-fill some of the examples with values from your setup.
   },
 ]}/>
 
+## Table of Contents
+
+- [Run an RA on Linux](#run-a-registration-authority-on-linux)
+  - [Option 1: Use our Linux install script](#option-1-use-our-linux-ra-install-script)
+  - [Option 2: Manual RA Setup](#option-2-manual-ra-setup)
+- [Run an RA on Kuberenets](#run-a-registration-authority-on-kubernetes)
+
 ## Run a Registration Authority on Linux
 
 ### Option 1: Use our Linux RA install script
@@ -250,7 +257,7 @@ Setting up an RA manually involves the following steps:
 
     We've written a [tutorial for configuring popular ACME clients to use internal ACME](https://smallstep.com/docs/tutorials/acme-protocol-acme-clients).
 
-### Run a Registration Authority in Kubernetes
+## Run a Registration Authority on Kubernetes
 
 If you're running Kubernetes, you can run an ACME Registration Authority in your cluster. We have a Helm Chart for deploying an RA to Kubernetes. 
 
