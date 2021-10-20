@@ -9,30 +9,135 @@ Connecting single sign-on to certificate issuance provides a layer of strong aut
 This same strong authentication can be used by Administorators to get certificates with any name or SAN unlocking human approval workflows for security teams. 
 Certificate Manager supports single sign-on with identity providers including Google, Okta, Azure Active Directory, Keycloak, or any other provider that supports OAuth's [OpenID Connect extension](https://openid.net/connect/).
 
-### Connect your identity provider to Certificate Manager in three simple steps
+### Connect your identity provider to Certificate Manager in a few steps
 1. Create an OIDC application integration with your IDP.
-2. Add an OIDC provisioner
-3. Self-service user certificates.
+2. Add an OIDC provisioner to your Smallstep Authority
+3. Enable self-service single sign-on certificates. 
+4. Add a Provisioner Admin who can issue custom certificates (optional)
+
 
 ### Requirements
-At a high level, ACME is pretty simple. An ACME client creates an account with an ACME server and submits a certificate order. The server responds with a set of challenges for the client to complete to prove control over identifiers (domain names) in the certificate. Once the client successfully completes these challenges, it submits a certificate signing request (CSR) and the server issues a certificate.
-1. Create a Smallstep Team and Certificate Manager Authority. [Get Started >](https://smallstep.com/signup?product=cm)
+- This documentation assumes you have initialized and started up a Certificate Manager Authority using the steps in [Getting Started](/docs/certificate-manager/getting-started).
+- Administrator privleges on your Smallstep Authority
+- IDP priveldges capable of creating a new OIDC applicatoin integration and assigning users to the integration. 
 
-The most interesting part of all of this is the challenge – where the client proves control over an identifier. There is no single standard way to “prove control” over an “identifier”, so the core ACME specification makes this an extension point. Smallstep supports all the popular ACME challenges including DNS, HTTP, ALPN, IP, and EAB configurations. 
+### Step 1 - Create an OIDC application integration with our IDP. 
+OpenID Connect is an extension to OAuth 2.0 that adds an identity layer.
+Providers that support OIDC can issue identity tokens ("ID tokens") to OAuth clients.
+These are JSON Web Tokens (JWTs) containing user identity information (eg. full name, username, email address).
+Like certificates, OIDC tokens have a validity period and are cryptographically signed by a trust authority (the OAuth provider).
 
-### ACME Challenge Verification
-When public ACME Certificate Authorities (CA) like Let's Encrypt issue certificates to clients in the Web PKI, the CA depends heavily on public DNS for client verification. To get a certificate, a client must prove to the CA that it either directly controls the public DNS records for a domain (for the DNS-01 challenge type) or controls the IP address pointed to by public DNS records (for the HTTP-01 and TLS-ALPN-01 challenge types).
+When configuring your OIDC application in your IDP be sure to set the following values:
+- Login redirect URIs: `http://127.0.0.1`
+- Use Client Authentication: note the `client ID` and `Client Secret` these values will be used when creating an OIDC provisioner. 
 
-![ACME Registration Authority](/graphics/ia-cloud-ra-challenge-client.svg "In this example, the Smallstep ACME RA runs within the local network or VPC and responds to ACME requests from internal infrastructure and workloads. The RA accepts ACME orders and authenticates requests by verifying an ACME challenge. Upon verification, a CSR is securely passed to the Issuing Authority to sign and catalog.")
+<Alert severity="info">
+  <div>
+    OKTA doesn't properly follow the spec and requires that you specify a port for the listerner. As such your URI value shoud be `http://127.0.0.1:10000`
+  </div>
+</Alert>
 
-When deploying ACME internally, the same constraints are true: The ACME server that authorizes certificate requests must be able to query internal DNS servers or reach internal hosts. This is why we created a Registration Authority (RA) for Certificate Manager. An RA is a service you run on your own network that authenticates ACME challenges (or other certificate requests). It does not issue certificates or hold CA keys. Instead, it relays authenticated certificate requests to Certificate Manager, which then issues certificates. 
+### Step 2 - Add an OIDC provisioner to your Authority. 
+The OIDC provisioner in Certificate Manager can be configured to trust and accept an OAuth provider's ID tokens for authentication. By default, the issued certificate will use the subject (sub) claim from the identity token as its subject. The value of the token's email claim is also included as an email SAN in the certificate. Use the following command as a template for adding an OIDC provisioner.
+
+<CodeBlock language="shell-session" copyText="step beta ca provisioner add [NAME] --type oidc \
+  --client-id [YOUR CLIENT ID] \
+  --client-secret [YOUR CLIENT SECRET] \
+  --configuration-endpoint {YOUR IDP DOMAIN}/.well-known/openid-configuration">
+{`$ step beta ca provisioner add [NAME] --type oidc \
+  --client-id [YOUR CLIENT ID] \
+  --client-secret [YOUR CLIENT SECRET] \
+  --configuration-endpoint {YOUR IDP DOMAIN}/.well-known/openid-configuration
+`}
+</CodeBlock>
+
+- **name**: a string used to identify the provider when the CLI is used.
+
+- **clientID**: the client id provided by the identity provider used to initialize the authentication flow.
+
+- **clientSecret**: the shared secret provided by the identity provider; used to get the id token during the OAuth flow. Some identity providers may use an empty string as a secret. In the context of `step-ca`, the client "secret" is not actually a secret and is available via the CA's `/provisioners` configuration endpoint, because every `step` client needs to use it locally.
+
+- **configurationEndpoint**: is the HTTP address used by the CA to get the OpenID Connect configuration and public keys used to validate the tokens.
+
+This command requires Administrator privleges on the Authority. The terminal will prompt you to enter your email and perform a single-sign on flow via the smallstep dashboard. 
+
+<CodeBlock language="shell-session" 
+{No admin credentials found. You must login to execute admin commands.
+✔ Please enter admin name/subject (e.g., name@example.com): authority-admin@yourco.com
+✔ Provisioner: authority-admin (OIDC) [client: 4b5c5791-8103-4817-8bb7]
+Your default web browser has been opened to visit:}
+
+Upon completion your OIDC provisioner will be created and will show up in your smallstep dashboard authority detail page. 
+
+<Alert severity="info">
+  <div>
+    OKTA requires that you specify a port for the listerner. You will need to add the following flag to the provisioner add command `--listen-address 127.0.0.1:10000`
+  </div>
+</Alert>
+
+### Step 3 - Enable self-service single sign-on certificates. 
+From the user's perspective, when requesting a certificate, `step` detects the OIDC provisioner and initiates the OAuth login flow automatically:
+
+<CodeBlock
+  language="shell-session"
+  copyText="step ca certificate developer@yourco.com developer.crt developer.key"
+>
+{`$ step ca certificate developer@yourco.com developer.crt developer.key
+ 
+✔ CA: CA URL
+✔ Certificate: developer.crt
+✔ Private Key: developer.key`}
+</CodeBlock>
+
+
+<CodeBlock
+  language="shell-session"
+  copyText="step certificate inspect --short developer.crt"
+>
+{`$ step certificate inspect --short developer.crt
+X.509v3 TLS Certificate (ECDSA P-256) [Serial: 2581...6739]
+Subject:     115449349109627210866
+            developer@yourco.com
+Issuer:      Smallstep Intermediate CA
+Provisioner: IDP [ID: 6504....com]
+Valid from:  2019-06-20T18:21:52Z
+        to:  2019-06-21T18:21:52Z`}
+</CodeBlock>
+
+
+### 4. Add a Provisioner Admin who can issue custom certificates (optional)
+By default an Authority will map the email address in the IDP identity token to a SAN in the certificate.
+If a user tries to get a certificate with a name that does not match the email address in the IDP identity token the request will fail.
+Provisioner Admins can override this default behavior and get a certificate with any name. 
+To add a Provisioner Admin you will need to update the provisioner you created in step 2. 
+
+<CodeBlock
+  language="shell-session"
+  copyText="step beta ca provisioner update [name] --admin=[admin-email]"
+>
+{`$ step beta ca provisioner update [name] --admin=[admin-email]`}
+</CodeBlock>
+
+Once updated, the provisioner admin can request a certificate with any SAN
+
+<CodeBlock
+  language="shell-session"
+  copyText="step ca certificate foo foo.crt foo.key"
+>
+{`$ step ca certificate foo foo.crt foo.key
+ 
+✔ Provisioner: okta (OIDC) [client: 0oacyaoh7tDcyYUbL357]
+Your default web browser has been opened to visit:
+https://yourco.okta.com/oauth2/v1/authorize?client_id...
+  
+✔ CA: CA URL
+✔ Certificate: foo.crt
+✔ Private Key: foo.key}
+</CodeBlock>
+
 
 ### Try it today
 
-Create a [Smallstep account](https://smallstep.com/signup?product=cm) and start using internal ACME today. Prefer a human? [Schedule time](https://smallstep.com/acme-form/) to talk with Smallstep. 
+Create a [Smallstep account](https://smallstep.com/signup?product=cm) and start issuing self-serve single sign-on certifcates to all your developers. Prefer a human? [Schedule time](https://smallstep.com/acme-form/) to talk with Smallstep. 
 
-### Even more ACME stuff
 
-* Learn [why and where](/blog/the-embarrassing-state-of-enterprise-acme/) you should consider using ACME.  
-* [Read the blog](/blog/private-acme-server/) that announced smallstep support.
-* Start using ACME for Kubernetes certificates, learn how in [this tutorial](/docs/tutorials/kubernetes-acme-ca)
