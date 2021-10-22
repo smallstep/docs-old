@@ -5,8 +5,8 @@ description: Connect your IDP to Smallstep Certificate Manager and issue certifi
 ---
 
 User certificates unlock mTLS between developers and APIs, VPNs, Databases, and more.
-Connecting single sign-on to certificate issuance provides a layer of strong authetnication from your existing identity provider (IDP) using tools familure to your team.
-This same strong authentication can be used by Administorators to get certificates with any name or SAN unlocking human approval workflows for security teams. 
+Connecting single sign-on to certificate issuance provides a layer of strong authentication from your existing identity provider (IDP) using tools familiar to your team.
+Administrators can use this strong authentication to get certificates with any name or SAN unlocking human approval workflows for security teams. 
 Certificate Manager supports single sign-on with identity providers including Google, Okta, Azure Active Directory, Keycloak, or any other provider that supports OAuth's [OpenID Connect extension](https://openid.net/connect/).
 
 ### Connect your identity provider to Certificate Manager in a few steps
@@ -18,8 +18,8 @@ Certificate Manager supports single sign-on with identity providers including Go
 
 ### Requirements
 - This documentation assumes you have initialized and started up a Certificate Manager Authority using the steps in [Getting Started](/docs/certificate-manager/getting-started).
-- Administrator privleges on your Smallstep Authority
-- IDP priveldges capable of creating a new OIDC applicatoin integration and assigning users to the integration. 
+- Administrator privileges on your Smallstep Authority
+- IDP privileges capable of creating a new OIDC application integration and assigning users to the integration. 
 
 ### Step 1 - Create an OIDC application integration with our IDP. 
 OpenID Connect is an extension to OAuth 2.0 that adds an identity layer.
@@ -27,18 +27,21 @@ Providers that support OIDC can issue identity tokens ("ID tokens") to OAuth cli
 These are JSON Web Tokens (JWTs) containing user identity information (eg. full name, username, email address).
 Like certificates, OIDC tokens have a validity period and are cryptographically signed by a trust authority (the OAuth provider).
 
-When configuring your OIDC application in your IDP be sure to set the following values:
+When configuring your OIDC application in your IDP, be sure to set the following values:
 - Login redirect URIs: `http://127.0.0.1`
 - Use Client Authentication: note the `client ID` and `Client Secret` these values will be used when creating an OIDC provisioner. 
 
 <Alert severity="info">
   <div>
-    OKTA doesn't properly follow the spec and requires that you specify a port for the listerner. As such your URI value shoud be `http://127.0.0.1:10000`
+    OKTA doesn't properly follow the spec and requires that you specify a port for the listerner. For OKTA, set your URI value to `http://127.0.0.1:10000`
   </div>
 </Alert>
 
 ### Step 2 - Add an OIDC provisioner to your Authority. 
-The OIDC provisioner in Certificate Manager can be configured to trust and accept an OAuth provider's ID tokens for authentication. By default, the issued certificate will use the subject (sub) claim from the identity token as its subject. The value of the token's email claim is also included as an email SAN in the certificate. Use the following command as a template for adding an OIDC provisioner.
+The OIDC provisioner in Certificate Manager can be configured to trust and accept an OAuth provider's ID tokens for authentication. 
+The issued certificate will use the subject (sub) claim from the identity token as its subject by default. 
+The value of the token's email claim is also included as an email SAN in the certificate. 
+Use the following command as a template for adding an OIDC provisioner.
 
 <CodeBlock language="shell-session" copyText="step beta ca provisioner add [NAME] --type oidc \
   --client-id [YOUR CLIENT ID] \
@@ -55,11 +58,11 @@ The OIDC provisioner in Certificate Manager can be configured to trust and accep
 
 - **clientID**: the client id provided by the identity provider used to initialize the authentication flow.
 
-- **clientSecret**: the shared secret provided by the identity provider; used to get the id token during the OAuth flow. Some identity providers may use an empty string as a secret. In the context of `step-ca`, the client "secret" is not actually a secret and is available via the CA's `/provisioners` configuration endpoint, because every `step` client needs to use it locally.
+- **clientSecret**: the shared secret provided by the identity provider; used to get the id token during the OAuth flow. Some identity providers may use an empty string as a secret. In the context of step-ca, the client "secret" is not actually a secret. It is available via the CA's /provisioners configuration endpoint because every step client needs to use it locally.
 
 - **configurationEndpoint**: is the HTTP address used by the CA to get the OpenID Connect configuration and public keys used to validate the tokens.
 
-This command requires Administrator privleges on the Authority. The terminal will prompt you to enter your email and perform a single-sign on flow via the smallstep dashboard. 
+This command requires Administrator privileges on the Authority. The terminal will prompt you to enter your email and perform a single sign-on flow via the smallstep dashboard. 
 
 <CodeBlock language="shell-session" 
 {No admin credentials found. You must login to execute admin commands.
@@ -67,11 +70,11 @@ This command requires Administrator privleges on the Authority. The terminal wil
 ✔ Provisioner: authority-admin (OIDC) [client: 4b5c5791-8103-4817-8bb7]
 Your default web browser has been opened to visit:}
 
-Upon completion your OIDC provisioner will be created and will show up in your smallstep dashboard authority detail page. 
+Upon completion, your OIDC provisioner will be created and show up in your smallstep dashboard authority detail page. 
 
 <Alert severity="info">
   <div>
-    OKTA requires that you specify a port for the listerner. You will need to add the following flag to the provisioner add command `--listen-address 127.0.0.1:10000`
+    OKTA requires that you specify a port for the listener. You will need to add the following flag to the provisioner add command `--listen-address 127.0.0.1:10000`
   </div>
 </Alert>
 
@@ -106,8 +109,8 @@ Valid from:  2019-06-20T18:21:52Z
 
 
 ### 4. Add a Provisioner Admin who can issue custom certificates (optional)
-By default an Authority will map the email address in the IDP identity token to a SAN in the certificate.
-If a user tries to get a certificate with a name that does not match the email address in the IDP identity token the request will fail.
+By default, an Authority will map the email address in the IDP identity token to a SAN in the certificate.
+If a user tries to get a certificate with a name that does not match the email address in the IDP identity token, the request will fail.
 Provisioner Admins can override this default behavior and get a certificate with any name. 
 To add a Provisioner Admin you will need to update the provisioner you created in step 2. 
 
@@ -118,7 +121,7 @@ To add a Provisioner Admin you will need to update the provisioner you created i
 {`$ step beta ca provisioner update [name] --admin=[admin-email]`}
 </CodeBlock>
 
-Once updated, the provisioner admin can request a certificate with any SAN
+Once updated, the provisioner admin can use the single sign-on workflow to create a certificate with any SAN
 
 <CodeBlock
   language="shell-session"
@@ -138,6 +141,7 @@ https://yourco.okta.com/oauth2/v1/authorize?client_id...
 
 ### Try it today
 
-Create a [Smallstep account](https://smallstep.com/signup?product=cm) and start issuing self-serve single sign-on certifcates to all your developers. Prefer a human? [Schedule time](https://smallstep.com/acme-form/) to talk with Smallstep. 
+Create a [Smallstep account](https://smallstep.com/signup?product=cm) and start issuing self-serve single sign-on certifcates to all your developers. 
+Prefer a human? [Schedule time](https://smallstep.com/request-demo) to talk with Smallstep. 
 
 
