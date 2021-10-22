@@ -62,6 +62,12 @@ Use the following command as a template for adding an OIDC provisioner.
 
 - **configurationEndpoint**: is the HTTP address used by the CA to get the OpenID Connect configuration and public keys used to validate the tokens.
 
+<Alert severity="info">
+  <div>
+    OKTA requires that you specify a port for the listener. You will need to add the following flag to the provisioner add command `--listen-address 127.0.0.1:10000`
+  </div>
+</Alert>
+
 This command requires Administrator privileges on the Authority. The terminal will prompt you to enter your email and perform a single sign-on flow via the smallstep dashboard. 
 
 <CodeBlock language="shell-session" 
@@ -72,11 +78,6 @@ Your default web browser has been opened to visit:}
 
 Upon completion, your OIDC provisioner will be created and show up in your smallstep dashboard authority detail page. 
 
-<Alert severity="info">
-  <div>
-    OKTA requires that you specify a port for the listener. You will need to add the following flag to the provisioner add command `--listen-address 127.0.0.1:10000`
-  </div>
-</Alert>
 
 ### Step 3 - Enable self-service single sign-on certificates. 
 From the user's perspective, when requesting a certificate, `step` detects the OIDC provisioner and initiates the OAuth login flow automatically:
