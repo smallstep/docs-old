@@ -143,7 +143,7 @@ We recommend certificates have the lifespan of a mayfly: about a day or less[^1]
 using the `step` command. Carpe diem!
 
 You can
-[configure certificate lifetimes](configuration#basic-configuration-options) in the `ca.json` file. 
+[configure certificate lifetimes](/docs/step-ca/configuration#basic-configuration-options) in the `ca.json` file. 
 
 <Alert severity="info">
   <div>
@@ -905,7 +905,7 @@ In this case, the certificate and key authenticate the request, so you don't nee
   >{`$ step ca revoke --cert localhost.crt --key localhost.key
 Certificate with Serial Number 59636004850364466675608080466579278406 has been revoked.`}</CodeBlock>
 
-### 4. Check that the has been revoked
+### 4. Check that the certificate has been revoked
 
 You'll get an HTTP 401 error when you try to renew it.
 

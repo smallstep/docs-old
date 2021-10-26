@@ -12,7 +12,7 @@ menu:
 ## Usage
 
 ```raw
-step ca health 
+step ca health
 [--ca-url=<URI>] [--root=<file>]
 ```
 

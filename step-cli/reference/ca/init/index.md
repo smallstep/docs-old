@@ -13,10 +13,11 @@ menu:
 
 ```raw
 step ca init
-[--root=<file>] [--key=<file>] [--pki] [--ssh] [--name=<name>]
+[--root=<file>] [--key=<file>] [--pki] [--ssh]
+[--helm] [--deployment-type=<name>] [--name=<name>]
 [--dns=<dns>] [--address=<address>] [--provisioner=<name>]
 [--provisioner-password-file=<file>] [--password-file=<file>]
-[--with-ca-url=<url>] [--no-db]
+[--with-ca-url=<url>] [--ra=<type>] [--kms=<type>] [--no-db]
 ```
 
 ## Description
@@ -83,8 +84,13 @@ The path to the `file` containing the password to encrypt the provisioner key.
 **--with-ca-url**=`URI`
 `URI` of the Step Certificate Authority to write in defaults.json
 
-**--ra**=`name`
-The registration authority `name` to use. Currently "StepCAS" and "CloudCAS" are supported.
+**--ra**=`type`
+The registration authority `type` to use. Currently "StepCAS" and "CloudCAS" are supported.
+
+**--kms**=`type`
+The key manager service `type` to use to manage keys. Options are:
+- **azurekms**: Use Azure Key Vault to manage X.509 and SSH keys. The key URIs have
+  the following format `azurekms:name=key-name;vault=vault-name`.
 
 **--issuer**=`url`
 The registration authority issuer `url` to use.
