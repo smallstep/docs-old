@@ -9,18 +9,24 @@ description: Learn about the basic certificate authority operations of step-ca
 
 This document assumes you have initialized and started up a `step-ca` instance using the steps in [Getting Started](/docs/step-ca/getting-started).
 
+## Table of Contents
+
+- [Working With X.509 Certificates](#working-with-x-509-certificates)
+- [Working With SSH Certificates](#working-with-ssh-certificates)
+
 ## Working With X.509 Certificates
 
 Let's perform some basic operations on X.509 certificates:
-* [Issue a Certificate From Scratch](#issue-a-certificate-from-scratch)
-* [Sign a Certificate Signing Request (CSR)](#sign-a-certificate-signing-request-csr)
-* [Issue a certificate using a single-use CA token](#issue-a-certificate-using-a-single-use-ca-token)
-* [Renew a Certificate](#renew-a-certificate)
-* [Revoke a Certificate](#revoke-a-certificate)
+- [Get a Certificate](#get-a-certificate)
+- [Sign a Certificate Signing Request (CSR)](#sign-a-certificate-signing-request-csr)
+- [Issue a certificate using a single-use CA token](#issue-a-certificate-using-a-single-use-ca-token)
+- [Renew a Certificate](#renew-a-certificate)
+- [Adjust Certificate Lifetimes](#adjust-certificate-lifetimes)
+- [Revoke a Certificate](#revoke-a-certificate)
 
-### Issue a Certificate From Scratch
+### Get a Certificate
 
-Once you have a certificate authority up and running, the `step ca certificate` command makes generating a private key and obtaining a certificate simple. You need just one command:
+Once you have a certificate authority up and running, the `step ca certificate` command is a one-step option for generating a private key and obtaining a signed certificate:
 
 ```shell-session nocopy
 $ step ca certificate svc.example.com svc.crt svc.key
@@ -50,13 +56,19 @@ X.509v3 TLS Certificate (ECDSA P-256) [Serial: 7720...1576]
         Why does the certificate only last for ONE DAY!?
     </AlertTitle>
     <div>
-        When it comes to certificate lifetimes, <a href="/docs/step-ca/certificate-authority-server-production#automate-x509-certificate-lifecycle-management">more is not always more</a>. A shorter validity period limits the downside risk of the private key being stolen. And since all certificates need to be renewed eventually, you may as well automate it and do it often. However, the 24 hour default TLS certificate lifetime is rather arbitrary. It could be one month, or five minutes, depending on your use context, threat model, and/or level of paranoia. You can adjust the default and maximum certificate lifetimes in <a href="/docs/step-ca/configuration">the CA configuration file</a>.
+        When it comes to certificate lifetimes, <a href="/docs/step-ca/certificate-authority-server-production#automate-x509-certificate-lifecycle-management">more is not always more</a>. A shorter validity period limits the downside risk of the private key being stolen. And since all certificates need to be renewed eventually, you may as well automate it and do it often. However, the 24 hour default TLS certificate lifetime is rather arbitrary. To change the default, see <a href="#adjust-certificate-lifetimes">Adjust Certificate Lifetimes</a> below.
     </div>
 </Alert>
 
 ### Sign a [Certificate Signing Request (CSR)](https://smallstep.com/blog/everything-pki/#certificate-signing-requests)
 
-Let's make a CSR for this example, using `step certificate create --csr`, then we'll use `step ca sign` to get a signed certificate from the CA.
+Sometimes it's useful to separate enrollment into two steps:
+- Generating a private key and a certificate request (CSR) file
+- Asking the CA to sign the CSR and return a certificate
+
+This is necessary if you want to generate a private key in a place that can't reach the CA directly.
+
+Let's make a CSR, using `step certificate create --csr`, then we'll use `step ca sign` to get a signed certificate from the CA:
 
 ```shell-session nocopy
 $ step certificate create --csr foo.example.com foo.csr foo.key
@@ -71,24 +83,27 @@ $ step ca sign foo.csr foo.crt
 
 ### Issue a certificate using a single-use CA token
 
-Under the hood, several provisioners use a single-use, signed, short-lived token to authenticate certificate requests.
-Clients wrap a certificate request inside a signed JavaScript Web Token (JWT),
-and send it to the `step-ca` server.
+Occasionally it's useful to separate enrollment process even further, into three steps:
+- Generating a private key and a CSR
+- Generating a single-use, signed, short-lived CA authentication token
+- Using the token and CSR to ask the CA for a signed certificate
 
-Sometimes it's useful to separate the creation of the CA authentication token from the creation of the private key and the signing of the certificate.
-For example, you may want to inject a CA token into a Docker container,
-then have the container use the token to request its own certificate.
-This way, the container doesn't have to hold any long-lived CA credentials.
+Each step can happen in a different context,
+and the first two steps can happen without contacting the CA.
 
-How the signed token is generated depends on the provisioner type. For example:
-* The JWK provisioner expects tokens signed using an encrypted JavaScript Web Key stored in the CA provisioner configuration. 
-  In the example below, we'll use `step ca token` to ask the CA to sign a token for us.
-  But, given a copy of the private key from the JWK provisioner configuration, you can generate and sign CA tokens without ever contacting the CA.
-* The X5C provisioner expects tokens signed using an X509 certificate private key whose root is configured in the CA.
-* The OIDC provisioner expects an identity token returned from the OAuth flow,
-  which is signed with the OAuth provider's private key.
+This is useful for delegating CA authentication to a third party.
 
-Let's use a JWK provisioner to separate the token request from the signing request:
+For example, you may want to generate a CA token on a host,
+and inject the token into a Docker container.
+This way, the container can create its own private key and get a certificate,
+but it doesn't hold any long-lived CA credentials.
+
+Under the hood, many of `step-ca`'s [certificate provisioners](/docs/step-ca/certificate-authority-core-concepts/#provisioners) accept a token to authenticate certificate requests:
+- The JWK provisioner accepts tokens signed using a JavaScript Web Key whose public key is configured in the CA.
+- The OIDC provisioner accepts a token signed by an identity provider via a single sign-on flow.
+- The X5C provisioner accepts tokens signed using an X509 certificate private key whose root is configured in the CA.
+
+In the following example, the CA generates a token for the client who has the JWK's encrypted private key password:
 
 ```shell-session nocopy
 $ TOKEN=$(step ca token localhost)
@@ -118,17 +133,20 @@ $ echo $TOKEN | step crypto jwt inspect --insecure
 }
 ```
 
-[The raw `$TOKEN`](https://jwt.io/#debugger-io?token=eyJhbGciOiJFUzI1NiIsImtpZCI6Imt2UGo3OWhyQW5yUXl3clZ5LW9GbXllNGZvSHExcmRVZzU1bnhzdUN2a0kiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo4NDQzLzEuMC9zaWduIiwiZXhwIjoxNjM0NjY3NTE1LCJpYXQiOjE2MzQ2NjcyMTUsImlzcyI6ImNhcmxAc21hbGxzdGVwLmNvbSIsImp0aSI6ImZmYTYzYzA2YjBmM2NjYjBkZTU1NDcxMTgzNjA0MmE4NzdlMzJhMDMyMmRmNDJkNjE3YzZkYTU5YWY2NWVjN2QiLCJuYmYiOjE2MzQ2NjcyMTUsInNhbnMiOlsibG9jYWxob3N0Il0sInNoYSI6IjI1NjUzOGJiM2IzMzgyODlmODAzMDhlZjI4NmIwMGQ0YTRhYzg3Yjg3ZmEzZmNhZmYyMjM0ZjI5NDM1NzJiYjYiLCJzdWIiOiJsb2NhbGhvc3QifQ.g8S-1Mrb9U3l3CbTRE-Mvcy2m2I-M2b_9KXj04SnqSxyMVDRzvnpoW3XYtlGgCcIexo5gQpOpe0QrkdZuKwhUQ&publicKey=%7B%0A%20%20%22use%22%3A%20%22sig%22%2C%0A%20%20%22kty%22%3A%20%22EC%22%2C%0A%20%20%22kid%22%3A%20%22kvPj79hrAnrQywrVy-oFmye4foHq1rdUg55nxsuCvkI%22%2C%0A%20%20%22crv%22%3A%20%22P-256%22%2C%0A%20%20%22alg%22%3A%20%22ES256%22%2C%0A%20%20%22x%22%3A%20%22qgJNrHeWBxHpGKns1VqkQCTQYIHOzoJm5khaqGXAbdw%22%2C%0A%20%20%22y%22%3A%20%22Sb4RL5_S5ZAKPZMAS8a0eye1uJHDJWFiCfXFx04mYcc%22%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D) is a series of base64-encoded values.
+This JWT expires in 5 minutes. [The raw `$TOKEN`](https://jwt.io/#debugger-io?token=eyJhbGciOiJFUzI1NiIsImtpZCI6Imt2UGo3OWhyQW5yUXl3clZ5LW9GbXllNGZvSHExcmRVZzU1bnhzdUN2a0kiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo4NDQzLzEuMC9zaWduIiwiZXhwIjoxNjM0NjY3NTE1LCJpYXQiOjE2MzQ2NjcyMTUsImlzcyI6ImNhcmxAc21hbGxzdGVwLmNvbSIsImp0aSI6ImZmYTYzYzA2YjBmM2NjYjBkZTU1NDcxMTgzNjA0MmE4NzdlMzJhMDMyMmRmNDJkNjE3YzZkYTU5YWY2NWVjN2QiLCJuYmYiOjE2MzQ2NjcyMTUsInNhbnMiOlsibG9jYWxob3N0Il0sInNoYSI6IjI1NjUzOGJiM2IzMzgyODlmODAzMDhlZjI4NmIwMGQ0YTRhYzg3Yjg3ZmEzZmNhZmYyMjM0ZjI5NDM1NzJiYjYiLCJzdWIiOiJsb2NhbGhvc3QifQ.g8S-1Mrb9U3l3CbTRE-Mvcy2m2I-M2b_9KXj04SnqSxyMVDRzvnpoW3XYtlGgCcIexo5gQpOpe0QrkdZuKwhUQ&publicKey=%7B%0A%20%20%22use%22%3A%20%22sig%22%2C%0A%20%20%22kty%22%3A%20%22EC%22%2C%0A%20%20%22kid%22%3A%20%22kvPj79hrAnrQywrVy-oFmye4foHq1rdUg55nxsuCvkI%22%2C%0A%20%20%22crv%22%3A%20%22P-256%22%2C%0A%20%20%22alg%22%3A%20%22ES256%22%2C%0A%20%20%22x%22%3A%20%22qgJNrHeWBxHpGKns1VqkQCTQYIHOzoJm5khaqGXAbdw%22%2C%0A%20%20%22y%22%3A%20%22Sb4RL5_S5ZAKPZMAS8a0eye1uJHDJWFiCfXFx04mYcc%22%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D) is a series of base64-encoded values.
 
-Now that you have a token, you can pass it to the environment where the certificate will be created.
-
-Then, in that context, continue:
+Next, generate the CSR:
 
 ```shell-session nocopy
 $ step certificate create --csr localhost localhost.csr localhost.key
 Please enter the password to encrypt the private key:
 Your certificate signing request has been saved in localhost.csr.
 Your private key has been saved in localhost.key.
+```
+
+And finally, get the CSR signed, using the token:
+
+```shell-session nocopy
 $ step ca sign --token $TOKEN localhost.csr localhost.crt
 ✔ CA: https://localhost:8443
 ✔ Certificate: localhost.crt
@@ -154,6 +172,36 @@ Your certificate has been saved in foo.crt.
 When it comes time to renew your certificate, do not dawdle: Once a certificate expires, the CA will not renew it. To avoid catastrophe, you should [set up automated renewals](/docs/step-ca/certificate-authority-server-production#automate-x509-certificate-lifecycle-management) for any certificate that always needs to be valid. Our automation methods will attempt renewal at around two-thirds of a certificate's lifetime.
 
 Note that because `step ca renew` uses mutual TLS authentication, it can only renew client certificates (certificates that are marked with "Client Authentication" key usage). Any other certificate must be replaced before expiry instead.
+
+### Adjust Certificate Lifetimes
+
+The 24 hour default validity window for certificates from `step-ca` is arbitrary. Depending on your threat model and use context, you may want much shorter or much longer certificate lifetimes:
+- Server certificates and service account certificates typically are longer lived, lasting 1-90 days.
+- Client certificates for humans typically are shorter lived and could expire after a few minutes or up to a month.
+
+A TLS certificate only needs to be valid at the moment the connection is established. So, a client certificate allowing access to a sensitive database might only need to be valid for five minutes, and the client can stay connected for as long as they need to complete the task at hand.
+
+You can adjust the certificate `not-before` and `not-after` parameters when requesting a certificate:
+
+```shell-session nocopy
+# This certificate will be valid for five minutes:
+$ step ca certificate localhost localhost.crt localhost.key --not-after=5m
+
+# This certificate will be valid starting 5 minutes from now, until 10 days from now:
+$ step ca certificate localhost localhost.crt localhost.key --not-before=5m --not-after=240h
+```
+
+Note that default maximum certificate duration is 24 hours. To adjust it, add a `claims` section to the `ca.json` configuration file, either under `"authority"` or under a specific provisioner's configuration block, with the following keys:
+
+```json
+"claims": {
+    "minTLSCertDuration": "5m",
+    "maxTLSCertDuration": "24h",
+    "defaultTLSCertDuration": "24h"
+}
+```
+
+See [Basic Configuration Options](/docs/step-ca/configuration#basic-configuration-options) for more details.
 
 ### Revoke a Certificate
 
