@@ -189,7 +189,7 @@ Setting up an RA manually involves the following steps:
          <CodeBlock autoCopy language="json">
         {`{
       "address": "${address}",
-      "dnsNames": ["${dns}"],
+      "dnsNames": ["${dns.replace(',', '","')}"],
       "db": {
         "type": "badgerV2",
         "dataSource": "./.step/db"
