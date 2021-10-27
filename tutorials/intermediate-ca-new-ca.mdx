@@ -5,7 +5,7 @@ description: Create an intermediate CA from your existing PKI or new PKI using o
 ---
 
 
-With `step-ca` you can create an entirely new private PKI setup or an intermediate CA from your existing PKI. Intermediate CAs (also called subordinate CAs) are used to sign and issue leaf certificates to subscribers. Intermediates aren't generally included in trust stores, making them easier to revoke and rotate, so certificate issuance from an intermediate typically is online and automated.
+With open source `step-ca` or Smallstep Certificate Manager you can create an entirely new private PKI setup or an intermediate CA from your existing PKI. Intermediate CAs (also called subordinate CAs) are used to sign and issue leaf certificates to subscribers. Intermediates aren't generally included in trust stores, making them easier to revoke and rotate, so certificate issuance from an intermediate typically is online and automated.
 
 This tutorial will walk you through three ways of bootstrapping `step-ca` to create new PKI or an intermediate CA.
 
@@ -24,10 +24,8 @@ This tutorial will walk you through three ways of bootstrapping `step-ca` to cre
 
 ## Requirements
 
-- This tutorial assumes you have initialized and started up a `step-ca`
-instance using the steps in [Getting Started](/docs/step-ca/getting-started).
-As an alternative, you can use our hosted CA, [Smallstep Certificate
-Manager](/certificate-manager)
+- **Open Source -** This tutorial assumes you have initialized and started up a `step-ca`instance using the steps in [Getting Started](/docs/step-ca/getting-started).
+- **[Smallstep Certificate Manager](/certificate-manager) -** Please contact [Smallstep Customer Success](/request-demo) and we will assist in creating your intermediate authority off an existing Root. 
 
 ## Overview
 

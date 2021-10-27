@@ -35,6 +35,8 @@ certificate_manager:
     path: certificate-manager/how-it-works
   - title: ACME Server
     path: certificate-manager/acme
+  - title: Certs For Humans
+    path: certificate-manager/oidc
     
 registration_authorities:
   - title: ACME for Smallstep Certificate Manager

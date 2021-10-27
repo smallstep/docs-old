@@ -5,7 +5,7 @@ description: Use single sign-on and MFA for user authentication to services and 
 ---
 
 
-Smallstep makes running your own private CA and managing certificates for internal services easy.  `step-ca` also supports OAuth for provisioning X.509 certificates for user authentication.  We make it easy for developers to obtain a certificate via single sign-on using your existing identity provider (Google, Okta, Active Directory, ...). Issued certificates are signed by the CA and trusted by all your workloads and services so you can use mTLS everywhere. 
+Smallstep makes running your own private CA and managing certificates for internal services easy.  Open source `step-ca` also supports OAuth for provisioning X.509 certificates for user authentication.  We make it easy for developers to obtain a certificate via single sign-on using your existing identity provider (Google, Okta, Active Directory, ...). Issued certificates are signed by the CA and trusted by all your workloads and services so you can use mTLS everywhere. 
 
 <Alert severity="info">
   <div>
@@ -28,10 +28,8 @@ Smallstep makes running your own private CA and managing certificates for intern
 
 ## Requirements
 
-This tutorial assumes you have initialized and started up a `step-ca`
-instance using the steps in [Getting Started](/docs/step-ca/getting-started).
-As an alternative, you can use our hosted CA, [Smallstep Certificate
-Manager](/certificate-manager).
+- **Open Source -** This tutorial assumes you have initialized and started up a `step-ca`instance using the steps in [Getting Started](/docs/step-ca/getting-started).
+- **[Smallstep Certificate Manager](/certificate-manager) -** Please visit the [OIDC documentation](/docs/certificate-manager/oidc) instead of using this tutorial to connect your identity provider to Certificate Manager.
 
 ## Personal certificates via OAuth OpenID Connect
 
@@ -53,8 +51,6 @@ step ca provisioner add Google --type oidc --ca-config $(step path)/config/ca.js
     --configuration-endpoint https://accounts.google.com/.well-known/openid-configuration \
     --domain smallstep.com --domain gmail.com
 ```
-
-Learn how to [add provisioners for other popular identity providers](/docs/step-ca/provisioners#cloud-provisioners).
 
 ### 2. Reload the CA
 

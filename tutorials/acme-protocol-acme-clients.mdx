@@ -28,8 +28,9 @@ If you run into any issues please let us know [in GitHub Discussions][gh-discuss
 </Alert>
 
 ## Requirements
-- For [Smallstep Certificate Manager](/docs/certificate-manager/acme), this tutorial assumes you have created a hosted or linked authority and are running a local [ACME Registration Authority](/docs/registration-authorities/acme-for-certificate-manager). 
-- For `step-ca`, this tutorial assumes you have initialized and started up an instance using the steps in [Getting Started](/docs/step-ca/getting-started). Additionally, you'll need to configure your CA with an ACME provisioner. Run `step ca provisioner add acme --type ACME`, and restart your CA. 
+- **Open source -** For `step-ca`, this tutorial assumes you have initialized and started up an instance using the steps in [Getting Started](/docs/step-ca/getting-started). Additionally, you'll need to configure your CA with an ACME provisioner. Run `step ca provisioner add acme --type ACME`, and restart your CA. 
+- **[Smallstep Certificate Manager](/docs/certificate-manager/acme) -** this tutorial assumes you have [created a hosted or linked authority](/docs/certificate-manager/getting-started) and are running a local [ACME Registration Authority](/docs/registration-authorities/acme-for-certificate-manager). 
+
 
 ## Overview
 
@@ -50,7 +51,7 @@ To connect to smallstep, you need to point the client to the right [ACME Directo
 * [Python](#python)
 * [Traefik](#traefik)
 
-### ACME and `step-ca` Recap
+### ACME and open source `step-ca` Recap
 
 A single instance of `step-ca` can have multiple ACME provisioners, each with their own ACME Directory URL that looks like:
 
