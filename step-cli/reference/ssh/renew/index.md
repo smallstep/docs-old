@@ -20,7 +20,7 @@ step ssh renew <ssh-cert> <ssh-key>
 
 ## Description
 
-**step ssh renew** command renews an SSH Cerfificate
+**step ssh renew** command renews an SSH Certificate
 using [step certificates](https://github.com/smallstep/certificates).
 It writes the new certificate to disk - either overwriting `ssh-cert` or
 using a new file when the **--out**=`file` flag is used.
