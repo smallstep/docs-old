@@ -70,11 +70,12 @@ Use the following command as a template for adding an OIDC provisioner.
 
 This command requires Administrator privileges on the Authority. The terminal will prompt you to enter your email and perform a single sign-on flow via the smallstep dashboard. 
 
-<CodeBlock language="shell-session" 
-{No admin credentials found. You must login to execute admin commands.
+<CodeBlock language="shell-session" >
+{`No admin credentials found. You must login to execute admin commands.
 ✔ Please enter admin name/subject (e.g., name@example.com): authority-admin@yourco.com
 ✔ Provisioner: authority-admin (OIDC) [client: 4b5c5791-8103-4817-8bb7]
-Your default web browser has been opened to visit:}
+Your default web browser has been opened to visit:`}
+</CodeBlock>
 
 Upon completion, your OIDC provisioner will be created and show up in your smallstep dashboard authority detail page. 
 
@@ -136,9 +137,8 @@ https://yourco.okta.com/oauth2/v1/authorize?client_id...
   
 ✔ CA: CA URL
 ✔ Certificate: foo.crt
-✔ Private Key: foo.key}
+✔ Private Key: foo.key`}
 </CodeBlock>
-
 
 ### Try it today
 
