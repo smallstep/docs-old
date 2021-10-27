@@ -4,36 +4,37 @@ html_title: Smallstep Certificate Manager single sign-on certificates for humans
 description: Connect your IDP to Smallstep Certificate Manager and issue certificates to your developers. 
 ---
 
-User certificates unlock mTLS between developers and APIs, VPNs, Databases, and more.
-Connecting single sign-on to certificate issuance provides a layer of strong authentication from your existing identity provider (IDP) using tools familiar to your team.
-Administrators can use this strong authentication to get certificates with any name or SAN unlocking human approval workflows for security teams. 
-Certificate Manager supports single sign-on with identity providers including Google, Okta, Azure Active Directory, Keycloak, or any other provider that supports OAuth's [OpenID Connect extension](https://openid.net/connect/).
+User certificates enable mutual TLS authentication between humans and APIs, VPNs, databases, and more.
+Add single sign-on to to the mix, and you get a layer of strong authentication from your existing identity provider (IdP), using tools familiar to your team.
+It works for designated admininistrators, too: Admins can get certificates with any name or SAN, simplifying human approval workflows for security teams. 
+
+Certificate Manager supports any OAuth [OpenID connect](https://openid.net/connect/) IdP for single sign-on, including Google, Okta, Azure Active Directory, and Keycloak.
 
 ### Connect your identity provider to Certificate Manager in a few steps
-1. Create an OIDC application integration with your IDP.
-2. Add an OIDC provisioner to your Smallstep Authority.
-3. Enable self-service single sign-on certificates. 
+1. Create an OIDC application integration with your IdP
+2. Add an OIDC provisioner to your Smallstep Authority
+3. Enable self-service single sign-on certificates
 4. Add a Provisioner Admin who can issue custom certificates (optional)
-
 
 ### Requirements
 - This documentation assumes you have initialized and started up a Certificate Manager Authority using the steps in [Getting Started](/docs/certificate-manager/getting-started).
 - Administrator privileges on your Smallstep Authority
 - IDP privileges capable of creating a new OIDC application integration and assigning users to the integration. 
 
-### Step 1 - Create an OIDC application integration with our IDP. 
+### Step 1 - Create an OIDC application integration with your IdP. 
 OpenID Connect is an extension to OAuth 2.0 that adds an identity layer.
 Providers that support OIDC can issue identity tokens ("ID tokens") to OAuth clients.
 These are JSON Web Tokens (JWTs) containing user identity information (eg. full name, username, email address).
-Like certificates, OIDC tokens have a validity period and are cryptographically signed by a trust authority (the OAuth provider).
+Like certificates, OIDC tokens have a validity period and are cryptographically signed by a trust authority (the IdP).
 
-When configuring your OIDC application in your IDP, be sure to set the following values:
-- Login redirect URIs: `http://127.0.0.1`
-- Use Client Authentication: note the `client ID` and `Client Secret` these values will be used when creating an OIDC provisioner. 
+First, create an OIDC application in your IdP. Be sure to set the following values:
+- Login **Redirect URI**: Specify `http://127.0.0.1`
+- Use Client Authentication: Note the **Client ID** and **Client Secret**, these values will be used when creating an OIDC provisioner in Certificate Manager
+- Look in your application settings or documentation for the OIDC **configuration endpoint URL**. It will end in `/.well-known/openid-configuration`.
 
 <Alert severity="info">
   <div>
-    OKTA requires that you specify a port for the listener. For OKTA, set your Login redirect URI value to `http://127.0.0.1:10000`
+    Some IdPs (such as Okta) require that you specify a port number for the listener. In this case, use a redirect URI value of <code>http://127.0.0.1:10000</code>
   </div>
 </Alert>
 
@@ -46,25 +47,25 @@ Use the following command as a template for adding an OIDC provisioner.
 <CodeBlock language="shell-session" copyText="step beta ca provisioner add [NAME] --type oidc \
   --client-id [YOUR CLIENT ID] \
   --client-secret [YOUR CLIENT SECRET] \
-  --configuration-endpoint {YOUR IDP DOMAIN}/.well-known/openid-configuration">
-{`$ step beta ca provisioner add [NAME] --type oidc \
-  --client-id [YOUR CLIENT ID] \
-  --client-secret [YOUR CLIENT SECRET] \
-  --configuration-endpoint {YOUR IDP DOMAIN}/.well-known/openid-configuration
+  --configuration-endpoint [YOUR IdP CONFIGURATION ENDPOINT]">
+{`$ step beta ca provisioner add [NAME] --type oidc \\
+  --client-id [YOUR CLIENT ID] \\
+  --client-secret [YOUR CLIENT SECRET] \\
+  --configuration-endpoint [YOUR IdP CONFIGURATION ENDPOINT]
 `}
 </CodeBlock>
 
 - **name**: a string used to identify the provider when the CLI is used.
 
-- **clientID**: the client id provided by the identity provider used to initialize the authentication flow.
+- **clientID**: the client id provided by the identity provider. used to initialize the authentication flow.
 
-- **clientSecret**: the shared secret provided by the identity provider; used to get the id token during the OAuth flow. Some identity providers may use an empty string as a secret. In the context of step-ca, the client "secret" is not actually a secret. It is available via the CA's /provisioners configuration endpoint because every step client needs to use it locally.
+- **clientSecret**: the shared secret provided by the identity provider. Some identity providers may use an empty string as a secret. In the context of Certificate Manager, the "client secret" is not actually a secret. Every `step` client needs to use it to initiate the SSO flow.
 
-- **configurationEndpoint**: is the HTTP address used by the CA to get the OpenID Connect configuration and public keys used to validate the tokens.
+- **configurationEndpoint**: the endpoint used by the CA to discover the OpenID Connect configuration and public keys used to validate the tokens.
 
 <Alert severity="info">
   <div>
-    OKTA requires that you specify a port for the listener. You will need to add the following flag to the provisioner add command `--listen-address 127.0.0.1:10000`
+    For Okta and other IdPs that require you to specify a port for the listener, add the following flag to the provisioner add command: <code>--listen-address 127.0.0.1:10000</code>
   </div>
 </Alert>
 
@@ -77,8 +78,8 @@ This command requires Administrator privileges on the Authority. The terminal wi
 Your default web browser has been opened to visit:`}
 </CodeBlock>
 
-Upon completion, your OIDC provisioner will be created and show up in your smallstep dashboard authority detail page. 
-
+Upon completion, your OIDC provisioner will be created.
+It will appear on your smallstep dashboard authority detail page. 
 
 ### Step 3 - Enable self-service single sign-on certificates. 
 From the user's perspective, when requesting a certificate, `step` detects the OIDC provisioner and initiates the OAuth login flow automatically:
@@ -110,11 +111,14 @@ Valid from:  2019-06-20T18:21:52Z
 </CodeBlock>
 
 
-### 4. Add a Provisioner Admin who can issue custom certificates (optional)
+### 4. Authorize a Provisioner Admin who can issue custom certificates (optional)
+
 By default, an Authority will map the email address in the IDP identity token to a SAN in the certificate.
-If a user tries to get a certificate with a name that does not match the email address in the IDP identity token, the request will fail.
-Provisioner Admins can override this default behavior and get a certificate with any name. 
-To add a Provisioner Admin you will need to update the provisioner you created in step 2. 
+If a user tries to get a certificate with a name that does not match the email address in the IDP identity token,
+the request will fail.
+
+Provisioner Admins can override this default behavior and issue a certificate with any SANs. 
+To add a Provisioner Admin, update the provisioner you created in step 2:
 
 <CodeBlock
   language="shell-session"
@@ -123,24 +127,28 @@ To add a Provisioner Admin you will need to update the provisioner you created i
 {`$ step beta ca provisioner update [name] --admin=[admin-email]`}
 </CodeBlock>
 
-Once updated, the provisioner admin can use the single sign-on workflow to create a certificate with any SAN
+The admin email address should match the address they use to sign in on the IdP.
+Use the `--admin` flag multiple times to add multiple administrators.
+
+Once updated, the provisioner admins can use the single sign-on workflow to create a certificate with any SAN:
 
 <CodeBlock
   language="shell-session"
   copyText="step ca certificate foo foo.crt foo.key"
 >
-{`$ step ca certificate foo foo.crt foo.key
+{`$ step ca certificate example.com example.crt example.key
  
 ✔ Provisioner: okta (OIDC) [client: 0oacyaoh7tDcyYUbL357]
 Your default web browser has been opened to visit:
 https://yourco.okta.com/oauth2/v1/authorize?client_id...
   
 ✔ CA: CA URL
-✔ Certificate: foo.crt
-✔ Private Key: foo.key`}
+✔ Certificate: example.crt
+✔ Private Key: example.key`}
 </CodeBlock>
 
 ### Try it today
 
 Create a [Smallstep account](https://smallstep.com/signup?product=cm) and start issuing self-serve single sign-on certificates to all your developers. 
-Prefer a human? [Schedule time](https://smallstep.com/request-demo) to talk with Smallstep. 
+
+Prefer speaking to a human? [Schedule time](https://smallstep.com/request-demo) to talk with Smallstep. 
